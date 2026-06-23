@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED = ["/dashboard", "/rak", "/log", "/review", "/profil"];
+// /review/[slug] is public — only protect the auth-required sub-pages
+const PROTECTED = ["/dashboard", "/rak", "/log", "/profil", "/review/tulis"];
+const PROTECTED_EXACT = ["/review"];
 const AUTH_ONLY = ["/masuk", "/daftar", "/bergabung"];
 
 export async function proxy(req: NextRequest) {
@@ -29,7 +31,9 @@ export async function proxy(req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
   const pathname = req.nextUrl.pathname;
 
-  const isProtected = PROTECTED.some((p) => pathname.startsWith(p));
+  const isProtected =
+    PROTECTED.some((p) => pathname.startsWith(p)) ||
+    PROTECTED_EXACT.some((p) => pathname === p);
   const isAuthPage = AUTH_ONLY.some((p) => pathname.startsWith(p));
 
   if (isProtected && !session) {
