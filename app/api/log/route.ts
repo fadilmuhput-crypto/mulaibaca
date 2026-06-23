@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
-import { getSession } from "@/lib/session";
+import { createRouteClient } from "@/lib/supabase-route";
 
-export async function GET() {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+async function getAuth(req: NextRequest) {
+  const supabase = createRouteClient(req);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: member } = await supabase
+    .from("members").select("id, family_id").eq("auth_user_id", user.id).maybeSingle();
+  if (!member) return null;
+  return { supabase, memberId: member.id as string, familyId: member.family_id as string };
+}
 
-  const supabase = await createClient();
+export async function GET(req: NextRequest) {
+  const auth = await getAuth(req);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { supabase, memberId } = auth;
+
   const today = new Date().toISOString().split("T")[0];
-
   const { data, error } = await supabase
     .from("reading_logs")
     .select("*, shelf_items(*, books(title, cover_url, author))")
-    .eq("member_id", session.memberId)
+    .eq("member_id", memberId)
     .gte("log_date", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
     .order("log_date", { ascending: false });
 
@@ -21,8 +29,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getAuth(req);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { supabase, memberId } = auth;
 
   const { shelfItemId, pagesRead, durationMinutes, note, logDate } = await req.json();
 
@@ -30,10 +39,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
   }
 
-  const supabase = await createClient();
   const date = logDate ?? new Date().toISOString().split("T")[0];
 
-  // Check if log already exists for this book today (upsert)
   const { data: existing } = await supabase
     .from("reading_logs")
     .select("id, pages_read")
@@ -43,12 +50,10 @@ export async function POST(req: NextRequest) {
 
   let log;
   if (existing) {
-    // Update existing log: add pages
-    const newPages = (existing.pages_read ?? 0) + pagesRead;
     const { data, error } = await supabase
       .from("reading_logs")
       .update({
-        pages_read: newPages,
+        pages_read: (existing.pages_read ?? 0) + pagesRead,
         duration_minutes: durationMinutes ?? null,
         note: note ?? null,
       })
@@ -62,7 +67,7 @@ export async function POST(req: NextRequest) {
       .from("reading_logs")
       .insert({
         shelf_item_id: shelfItemId,
-        member_id: session.memberId,
+        member_id: memberId,
         log_date: date,
         pages_read: pagesRead,
         duration_minutes: durationMinutes ?? null,
@@ -74,13 +79,8 @@ export async function POST(req: NextRequest) {
     log = data;
   }
 
-  // Update current_page on shelf item
   const { data: shelf } = await supabase
-    .from("shelf_items")
-    .select("current_page")
-    .eq("id", shelfItemId)
-    .single();
-
+    .from("shelf_items").select("current_page").eq("id", shelfItemId).single();
   if (shelf) {
     await supabase
       .from("shelf_items")
@@ -88,12 +88,8 @@ export async function POST(req: NextRequest) {
       .eq("id", shelfItemId);
   }
 
-  // Fetch updated streak
   const { data: streak } = await supabase
-    .from("streaks")
-    .select("current_streak, longest_streak")
-    .eq("member_id", session.memberId)
-    .maybeSingle();
+    .from("streaks").select("current_streak, longest_streak").eq("member_id", memberId).maybeSingle();
 
   return NextResponse.json({ log, streak }, { status: 201 });
 }

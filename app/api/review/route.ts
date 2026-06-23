@@ -1,47 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
-import { getSession } from "@/lib/session";
+import { createRouteClient } from "@/lib/supabase-route";
+
+async function getAuth(req: NextRequest) {
+  const supabase = createRouteClient(req);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: member } = await supabase
+    .from("members").select("id, family_id, name").eq("auth_user_id", user.id).maybeSingle();
+  if (!member) return null;
+  return { supabase, memberId: member.id as string, familyId: member.family_id as string, memberName: member.name as string };
+}
 
 function toSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .slice(0, 60);
+  return text.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 60);
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getAuth(req);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { supabase, memberId, familyId, memberName } = auth;
 
   const { shelfItemId, rating, qAbout, qMemorable, qForWhom, isPublic } = await req.json();
+  if (!shelfItemId || !rating) return NextResponse.json({ error: "Rating wajib diisi" }, { status: 400 });
 
-  if (!shelfItemId || !rating) {
-    return NextResponse.json({ error: "Rating wajib diisi" }, { status: 400 });
-  }
-
-  const supabase = await createClient();
-
-  // Get book title for slug
   const { data: shelf } = await supabase
-    .from("shelf_items")
-    .select("book_id, books(title)")
-    .eq("id", shelfItemId)
-    .single();
+    .from("shelf_items").select("book_id, books(title)").eq("id", shelfItemId).single();
 
   const bookTitle = (shelf?.books as unknown as { title: string } | null)?.title ?? "buku";
-  const baseSlug = toSlug(`${session.memberName}-${bookTitle}`);
-  const suffix = Math.random().toString(36).slice(2, 6);
-  const slug = `${baseSlug}-${suffix}`;
+  const slug = `${toSlug(`${memberName}-${bookTitle}`)}-${Math.random().toString(36).slice(2, 6)}`;
 
   const { data, error } = await supabase
     .from("reviews")
     .upsert(
       {
         shelf_item_id: shelfItemId,
-        member_id: session.memberId,
-        family_id: session.familyId,
+        member_id: memberId,
+        family_id: familyId,
         rating,
         q_about: qAbout || null,
         q_memorable: qMemorable || null,
@@ -59,23 +53,21 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data, { status: 201 });
 }
 
-export async function GET() {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(req: NextRequest) {
+  const auth = await getAuth(req);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { supabase, memberId } = auth;
 
-  const supabase = await createClient();
-
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select("*, shelf_items(*, books(title, author, cover_url))")
-    .eq("member_id", session.memberId)
-    .order("published_at", { ascending: false });
-
-  const { data: doneShelf } = await supabase
-    .from("shelf_items")
-    .select("id, books(title, author, cover_url)")
-    .eq("member_id", session.memberId)
-    .eq("status", "done");
+  const [{ data: reviews }, { data: doneShelf }] = await Promise.all([
+    supabase.from("reviews")
+      .select("*, shelf_items(*, books(title, author, cover_url))")
+      .eq("member_id", memberId)
+      .order("published_at", { ascending: false }),
+    supabase.from("shelf_items")
+      .select("id, books(title, author, cover_url)")
+      .eq("member_id", memberId)
+      .eq("status", "done"),
+  ]);
 
   return NextResponse.json({ reviews: reviews ?? [], doneShelf: doneShelf ?? [] });
 }

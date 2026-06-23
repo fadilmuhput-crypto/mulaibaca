@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
+import { createRouteClient } from "@/lib/supabase-route";
 
 export async function POST(req: NextRequest) {
   const { familyName, memberName, memberAvatar } = await req.json();
@@ -8,14 +8,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const res = NextResponse.json({ success: false });
+  const supabase = createRouteClient(req, res);
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Belum login" }, { status: 401 });
   }
 
-  // Check: user already has a member profile
   const { data: existing } = await supabase
     .from("members")
     .select("id")
@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Akun sudah terdaftar dalam keluarga" }, { status: 409 });
   }
 
-  // Create family
   const { data: family, error: familyErr } = await supabase
     .from("families")
     .insert({ name: familyName })
@@ -39,7 +38,6 @@ export async function POST(req: NextRequest) {
     }, { status: 500 });
   }
 
-  // Create admin member
   const { data: member, error: memberErr } = await supabase
     .from("members")
     .insert({
@@ -55,7 +53,6 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (memberErr || !member) {
-    // Rollback family
     await supabase.from("families").delete().eq("id", family.id);
     return NextResponse.json({
       error: `Gagal membuat profil: ${memberErr?.message ?? "unknown"}`,
