@@ -44,11 +44,12 @@ export default function DaftarPage() {
 
       const res = await fetch("/api/daftar", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authData.session.access_token}`,
-        },
-        body: JSON.stringify({ username }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          accessToken: authData.session.access_token,
+          refreshToken: authData.session.refresh_token,
+        }),
       });
 
       const data = await res.json();

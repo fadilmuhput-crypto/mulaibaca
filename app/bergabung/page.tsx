@@ -40,11 +40,13 @@ export default function BergabungPage() {
 
       const res = await fetch("/api/bergabung", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authData.session.access_token}`,
-        },
-        body: JSON.stringify({ inviteCode, username }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inviteCode,
+          username,
+          accessToken: authData.session.access_token,
+          refreshToken: authData.session.refresh_token,
+        }),
       });
 
       const data = await res.json();

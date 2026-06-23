@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteClient } from "@/lib/supabase-route";
+import { createSessionClient } from "@/lib/supabase-route";
 
 export async function POST(req: NextRequest) {
-  const { username } = await req.json();
+  const { username, accessToken, refreshToken } = await req.json();
 
   if (!username?.trim()) {
     return NextResponse.json({ error: "Username tidak boleh kosong" }, { status: 400 });
   }
+  if (!accessToken || !refreshToken) {
+    return NextResponse.json({ error: "Sesi tidak valid" }, { status: 401 });
+  }
 
-  const supabase = createRouteClient(req);
+  const supabase = await createSessionClient(accessToken, refreshToken);
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

@@ -2,20 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
-// For routes called right after signUp — pass access_token in Authorization header
 export function createRouteClient(req: NextRequest, res?: NextResponse) {
-  const authHeader = req.headers.get("Authorization");
-
-  // If Authorization header present, use it directly (avoids cookie timing issues)
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.slice(7);
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { global: { headers: { Authorization: `Bearer ${token}` } } }
-    ) as ReturnType<typeof createServerClient>;
-  }
-
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,4 +19,14 @@ export function createRouteClient(req: NextRequest, res?: NextResponse) {
       },
     }
   );
+}
+
+// Use when access_token + refresh_token are passed in request body (right after signUp)
+export async function createSessionClient(accessToken: string, refreshToken: string) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+  await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+  return supabase;
 }
