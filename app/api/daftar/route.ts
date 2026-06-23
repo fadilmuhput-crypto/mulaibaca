@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (familyErr || !family) {
-    return NextResponse.json({ error: "Gagal membuat ruang keluarga" }, { status: 500 });
+    return NextResponse.json({
+      error: `Gagal membuat ruang keluarga: ${familyErr?.message ?? "unknown"} (code: ${familyErr?.code ?? "-"})`,
+    }, { status: 500 });
   }
 
   // Create admin member
@@ -38,7 +40,9 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (memberErr || !member) {
-    return NextResponse.json({ error: "Gagal membuat profil" }, { status: 500 });
+    return NextResponse.json({
+      error: `Gagal membuat profil: ${memberErr?.message ?? "unknown"} (code: ${memberErr?.code ?? "-"})`,
+    }, { status: 500 });
   }
 
   const session = {
