@@ -25,17 +25,18 @@ export async function proxy(req: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // getSession reads cookies directly — no network call, safe for edge/proxy
+  const { data: { session } } = await supabase.auth.getSession();
   const pathname = req.nextUrl.pathname;
 
   const isProtected = PROTECTED.some((p) => pathname.startsWith(p));
   const isAuthPage = AUTH_ONLY.some((p) => pathname.startsWith(p));
 
-  if (isProtected && !user) {
+  if (isProtected && !session) {
     return NextResponse.redirect(new URL("/masuk", req.url));
   }
 
-  if (isAuthPage && user) {
+  if (isAuthPage && session) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
