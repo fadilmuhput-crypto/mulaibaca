@@ -2,20 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient } from "@/lib/supabase-route";
 
 export async function POST(req: NextRequest) {
-  const { familyName, memberName, memberAvatar } = await req.json();
+  const { username } = await req.json();
 
-  if (!familyName || !memberName) {
-    return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
+  if (!username?.trim()) {
+    return NextResponse.json({ error: "Username tidak boleh kosong" }, { status: 400 });
   }
 
-  const res = NextResponse.json({ success: false });
-  const supabase = createRouteClient(req, res);
+  const supabase = createRouteClient(req);
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Belum login" }, { status: 401 });
   }
 
+  // Cegah duplikat
   const { data: existing } = await supabase
     .from("members")
     .select("id")
@@ -26,9 +26,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Akun sudah terdaftar dalam keluarga" }, { status: 409 });
   }
 
+  // Auto-create family
   const { data: family, error: familyErr } = await supabase
     .from("families")
-    .insert({ name: familyName })
+    .insert({ name: `Keluarga ${username.trim()}` })
     .select()
     .single();
 
@@ -38,12 +39,13 @@ export async function POST(req: NextRequest) {
     }, { status: 500 });
   }
 
+  // Create admin member
   const { data: member, error: memberErr } = await supabase
     .from("members")
     .insert({
       family_id: family.id,
-      name: memberName,
-      avatar: memberAvatar || "📖",
+      name: username.trim(),
+      avatar: "📖",
       pin_hash: "",
       role: "admin",
       auth_user_id: user.id,

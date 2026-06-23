@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient } from "@/lib/supabase-route";
 
 export async function POST(req: NextRequest) {
-  const { inviteCode, memberName, memberAvatar } = await req.json();
+  const { inviteCode, username } = await req.json();
+  const memberName = username?.trim();
 
   if (!inviteCode || !memberName) {
     return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
     .insert({
       family_id: family.id,
       name: memberName,
-      avatar: memberAvatar || "📖",
+      avatar: "📖",
       pin_hash: "",
       role: "member",
       auth_user_id: user.id,
