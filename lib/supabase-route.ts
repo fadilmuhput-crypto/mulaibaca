@@ -21,12 +21,11 @@ export function createRouteClient(req: NextRequest, res?: NextResponse) {
   );
 }
 
-// Use when access_token + refresh_token are passed in request body (right after signUp)
-export async function createSessionClient(accessToken: string, refreshToken: string) {
-  const supabase = createClient(
+// Admin client — bypasses RLS, only use in server-side API routes with explicit auth checks
+export function createAdminClient() {
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
   );
-  await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-  return supabase;
 }

@@ -1,24 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSessionClient } from "@/lib/supabase-route";
+import { createAdminClient } from "@/lib/supabase-route";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
-  const { username, accessToken, refreshToken } = await req.json();
+  const { username, accessToken } = await req.json();
 
   if (!username?.trim()) {
     return NextResponse.json({ error: "Username tidak boleh kosong" }, { status: 400 });
   }
-  if (!accessToken || !refreshToken) {
+  if (!accessToken) {
     return NextResponse.json({ error: "Sesi tidak valid" }, { status: 401 });
   }
 
-  const supabase = await createSessionClient(accessToken, refreshToken);
-  const { data: { user } } = await supabase.auth.getUser();
+  // Verify user identity from their token (anon client)
+  const anonClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${accessToken}` } } }
+  );
+  const { data: { user } } = await anonClient.auth.getUser(accessToken);
 
   if (!user) {
     return NextResponse.json({ error: "Belum login" }, { status: 401 });
   }
 
-  // Cegah duplikat
+  // Use admin client to bypass RLS for insert
+  const supabase = createAdminClient();
+
   const { data: existing } = await supabase
     .from("members")
     .select("id")
@@ -29,7 +37,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Akun sudah terdaftar dalam keluarga" }, { status: 409 });
   }
 
-  // Auto-create family
   const { data: family, error: familyErr } = await supabase
     .from("families")
     .insert({ name: `Keluarga ${username.trim()}` })
@@ -42,7 +49,6 @@ export async function POST(req: NextRequest) {
     }, { status: 500 });
   }
 
-  // Create admin member
   const { data: member, error: memberErr } = await supabase
     .from("members")
     .insert({

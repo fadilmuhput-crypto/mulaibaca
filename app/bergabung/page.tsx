@@ -45,7 +45,6 @@ export default function BergabungPage() {
           inviteCode,
           username,
           accessToken: authData.session.access_token,
-          refreshToken: authData.session.refresh_token,
         }),
       });
 

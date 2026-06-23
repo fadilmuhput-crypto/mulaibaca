@@ -48,7 +48,6 @@ export default function DaftarPage() {
         body: JSON.stringify({
           username,
           accessToken: authData.session.access_token,
-          refreshToken: authData.session.refresh_token,
         }),
       });
 
