@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import BookCover from "@/components/BookCover";
 
 type Book = {
   title: string;
@@ -127,13 +128,7 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
                 className="bg-surface rounded-2xl border border-border p-3"
               >
                 <div className="flex gap-3">
-                  <div className="w-12 h-16 rounded-lg overflow-hidden bg-cream flex-shrink-0">
-                    {book.cover_url ? (
-                      <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">📗</div>
-                    )}
-                  </div>
+                  <BookCover src={book.cover_url} title={book.title} />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-ink text-sm">{book.title}</p>
                     {book.author && (

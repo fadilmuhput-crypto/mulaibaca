@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED = ["/dashboard", "/rak", "/log", "/review"];
+const PROTECTED = ["/dashboard", "/rak", "/log", "/review", "/profil"];
 const AUTH_ONLY = ["/masuk", "/daftar", "/bergabung"];
 
 export async function proxy(req: NextRequest) {

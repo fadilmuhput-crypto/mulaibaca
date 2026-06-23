@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import NavBar from "@/components/NavBar";
 import EmailVerifyBanner from "@/components/EmailVerifyBanner";
+import BookCover from "@/components/BookCover";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -90,13 +91,7 @@ export default async function DashboardPage() {
                     href={`/rak`}
                     className="flex gap-3 bg-surface rounded-2xl border border-border p-3 hover:border-amber/50 transition-colors"
                   >
-                    <div className="w-12 h-16 rounded-lg overflow-hidden bg-cream flex-shrink-0">
-                      {book.cover_url ? (
-                        <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl">📗</div>
-                      )}
-                    </div>
+                    <BookCover src={book.cover_url} title={book.title} />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-ink text-sm truncate">{book.title}</p>
                       {book.author && (
