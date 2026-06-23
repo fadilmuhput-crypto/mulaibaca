@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 const PROTECTED = ["/dashboard", "/rak", "/log", "/review"];
 const AUTH_ONLY = ["/masuk", "/daftar", "/bergabung"];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const res = NextResponse.next({
     request: { headers: req.headers },
   });

@@ -9,7 +9,7 @@ const AVATARS = ["📖", "🌱", "🦋", "🌟", "🎯", "🦉", "🐻", "🌈"]
 
 export default function DaftarPage() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | "verify">(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [familyName, setFamilyName] = useState("");
@@ -21,25 +21,27 @@ export default function DaftarPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (password.length < 8) {
-      setError("Password minimal 8 karakter");
-      return;
-    }
     setLoading(true);
     try {
       const supabase = createClient();
 
-      // 1. Sign up with Supabase Auth
       const { data: authData, error: authErr } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${location.origin}/auth/callback` },
+        options: { emailRedirectTo: `${location.origin}/auth/callback?next=/setup-profil` },
       });
 
       if (authErr) throw new Error(authErr.message);
       if (!authData.user) throw new Error("Gagal membuat akun");
 
-      // 2. Create family + member via API
+      // Email confirmation required — session belum ada
+      if (!authData.session) {
+        setStep("verify");
+        setLoading(false);
+        return;
+      }
+
+      // Email confirmation OFF — langsung buat keluarga
       const res = await fetch("/api/daftar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,6 +60,29 @@ export default function DaftarPage() {
     }
   }
 
+  // Email terkirim — tunggu verifikasi
+  if (step === "verify") {
+    return (
+      <div className="min-h-screen bg-parchment flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="text-6xl mb-4">📬</div>
+          <h1 className="text-2xl font-display font-bold text-ink mb-2">Cek emailmu</h1>
+          <p className="text-ink-secondary mb-1">Kami mengirim link verifikasi ke</p>
+          <p className="font-medium text-ink mb-6">{email}</p>
+          <p className="text-ink-muted text-sm mb-8">
+            Klik link di email untuk melanjutkan pendaftaran. Setelah itu kamu akan diminta mengisi nama dan membuat ruang keluarga.
+          </p>
+          <button
+            onClick={() => setStep(1)}
+            className="text-sm text-amber hover:text-amber-hover"
+          >
+            ← Kembali / ganti email
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-parchment flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
@@ -69,10 +94,9 @@ export default function DaftarPage() {
         </div>
 
         <div className="bg-surface rounded-2xl border border-border p-8 shadow-sm">
-          {/* Step indicator */}
           <div className="flex items-center gap-3 mb-8">
             <div className={`flex-1 h-1 rounded-full ${step >= 1 ? "bg-amber" : "bg-border"}`} />
-            <div className={`flex-1 h-1 rounded-full ${step >= 2 ? "bg-amber" : "bg-border"}`} />
+            <div className={`flex-1 h-1 rounded-full ${step === 2 ? "bg-amber" : "bg-border"}`} />
           </div>
 
           {step === 1 && (
