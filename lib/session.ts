@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase-server";
 export type Session = {
   userId: string;
   email: string;
+  emailVerified: boolean;
   familyId: string;
   familyName: string;
   inviteCode: string;
@@ -30,6 +31,7 @@ export async function getSession(): Promise<Session | null> {
   return {
     userId: user.id,
     email: user.email ?? "",
+    emailVerified: !!user.email_confirmed_at,
     familyId: member.family_id,
     familyName: family?.name ?? "",
     inviteCode: family?.invite_code ?? "",

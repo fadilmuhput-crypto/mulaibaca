@@ -32,7 +32,13 @@ export default function BergabungPage() {
         options: { emailRedirectTo: `${location.origin}/auth/callback` },
       });
 
-      if (authErr) throw new Error(authErr.message);
+      if (authErr) {
+        if (authErr.message.toLowerCase().includes("already registered") ||
+            authErr.message.toLowerCase().includes("already exists")) {
+          throw new Error("Email ini sudah terdaftar. Coba masuk atau gunakan email lain.");
+        }
+        throw new Error(authErr.message);
+      }
       if (!authData.user) throw new Error("Gagal membuat akun");
 
       // 2. Join family

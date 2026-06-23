@@ -31,7 +31,13 @@ export default function DaftarPage() {
         options: { emailRedirectTo: `${location.origin}/auth/callback?next=/setup-profil` },
       });
 
-      if (authErr) throw new Error(authErr.message);
+      if (authErr) {
+        if (authErr.message.toLowerCase().includes("already registered") ||
+            authErr.message.toLowerCase().includes("already exists")) {
+          throw new Error("Email ini sudah terdaftar. Coba masuk atau gunakan email lain.");
+        }
+        throw new Error(authErr.message);
+      }
       if (!authData.user) throw new Error("Gagal membuat akun");
 
       // Email confirmation required — session belum ada

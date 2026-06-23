@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import NavBar from "@/components/NavBar";
+import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -172,6 +173,11 @@ export default async function DashboardPage() {
               {session.inviteCode}
             </p>
           </section>
+        )}
+
+        {/* Email verification status */}
+        {!session.emailVerified && (
+          <EmailVerifyBanner email={session.email} />
         )}
       </main>
     </div>
