@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { createClient } from "@/lib/supabase";
+import { createApiClient as createClient } from "@/lib/supabase-api";
 import { buildSetCookieHeader } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
