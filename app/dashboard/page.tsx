@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const supabase = await createClient();
 
-  const [{ data: shelf }, { data: familyMembers }, { data: streaks }] = await Promise.all([
+  const [{ data: shelf }, { data: familyMembers }, { data: streaks }, { data: family }] = await Promise.all([
     supabase
       .from("shelf_items")
       .select("*, books(*)")
@@ -27,6 +27,11 @@ export default async function DashboardPage() {
       .select("*")
       .eq("member_id", session.memberId)
       .maybeSingle(),
+    supabase
+      .from("families")
+      .select("invite_code")
+      .eq("id", session.familyId)
+      .single(),
   ]);
 
   const currentStreak = streaks?.current_streak ?? 0;
@@ -158,6 +163,21 @@ export default async function DashboardPage() {
             <span className="font-medium text-sm">Catat Bacaan</span>
           </Link>
         </section>
+
+        {/* Invite code */}
+        {family?.invite_code && (
+          <section className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
+            <p className="text-xs font-semibold text-amber uppercase tracking-wide mb-1">
+              Kode undangan keluarga
+            </p>
+            <p className="text-ink-muted text-xs mb-2">
+              Bagikan kode ini agar anggota keluarga bisa masuk
+            </p>
+            <p className="font-mono text-2xl font-bold text-ink tracking-widest uppercase">
+              {family.invite_code}
+            </p>
+          </section>
+        )}
       </main>
     </div>
   );

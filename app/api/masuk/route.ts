@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createApiClient as createClient } from "@/lib/supabase-api";
-import { buildSetCookieHeader } from "@/lib/session";
+import { buildSetCookieHeaders } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
   const { memberId, pin } = await req.json();
@@ -36,11 +36,7 @@ export async function POST(req: NextRequest) {
     memberRole: member.role as "admin" | "member",
   };
 
-  return NextResponse.json(
-    { success: true },
-    {
-      status: 200,
-      headers: { "Set-Cookie": buildSetCookieHeader(session) },
-    }
-  );
+  const res = NextResponse.json({ success: true }, { status: 200 });
+  buildSetCookieHeaders(session).forEach((c) => res.headers.append("Set-Cookie", c));
+  return res;
 }
