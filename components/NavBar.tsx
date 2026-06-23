@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { Session } from "@/lib/types";
+import type { Session } from "@/lib/session";
+import { createClient } from "@/lib/supabase";
 
 const NAV = [
   { href: "/dashboard", label: "Beranda", icon: "🏠" },
@@ -16,8 +17,9 @@ export default function NavBar({ session }: { session: Session }) {
   const router = useRouter();
 
   async function handleLogout() {
-    await fetch("/api/keluar", { method: "POST" });
-    router.push("/");
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/masuk");
     router.refresh();
   }
 

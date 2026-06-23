@@ -7,12 +7,12 @@ import { createClient } from "@/lib/supabase";
 
 const AVATARS = ["📖", "🌱", "🦋", "🌟", "🎯", "🦉", "🐻", "🌈"];
 
-export default function DaftarPage() {
+export default function BergabungPage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [familyName, setFamilyName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [memberName, setMemberName] = useState("");
   const [avatar, setAvatar] = useState("📖");
   const [loading, setLoading] = useState(false);
@@ -21,15 +21,11 @@ export default function DaftarPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (password.length < 8) {
-      setError("Password minimal 8 karakter");
-      return;
-    }
     setLoading(true);
     try {
       const supabase = createClient();
 
-      // 1. Sign up with Supabase Auth
+      // 1. Sign up
       const { data: authData, error: authErr } = await supabase.auth.signUp({
         email,
         password,
@@ -39,11 +35,11 @@ export default function DaftarPage() {
       if (authErr) throw new Error(authErr.message);
       if (!authData.user) throw new Error("Gagal membuat akun");
 
-      // 2. Create family + member via API
-      const res = await fetch("/api/daftar", {
+      // 2. Join family
+      const res = await fetch("/api/bergabung", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ familyName, memberName, memberAvatar: avatar }),
+        body: JSON.stringify({ inviteCode, memberName, memberAvatar: avatar }),
       });
 
       const data = await res.json();
@@ -62,14 +58,11 @@ export default function DaftarPage() {
     <div className="min-h-screen bg-parchment flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-display font-bold text-forest">
-            mulaibaca
-          </Link>
-          <p className="mt-2 text-ink-secondary text-sm">Buat ruang baca keluargamu</p>
+          <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
+          <p className="mt-2 text-ink-secondary text-sm">Bergabung ke ruang baca keluarga</p>
         </div>
 
         <div className="bg-surface rounded-2xl border border-border p-8 shadow-sm">
-          {/* Step indicator */}
           <div className="flex items-center gap-3 mb-8">
             <div className={`flex-1 h-1 rounded-full ${step >= 1 ? "bg-amber" : "bg-border"}`} />
             <div className={`flex-1 h-1 rounded-full ${step >= 2 ? "bg-amber" : "bg-border"}`} />
@@ -78,15 +71,23 @@ export default function DaftarPage() {
           {step === 1 && (
             <div>
               <h1 className="text-xl font-display font-semibold text-ink mb-1">Buat akun</h1>
-              <p className="text-ink-muted text-sm mb-6">Kamu akan jadi admin ruang keluarga</p>
+              <p className="text-ink-muted text-sm mb-6">Masukkan kode undangan dari admin keluargamu</p>
               <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Kode undangan (8 karakter)"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toLowerCase())}
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber font-mono text-center tracking-widest uppercase"
+                  maxLength={8}
+                  autoFocus
+                />
                 <input
                   type="email"
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-                  autoFocus
                 />
                 <input
                   type="password"
@@ -96,8 +97,8 @@ export default function DaftarPage() {
                   className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
                 />
                 <button
-                  onClick={() => email && password.length >= 8 && setStep(2)}
-                  disabled={!email || password.length < 8}
+                  onClick={() => inviteCode.length >= 6 && email && password.length >= 8 && setStep(2)}
+                  disabled={inviteCode.length < 6 || !email || password.length < 8}
                   className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
                 >
                   Lanjut →
@@ -108,8 +109,8 @@ export default function DaftarPage() {
 
           {step === 2 && (
             <form onSubmit={handleSubmit}>
-              <h1 className="text-xl font-display font-semibold text-ink mb-1">Profil & keluarga</h1>
-              <p className="text-ink-muted text-sm mb-6">Siapa kamu dan nama keluargamu?</p>
+              <h1 className="text-xl font-display font-semibold text-ink mb-1">Profil kamu</h1>
+              <p className="text-ink-muted text-sm mb-6">Bagaimana keluargamu mengenalmu?</p>
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-ink-secondary mb-2 block">Pilih avatar</label>
@@ -136,20 +137,13 @@ export default function DaftarPage() {
                   className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
                   autoFocus
                 />
-                <input
-                  type="text"
-                  placeholder="Nama keluarga (cth: Keluarga Putra)"
-                  value={familyName}
-                  onChange={(e) => setFamilyName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-                />
                 {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                 <button
                   type="submit"
-                  disabled={loading || !memberName.trim() || !familyName.trim()}
+                  disabled={loading || !memberName.trim()}
                   className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
                 >
-                  {loading ? "Membuat ruang…" : "Mulai Membaca →"}
+                  {loading ? "Bergabung…" : "Bergabung ke Keluarga →"}
                 </button>
                 <button type="button" onClick={() => setStep(1)} className="w-full py-2 text-sm text-ink-muted hover:text-ink">
                   ← Kembali
@@ -160,12 +154,8 @@ export default function DaftarPage() {
         </div>
 
         <p className="text-center text-sm text-ink-muted mt-6">
-          Sudah punya akun?{" "}
-          <Link href="/masuk" className="text-amber hover:text-amber-hover font-medium">Masuk</Link>
-        </p>
-        <p className="text-center text-sm text-ink-muted mt-2">
-          Punya kode undangan?{" "}
-          <Link href="/bergabung" className="text-amber hover:text-amber-hover font-medium">Bergabung ke keluarga</Link>
+          Belum punya akun keluarga?{" "}
+          <Link href="/daftar" className="text-amber hover:text-amber-hover font-medium">Buat di sini</Link>
         </p>
       </div>
     </div>

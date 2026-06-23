@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 
 export async function POST(req: NextRequest) {
-  const { familyName, memberName, memberAvatar } = await req.json();
+  const { inviteCode, memberName, memberAvatar } = await req.json();
 
-  if (!familyName || !memberName) {
+  if (!inviteCode || !memberName) {
     return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
   }
 
@@ -26,20 +26,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Akun sudah terdaftar dalam keluarga" }, { status: 409 });
   }
 
-  // Create family
+  // Find family by invite code
   const { data: family, error: familyErr } = await supabase
     .from("families")
-    .insert({ name: familyName })
-    .select()
+    .select("*")
+    .eq("invite_code", inviteCode.trim().toLowerCase())
     .single();
 
   if (familyErr || !family) {
-    return NextResponse.json({
-      error: `Gagal membuat ruang keluarga: ${familyErr?.message ?? "unknown"}`,
-    }, { status: 500 });
+    return NextResponse.json({ error: "Kode undangan tidak valid" }, { status: 404 });
   }
 
-  // Create admin member
+  // Create member
   const { data: member, error: memberErr } = await supabase
     .from("members")
     .insert({
@@ -47,7 +45,7 @@ export async function POST(req: NextRequest) {
       name: memberName,
       avatar: memberAvatar || "📖",
       pin_hash: "",
-      role: "admin",
+      role: "member",
       auth_user_id: user.id,
       email: user.email,
     })
@@ -55,12 +53,10 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (memberErr || !member) {
-    // Rollback family
-    await supabase.from("families").delete().eq("id", family.id);
     return NextResponse.json({
-      error: `Gagal membuat profil: ${memberErr?.message ?? "unknown"}`,
+      error: `Gagal bergabung: ${memberErr?.message ?? "unknown"}`,
     }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, inviteCode: family.invite_code });
+  return NextResponse.json({ success: true, familyName: family.name });
 }
