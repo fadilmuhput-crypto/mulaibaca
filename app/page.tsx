@@ -1,18 +1,21 @@
 import Link from "next/link";
-import { BookOpen, Users, Globe, Flame, Sprout } from "lucide-react";
+import { BookOpen, Users, Globe, Flame } from "lucide-react";
 
 const features = [
   {
+    num: "01",
     Icon: BookOpen,
     title: "Track Progres Harian",
-    desc: "Catat halaman yang kamu baca setiap hari. Streak harian bikin kamu semangat tidak berhenti.",
+    desc: "Catat halaman yang kamu baca setiap hari. Streak harian bikin kamu dan keluarga semangat tidak berhenti.",
   },
   {
+    num: "02",
     Icon: Users,
     title: "Satu Keluarga, Satu Platform",
     desc: "Suami, istri, dan anak — semua bisa punya rak buku sendiri dalam satu Family Space.",
   },
   {
+    num: "03",
     Icon: Globe,
     title: "Review yang Menginspirasi",
     desc: "Setiap buku yang selesai, tulis review singkat. Otomatis jadi halaman publik yang bisa dibaca siapa saja.",
@@ -20,88 +23,217 @@ const features = [
 ];
 
 const steps = [
-  { step: "01", title: "Buat Family Space", desc: "Daftarkan keluargamu dalam satu menit. Undang anggota lewat link." },
-  { step: "02", title: "Tambah Buku", desc: "Cari buku yang sedang kamu baca. Atau input manual kalau bukumu langka." },
-  { step: "03", title: "Log Setiap Hari", desc: "Berapa halaman kamu baca hari ini? Cukup 10 detik. Streak-mu terjaga." },
+  { num: "01", title: "Buat Family Space", desc: "Daftarkan keluargamu dalam satu menit. Undang anggota lewat kode undangan." },
+  { num: "02", title: "Tambah Buku", desc: "Cari buku yang sedang kamu baca, atau input manual kalau bukumu langka." },
+  { num: "03", title: "Log Setiap Hari", desc: "Berapa halaman kamu baca hari ini? Cukup 10 detik. Streak-mu terjaga." },
 ];
+
+const INK = "#0C0C0A";
+const FOREST = "#1E4530";
+const AMBER = "#C26E2A";
+const PARCHMENT = "#FAF7F2";
+const LIME = "#BFE040";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FAF7F2" }}>
+    <div className="min-h-dvh" style={{ backgroundColor: PARCHMENT }}>
+
       {/* NAV */}
-      <nav className="sticky top-0 z-40 border-b" style={{ borderColor: "#E0D8CE", backgroundColor: "rgba(250,247,242,0.9)", backdropFilter: "blur(12px)" }}>
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
-          <span className="text-xl font-bold" style={{ fontFamily: "var(--font-display)", color: "#1C2B1E" }}>mulaibaca</span>
-          <div className="flex items-center gap-4">
-            <Link href="/masuk" className="text-sm font-medium" style={{ color: "#4B5B4F" }}>Masuk</Link>
-            <Link href="/daftar" className="rounded-xl px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: "#C17A3E" }}>Mulai Gratis →</Link>
+      <nav style={{
+        borderBottom: `2px solid ${INK}`,
+        backgroundColor: PARCHMENT,
+        position: "sticky", top: 0, zIndex: 40,
+      }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", height: "60px", alignItems: "center", justifyContent: "space-between", padding: "0 1.25rem" }}>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.25rem", color: INK, letterSpacing: "-0.03em" }}>
+            mulaibaca
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <Link href="/masuk" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
+              Masuk
+            </Link>
+            <Link href="/daftar" style={{
+              display: "inline-flex", alignItems: "center",
+              padding: "0.5rem 1rem",
+              backgroundColor: INK, color: PARCHMENT,
+              fontWeight: 700, fontSize: "0.875rem",
+              border: `1.5px solid ${INK}`,
+              borderRadius: "5px",
+              boxShadow: `2px 2px 0 ${FOREST}`,
+              textDecoration: "none",
+            }}>
+              Mulai Gratis →
+            </Link>
           </div>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className="mx-auto max-w-5xl px-6 pb-20 pt-20 text-center md:pt-28">
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold" style={{ borderColor: "#E0D8CE", color: "#8A9B8F" }}>
-          <Sprout size={12} strokeWidth={2} /> Gerakan Literasi Keluarga Indonesia
-        </div>
-        <h1 className="mx-auto max-w-3xl text-[clamp(2.4rem,6vw,4rem)] font-bold leading-[1.08] tracking-tight" style={{ fontFamily: "var(--font-display)", color: "#1C2B1E" }}>
-          Mulai baca.<br />
-          <span style={{ color: "#C17A3E" }}>Bersama keluarga.</span>
-        </h1>
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed" style={{ color: "#4B5B4F" }}>
-          Platform untuk membangun kebiasaan membaca di lingkungan keluarga — tracking harian, review buku yang jadi inspirasi publik, dan streak yang bikin semua anggota keluarga semangat.
-        </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/daftar" className="rounded-xl px-6 py-3 text-base font-bold text-white shadow-sm" style={{ backgroundColor: "#C17A3E" }}>Buat Family Space Gratis →</Link>
-          <Link href="/review" className="rounded-xl border px-6 py-3 text-base font-semibold" style={{ borderColor: "#C4BAB0", color: "#4B5B4F" }}>Lihat contoh review</Link>
-        </div>
-        <p className="mt-5 text-xs" style={{ color: "#8A9B8F" }}>Gratis selamanya untuk 1 keluarga · Tidak perlu kartu kredit</p>
+      <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "clamp(3rem, 8vw, 6rem) 1.25rem 4rem" }}>
 
-        {/* Mini mockup */}
-        <div className="mx-auto mt-16 max-w-sm overflow-hidden rounded-2xl border shadow-xl" style={{ borderColor: "#E0D8CE", backgroundColor: "#fff" }}>
-          <div className="px-5 py-4" style={{ backgroundColor: "#2D5A3D" }}>
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-white" style={{ fontFamily: "var(--font-display)" }}>mulaibaca</span>
-              <span className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>Keluarga Putra</span>
+        {/* Badge */}
+        <div style={{
+          display: "inline-flex", alignItems: "center",
+          padding: "4px 10px",
+          border: `1.5px solid ${INK}`,
+          borderRadius: "3px",
+          fontSize: "0.62rem", fontWeight: 700,
+          letterSpacing: "0.12em", textTransform: "uppercase" as const,
+          color: "#3D4E45",
+          marginBottom: "1.75rem",
+        }}>
+          Gerakan Literasi Keluarga Indonesia
+        </div>
+
+        <div className="lg:grid-cols-[1fr_400px]" style={{ display: "grid", gap: "3rem", alignItems: "start" }}>
+          <div>
+            <h1 style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(3.5rem, 11vw, 7.5rem)",
+              fontWeight: 800,
+              lineHeight: 0.95,
+              letterSpacing: "-0.04em",
+              color: INK,
+              marginBottom: "1.25rem",
+            }}>
+              Mulai<br />
+              baca.<br />
+              <span style={{ color: FOREST, fontStyle: "italic" }}>
+                Bersama<br />keluarga.
+              </span>
+            </h1>
+
+            <div style={{ width: "72px", height: "4px", backgroundColor: AMBER, marginBottom: "1.5rem", borderRadius: "2px" }} />
+
+            <p style={{
+              maxWidth: "480px",
+              fontSize: "1.0625rem",
+              lineHeight: 1.7,
+              color: "#3D4E45",
+              marginBottom: "2rem",
+            }}>
+              Platform untuk membangun kebiasaan membaca di lingkungan keluarga — tracking harian, review buku, dan streak yang bikin semua anggota semangat.
+            </p>
+
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const, marginBottom: "0.875rem" }}>
+              <Link href="/daftar" style={{
+                display: "inline-flex", alignItems: "center",
+                padding: "0.875rem 1.5rem",
+                backgroundColor: AMBER, color: "#fff",
+                fontWeight: 700, fontSize: "1rem",
+                border: `1.5px solid ${INK}`,
+                borderRadius: "6px",
+                boxShadow: `3px 3px 0 ${INK}`,
+                textDecoration: "none",
+              }}>
+                Buat Family Space Gratis →
+              </Link>
+              <Link href="/review" style={{
+                display: "inline-flex", alignItems: "center",
+                padding: "0.875rem 1.5rem",
+                backgroundColor: "transparent", color: INK,
+                fontWeight: 600, fontSize: "1rem",
+                border: `1.5px solid ${INK}`,
+                borderRadius: "6px",
+                textDecoration: "none",
+              }}>
+                Lihat review buku
+              </Link>
             </div>
+            <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>
+              Gratis selamanya · Tidak perlu kartu kredit
+            </p>
           </div>
-          <div className="px-5 py-4">
-            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#8A9B8F" }}>Sedang dibaca</p>
-            <div className="mt-2 flex items-center gap-3">
-              <div className="h-12 w-9 flex-shrink-0 rounded" style={{ background: "linear-gradient(135deg,#1d4ed8,#1e40af)" }} />
-              <div className="flex-1">
-                <p className="text-sm font-bold" style={{ color: "#1C2B1E" }}>Atomic Habits</p>
-                <p className="text-xs" style={{ color: "#8A9B8F" }}>James Clear</p>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: "#E8D5B0" }}>
-                  <div className="h-full rounded-full" style={{ width: "58%", backgroundColor: "#C17A3E" }} />
+
+          {/* App mockup */}
+          <div style={{
+            border: `1.5px solid ${INK}`,
+            borderRadius: "14px",
+            overflow: "hidden",
+            boxShadow: `6px 6px 0 ${INK}`,
+            backgroundColor: "#fff",
+            maxWidth: "380px",
+          }}>
+            <div style={{ padding: "12px 16px", backgroundColor: FOREST, borderBottom: `1.5px solid ${INK}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, color: "#fff", letterSpacing: "-0.025em", fontSize: "0.9375rem" }}>mulaibaca</span>
+                <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.55)" }}>Keluarga Putra</span>
+              </div>
+            </div>
+            <div style={{ padding: "16px" }}>
+              <p style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#7A8E83", marginBottom: "10px" }}>Sedang dibaca</p>
+              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                <div style={{ width: "38px", height: "54px", borderRadius: "4px", background: "linear-gradient(135deg,#1d4ed8,#1e40af)", flexShrink: 0, border: `1px solid ${INK}` }} />
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: "0.875rem", fontWeight: 700, color: INK, lineHeight: 1.3 }}>Atomic Habits</p>
+                  <p style={{ fontSize: "0.72rem", color: "#7A8E83", marginTop: "2px" }}>James Clear</p>
+                  <div style={{ marginTop: "8px", height: "5px", backgroundColor: "#E8D5B0", borderRadius: "2px", overflow: "hidden", border: "1px solid rgba(12,12,10,0.15)" }}>
+                    <div style={{ height: "100%", width: "58%", backgroundColor: AMBER }} />
+                  </div>
+                  <p style={{ fontSize: "0.62rem", color: "#7A8E83", marginTop: "3px" }}>175 / 306 hal · 58%</p>
                 </div>
+                <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#fff", backgroundColor: AMBER, padding: "5px 10px", borderRadius: "4px", border: `1px solid ${INK}`, boxShadow: `1px 1px 0 ${INK}`, flexShrink: 0 }}>+ Log</span>
               </div>
-              <span className="rounded-lg px-3 py-1.5 text-xs font-bold text-white" style={{ backgroundColor: "#C17A3E" }}>+ Log</span>
             </div>
-          </div>
-          <div className="flex border-t px-5 py-3" style={{ borderColor: "#E0D8CE" }}>
-            {[{ name: "Fadil", streak: 12, bg: "#dbeafe" }, { name: "Istri", streak: 8, bg: "#fce7f3" }, { name: "Anak", streak: 5, bg: "#d1fae5" }].map((m) => (
-              <div key={m.name} className="flex flex-1 flex-col items-center gap-1">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold" style={{ backgroundColor: m.bg, color: "#1C2B1E" }}>{m.name[0]}</div>
-                <span className="text-[10px] font-semibold" style={{ color: "#1C2B1E" }}>{m.name}</span>
-                <span className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: "#C17A3E" }}><Flame size={10} strokeWidth={2} />{m.streak}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", padding: "0 16px 12px" }}>
+              <div style={{ backgroundColor: FOREST, borderRadius: "6px", padding: "10px", border: `1px solid ${INK}`, boxShadow: `1px 1px 0 ${INK}` }}>
+                <p style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.55)", marginBottom: "3px", textTransform: "uppercase" as const, letterSpacing: "0.08em", fontWeight: 700 }}>Tambah</p>
+                <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#fff" }}>+ Buku Baru</p>
               </div>
-            ))}
+              <div style={{ backgroundColor: AMBER, borderRadius: "6px", padding: "10px", border: `1px solid ${INK}`, boxShadow: `1px 1px 0 ${INK}` }}>
+                <p style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.65)", marginBottom: "3px", textTransform: "uppercase" as const, letterSpacing: "0.08em", fontWeight: 700 }}>Catat</p>
+                <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#fff" }}>✎ Log Baca</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", borderTop: `1.5px solid ${INK}`, padding: "12px 16px" }}>
+              {[
+                { name: "Fadil", streak: 12, bg: "#dbeafe" },
+                { name: "Istri", streak: 8, bg: "#fce7f3" },
+                { name: "Anak", streak: 5, bg: "#d1fae5" },
+              ].map((m) => (
+                <div key={m.name} style={{ flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "3px" }}>
+                  <div style={{ width: "30px", height: "30px", borderRadius: "50%", backgroundColor: m.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 700, color: INK, border: `1px solid ${INK}` }}>
+                    {m.name[0]}
+                  </div>
+                  <span style={{ fontSize: "0.6rem", fontWeight: 600, color: INK }}>{m.name}</span>
+                  <span style={{ fontSize: "0.62rem", fontWeight: 700, color: AMBER, display: "flex", alignItems: "center", gap: "2px" }}>
+                    <Flame size={9} strokeWidth={2} />{m.streak}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="border-y py-20" style={{ borderColor: "#E0D8CE", backgroundColor: "#fff" }}>
-        <div className="mx-auto max-w-5xl px-6">
-          <p className="mb-2 text-center text-xs font-bold uppercase tracking-widest" style={{ color: "#8A9B8F" }}>Kenapa Mulaibaca?</p>
-          <h2 className="mb-12 text-center text-3xl font-bold" style={{ fontFamily: "var(--font-display)", color: "#1C2B1E" }}>Bukan sekadar tracker buku</h2>
-          <div className="grid gap-6 md:grid-cols-3">
+      {/* FEATURES — dark section */}
+      <section style={{ backgroundColor: FOREST, borderTop: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, padding: "5rem 0" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2.5rem" }}>
+            <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.4)", flexShrink: 0 }}>
+              Kenapa Mulaibaca
+            </p>
+            <div style={{ flex: 1, height: "1px", backgroundColor: "rgba(255,255,255,0.15)" }} />
+          </div>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 5vw, 3.5rem)", fontWeight: 800, color: "#FAF7F2", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: "3rem" }}>
+            Bukan sekadar<br />
+            <span style={{ color: LIME, fontStyle: "italic" }}>tracker buku</span>
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.25rem" }}>
             {features.map((f) => (
-              <div key={f.title} className="rounded-2xl border p-6" style={{ borderColor: "#E0D8CE", backgroundColor: "#FAF7F2" }}>
-                <div className="mb-4" style={{ color: "#2D5A3D" }}><f.Icon size={32} strokeWidth={1.5} /></div>
-                <h3 className="mb-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)", color: "#1C2B1E" }}>{f.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#4B5B4F" }}>{f.desc}</p>
+              <div key={f.num} style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "10px", padding: "1.5rem", position: "relative" as const, overflow: "hidden" }}>
+                <span style={{ position: "absolute" as const, top: "-8px", right: "10px", fontFamily: "var(--font-display)", fontSize: "6rem", fontWeight: 800, color: "rgba(255,255,255,0.04)", lineHeight: 1, userSelect: "none" as const, pointerEvents: "none" as const }}>
+                  {f.num}
+                </span>
+                <div style={{ color: LIME, marginBottom: "1rem" }}>
+                  <f.Icon size={26} strokeWidth={1.5} />
+                </div>
+                <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", fontWeight: 700, color: "#FAF7F2", marginBottom: "0.5rem" }}>
+                  {f.title}
+                </h3>
+                <p style={{ fontSize: "0.875rem", lineHeight: 1.7, color: "rgba(255,255,255,0.62)" }}>
+                  {f.desc}
+                </p>
               </div>
             ))}
           </div>
@@ -109,38 +241,64 @@ export default function LandingPage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="mx-auto max-w-5xl px-6 py-20">
-        <p className="mb-2 text-center text-xs font-bold uppercase tracking-widest" style={{ color: "#8A9B8F" }}>Cara Kerja</p>
-        <h2 className="mb-12 text-center text-3xl font-bold" style={{ fontFamily: "var(--font-display)", color: "#1C2B1E" }}>Mulai dalam 3 langkah</h2>
-        <div className="grid gap-8 md:grid-cols-3">
-          {steps.map((s) => (
-            <div key={s.step} className="flex flex-col">
-              <span className="mb-3 text-5xl font-bold leading-none" style={{ fontFamily: "var(--font-display)", color: "#E8D5B0" }}>{s.step}</span>
-              <h3 className="mb-2 text-lg font-bold" style={{ color: "#1C2B1E" }}>{s.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#4B5B4F" }}>{s.desc}</p>
+      <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "5rem 1.25rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2.5rem" }}>
+          <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#7A8E83", flexShrink: 0 }}>Cara Kerja</p>
+          <div style={{ flex: 1, height: "2px", backgroundColor: INK }} />
+        </div>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.75rem, 4vw, 2.75rem)", fontWeight: 800, color: INK, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "3rem" }}>
+          Mulai dalam 3 langkah
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0" }}>
+          {steps.map((s, i) => (
+            <div key={s.num} style={{ padding: "0 2rem 2rem 0", borderLeft: i > 0 ? `2px solid ${INK}` : "none", paddingLeft: i > 0 ? "2rem" : "0" }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: "3.5rem", fontWeight: 800, color: AMBER, lineHeight: 1, display: "block", marginBottom: "1rem" }}>
+                {s.num}
+              </span>
+              <h3 style={{ fontSize: "1.0625rem", fontWeight: 700, color: INK, marginBottom: "0.5rem" }}>
+                {s.title}
+              </h3>
+              <p style={{ fontSize: "0.875rem", lineHeight: 1.7, color: "#3D4E45" }}>
+                {s.desc}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* MOVEMENT CTA */}
-      <section className="py-20" style={{ backgroundColor: "#2D5A3D" }}>
-        <div className="mx-auto max-w-2xl px-6 text-center">
-          <p className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Bergabung dalam gerakan</p>
-          <h2 className="mb-4 text-3xl font-bold text-white md:text-4xl" style={{ fontFamily: "var(--font-display)" }}>Indonesia membaca dimulai dari rumah</h2>
-          <p className="mb-8 text-base leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>
+      {/* CTA — LIME */}
+      <section style={{ backgroundColor: LIME, borderTop: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, padding: "5rem 0" }}>
+        <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 1.25rem", textAlign: "center" as const }}>
+          <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#3D4E45", marginBottom: "1.25rem" }}>
+            Bergabung dalam gerakan
+          </p>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 5vw, 3.5rem)", fontWeight: 800, color: INK, letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: "1.25rem" }}>
+            Indonesia membaca<br />dimulai dari rumah
+          </h2>
+          <p style={{ fontSize: "1rem", color: "#3D4E45", lineHeight: 1.65, maxWidth: "440px", margin: "0 auto 2.25rem" }}>
             Satu keluarga yang membaca setiap hari bisa menginspirasi keluarga lain. Review yang kamu tulis hari ini bisa jadi alasan seseorang memulai buku besok.
           </p>
-          <Link href="/daftar" className="inline-block rounded-xl px-7 py-3.5 text-base font-bold text-white" style={{ backgroundColor: "#C17A3E" }}>Mulai Sekarang, Gratis →</Link>
+          <Link href="/daftar" style={{
+            display: "inline-flex", alignItems: "center",
+            padding: "1rem 2rem",
+            backgroundColor: INK, color: PARCHMENT,
+            fontWeight: 700, fontSize: "1rem",
+            border: `1.5px solid ${INK}`,
+            borderRadius: "6px",
+            boxShadow: `4px 4px 0 ${FOREST}`,
+            textDecoration: "none",
+          }}>
+            Mulai Sekarang, Gratis →
+          </Link>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t py-10" style={{ borderColor: "#E0D8CE" }}>
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-2 px-6 text-center">
-          <span className="text-lg font-bold" style={{ fontFamily: "var(--font-display)", color: "#1C2B1E" }}>mulaibaca</span>
-          <p className="text-xs" style={{ color: "#8A9B8F" }}>Platform membaca keluarga Indonesia · mulaibaca.my.id</p>
-          <p className="text-xs" style={{ color: "#8A9B8F" }}>© 2026 Mulaibaca</p>
+      <footer style={{ borderTop: `2px solid ${INK}`, padding: "2.5rem 0" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "6px", padding: "0 1.25rem", textAlign: "center" as const }}>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.125rem", color: INK, letterSpacing: "-0.025em" }}>mulaibaca</span>
+          <p style={{ fontSize: "0.75rem", color: "#7A8E83" }}>Platform membaca keluarga Indonesia · mulaibaca.my.id</p>
+          <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>© 2026 Mulaibaca</p>
         </div>
       </footer>
     </div>

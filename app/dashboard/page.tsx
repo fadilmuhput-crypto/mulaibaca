@@ -49,10 +49,10 @@ export default async function DashboardPage() {
             <h1 className="text-h1">Halo, {session.memberName}!</h1>
             <p className="text-ink-secondary text-sm mt-0.5">{session.familyName}</p>
           </div>
-          <div className="text-center bg-surface rounded-2xl border border-border px-4 py-2" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="text-center bg-surface rounded-xl px-4 py-2" style={{ border: "1.5px solid #0C0C0A", boxShadow: "var(--shadow-brutal-sm)" }}>
             <div className="flex justify-center text-amber mb-0.5"><Flame size={22} strokeWidth={1.75} /></div>
-            <div className="text-xl font-bold text-ink leading-none">{currentStreak}</div>
-            <div className="text-xs text-ink-muted mt-0.5">hari</div>
+            <div className="font-display text-2xl font-black text-ink leading-none">{currentStreak}</div>
+            <div className="text-xs text-ink-muted mt-0.5 font-semibold">hari</div>
           </div>
         </div>
 
@@ -60,19 +60,19 @@ export default async function DashboardPage() {
         <section className="grid grid-cols-2 gap-3">
           <Link
             href="/rak/tambah"
-            className="bg-forest text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 active:scale-95 transition-all"
-            style={{ boxShadow: "var(--shadow-card)" }}
+            className="bg-forest text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card"
+            style={{ border: "1.5px solid #0C0C0A", boxShadow: "var(--shadow-brutal-sm)" }}
           >
             <Plus size={22} strokeWidth={2} />
-            <span className="font-medium text-sm">Tambah Buku</span>
+            <span className="font-semibold text-sm">Tambah Buku</span>
           </Link>
           <Link
             href="/log"
-            className="bg-amber text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 active:scale-95 transition-all"
-            style={{ boxShadow: "var(--shadow-card)" }}
+            className="bg-amber text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card"
+            style={{ border: "1.5px solid #0C0C0A", boxShadow: "var(--shadow-brutal-sm)" }}
           >
             <PenLine size={22} strokeWidth={1.75} />
-            <span className="font-medium text-sm">Catat Bacaan</span>
+            <span className="font-semibold text-sm">Catat Bacaan</span>
           </Link>
         </section>
 

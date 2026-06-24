@@ -89,8 +89,8 @@ export default function NavBar({ session }: { session: Session }) {
   return (
     <>
       {/* ── Top header ──────────────────────── */}
-      <header className="bg-surface/80 backdrop-blur-md border-b border-border/60 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
-        <Link href="/dashboard" className="text-lg font-display font-bold text-forest tracking-tight">
+      <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-20">
+        <Link href="/dashboard" className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
           mulaibaca
         </Link>
 
@@ -102,9 +102,12 @@ export default function NavBar({ session }: { session: Session }) {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  active ? "bg-amber-soft text-amber" : "text-ink-secondary hover:text-ink hover:bg-parchment"
+                className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors rounded-sm ${
+                  active
+                    ? "bg-amber text-white"
+                    : "text-ink-secondary hover:text-ink hover:bg-cream"
                 }`}
+              style={active ? { border: "1.5px solid #0C0C0A", boxShadow: "1px 1px 0 #0C0C0A" } : {}}
               >
                 <Icon active={active} />
                 {label}
@@ -180,7 +183,7 @@ export default function NavBar({ session }: { session: Session }) {
       </header>
 
       {/* ── Bottom nav (mobile) ──────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-md border-t border-border/60 z-20 sm:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-20 sm:hidden">
         <div className="flex">
           {NAV.map(({ href, label, Icon }) => {
             const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
@@ -188,7 +191,7 @@ export default function NavBar({ session }: { session: Session }) {
               <Link
                 key={href}
                 href={href}
-                className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors ${
+                className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-semibold transition-colors ${
                   active ? "text-amber" : "text-ink-muted"
                 }`}
                 aria-label={label}
