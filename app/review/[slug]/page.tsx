@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-route";
 import AvatarIcon from "@/components/AvatarIcon";
 import { BookText, BookOpen } from "lucide-react";
 
@@ -12,7 +12,7 @@ export default async function PublicReviewPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: review } = await supabase
     .from("reviews")

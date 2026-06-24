@@ -34,7 +34,7 @@ function toSlug(s: string) {
 
 function fromCurated(b: CuratedBook): BookCard {
   return {
-    id: b.open_library_id ?? toSlug(b.title),
+    id: toSlug(b.title),
     title: b.title,
     author: b.author,
     cover_url: b.cover_url,

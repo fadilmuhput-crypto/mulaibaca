@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { BUKU_ANAK, BUKU_LOKAL } from "@/lib/curated-books";
 import AddToShelfButtons from "./AddToShelfButtons";
 import { BookText } from "lucide-react";
+import { createAdminClient } from "@/lib/supabase-route";
 
 type OLWork = {
   title?: string;
@@ -35,6 +36,12 @@ function isOLId(id: string) {
   return /^OL\d+[A-Z]+$/.test(id);
 }
 
+// Extracts OL ID from slugs like "atomic-habits-ol26745w" → "OL26745W"
+function extractOLIdFromSlug(id: string): string | null {
+  const match = id.match(/-(ol\d+[a-z]+)$/i);
+  return match ? match[1].toUpperCase() : null;
+}
+
 async function fetchOLBook(olId: string): Promise<BookData | null> {
   try {
     const [workRes, editionsRes] = await Promise.all([
@@ -44,7 +51,6 @@ async function fetchOLBook(olId: string): Promise<BookData | null> {
     if (!workRes.ok) return null;
     const work: OLWork = await workRes.json();
 
-    // Get author names (reuse already-fetched work JSON)
     let author: string | null = null;
     try {
       const workData = work as { authors?: { author?: { key?: string } }[] };
@@ -56,29 +62,25 @@ async function fetchOLBook(olId: string): Promise<BookData | null> {
           author = authorData.name ?? null;
         }
       }
-    } catch { /* skip author fetch error */ }
+    } catch { /* skip */ }
 
-    // Get cover
     let cover_url: string | null = null;
     if (work.covers?.[0]) {
       cover_url = `https://covers.openlibrary.org/b/id/${work.covers[0]}-L.jpg`;
     }
 
-    // Get page count from editions
     let total_pages: number | null = null;
     if (editionsRes.ok) {
       const editions = await editionsRes.json();
       total_pages = editions.entries?.[0]?.number_of_pages ?? null;
     }
 
-    // Parse description
     let description: string | null = null;
     if (typeof work.description === "string") {
       description = work.description;
     } else if (work.description?.value) {
       description = work.description.value;
     }
-    // Trim OL description boilerplate
     if (description) {
       description = description.replace(/\([^)]*Wikipedia[^)]*\)/g, "").trim().slice(0, 600);
     }
@@ -114,6 +116,57 @@ function findCurated(slug: string): BookData | null {
   };
 }
 
+type ReviewRow = {
+  slug: string;
+  rating: number;
+  q_about: string | null;
+  published_at: string;
+  members: { name: string; avatar: string } | null;
+};
+
+async function fetchBookReviews(olId: string | null, title: string): Promise<ReviewRow[]> {
+  const supabase = createAdminClient();
+  try {
+    // Find book IDs by OL ID or exact title
+    const bookQuery = supabase.from("books").select("id");
+    const { data: books } = olId
+      ? await bookQuery.eq("open_library_id", olId)
+      : await bookQuery.ilike("title", title);
+
+    if (!books?.length) return [];
+
+    const bookIds = books.map((b: { id: string }) => b.id);
+    const { data: shelfItems } = await supabase
+      .from("shelf_items").select("id").in("book_id", bookIds);
+
+    if (!shelfItems?.length) return [];
+
+    const shelfIds = shelfItems.map((s: { id: string }) => s.id);
+    const { data: reviews } = await supabase
+      .from("reviews")
+      .select("slug, rating, q_about, published_at, members(name, avatar)")
+      .in("shelf_item_id", shelfIds)
+      .eq("is_public", true)
+      .order("published_at", { ascending: false })
+      .limit(10);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (reviews ?? []) as unknown as ReviewRow[];
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const curated = findCurated(id);
+  const title = curated?.title ?? id.replace(/-ol\w+$/i, "").replace(/-/g, " ");
+  return {
+    title: `${title} — Mulaibaca`,
+    description: curated?.description ?? `Detail buku ${title} di Mulaibaca`,
+  };
+}
+
 export default async function BookDetailPage({
   params,
 }: {
@@ -121,15 +174,32 @@ export default async function BookDetailPage({
 }) {
   const { id } = await params;
 
+  // Bare OL ID (e.g. OL26745W) → fetch title → redirect to SEO slug
+  if (isOLId(id)) {
+    const book = await fetchOLBook(id);
+    if (!book) notFound();
+    const seoSlug = `${toSlug(book.title)}-${id.toLowerCase()}`;
+    redirect(`/buku/${seoSlug}`);
+  }
+
   let book: BookData | null = null;
 
-  if (isOLId(id)) {
-    book = await fetchOLBook(id);
-  } else {
-    book = findCurated(id);
+  // Try curated first (pure title slug match)
+  book = findCurated(id);
+
+  // Try "title-slug-ol26745w" format
+  if (!book) {
+    const olId = extractOLIdFromSlug(id);
+    if (olId) {
+      book = await fetchOLBook(olId);
+    }
   }
 
   if (!book) notFound();
+
+  const [reviews] = await Promise.all([
+    fetchBookReviews(book.open_library_id, book.title),
+  ]);
 
   const bookPayload = {
     title: book.title,
@@ -140,9 +210,10 @@ export default async function BookDetailPage({
     total_pages: book.total_pages,
   };
 
+  const STARS = [1, 2, 3, 4, 5];
+
   return (
     <div className="min-h-screen bg-parchment pb-10">
-      {/* Header */}
       <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
         <Link
           href="/rak/tambah"
@@ -161,22 +232,14 @@ export default async function BookDetailPage({
         <div className="flex gap-5 mb-6">
           <div className="w-24 h-36 rounded-xl overflow-hidden bg-cream flex-shrink-0 shadow-md">
             {book.cover_url ? (
-              <img
-                src={book.cover_url}
-                alt={book.title}
-                className="w-full h-full object-cover"
-              />
+              <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={36} strokeWidth={1.25} /></div>
             )}
           </div>
           <div className="flex-1 min-w-0 pt-1">
-            <h1 className="font-display font-bold text-xl text-ink leading-tight">
-              {book.title}
-            </h1>
-            {book.author && (
-              <p className="text-ink-secondary text-sm mt-1">{book.author}</p>
-            )}
+            <h1 className="font-display font-bold text-xl text-ink leading-tight">{book.title}</h1>
+            {book.author && <p className="text-ink-secondary text-sm mt-1">{book.author}</p>}
             <div className="flex flex-wrap gap-3 mt-3 text-xs text-ink-muted">
               {book.total_pages && (
                 <span className="flex items-center gap-1">
@@ -202,7 +265,7 @@ export default async function BookDetailPage({
           </section>
         )}
 
-        {/* Subjects / tags */}
+        {/* Subjects */}
         {book.subjects.length > 0 && (
           <section className="mb-6">
             <h2 className="text-h3 mb-2">Kategori</h2>
@@ -218,6 +281,38 @@ export default async function BookDetailPage({
         <div className="divider mb-5" />
         <h2 className="text-h3 mb-3">Tambah ke Rak</h2>
         <AddToShelfButtons book={bookPayload} />
+
+        {/* Reviews section */}
+        {reviews.length > 0 && (
+          <>
+            <div className="divider my-6" />
+            <section>
+              <h2 className="text-h3 mb-4">Review dari Pembaca</h2>
+              <div className="space-y-3">
+                {reviews.map((review) => (
+                  <Link
+                    key={review.slug}
+                    href={`/review/${review.slug}`}
+                    className="block bg-surface rounded-2xl border border-border p-4 hover:border-amber/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <p className="font-medium text-sm text-ink">{review.members?.name}</p>
+                      <div className="flex gap-0.5 flex-shrink-0">
+                        {STARS.map((s) => (
+                          <span key={s} className={`text-sm ${s <= review.rating ? "text-amber" : "text-border"}`}>★</span>
+                        ))}
+                      </div>
+                    </div>
+                    {review.q_about && (
+                      <p className="text-xs text-ink-secondary line-clamp-3">{review.q_about}</p>
+                    )}
+                    <p className="text-xs text-amber font-medium mt-2">Baca review lengkap →</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
       </main>
     </div>
   );
