@@ -82,7 +82,7 @@ export default async function KeluargaPage() {
   // Build per-member current book (first one if multiple)
   const readingByMember: Record<string, { title: string; cover_url: string | null; progress: number }> = {};
   for (const item of readingItems ?? []) {
-    const m = item as { member_id: string; current_page: number; books: { title: string; cover_url: string | null; total_pages: number | null } | null };
+    const m = item as unknown as { member_id: string; current_page: number; books: { title: string; cover_url: string | null; total_pages: number | null } | null };
     if (!readingByMember[m.member_id] && m.books) {
       const progress = m.books.total_pages && m.current_page
         ? Math.min(Math.round((m.current_page / m.books.total_pages) * 100), 100)
