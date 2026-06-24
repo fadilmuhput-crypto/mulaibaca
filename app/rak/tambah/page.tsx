@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BUKU_ANAK, BUKU_LOKAL, KATEGORI, type CuratedBook } from "@/lib/curated-books";
@@ -60,70 +60,116 @@ function fromOL(b: OLBook): BookCard {
   };
 }
 
+function filterCurated(q: string, tab: Tab): BookCard[] {
+  if (!q.trim()) return [];
+  const pool =
+    tab === "anak" ? BUKU_ANAK
+    : tab === "lokal" ? BUKU_LOKAL
+    : [...BUKU_ANAK, ...BUKU_LOKAL];
+  const qLow = q.toLowerCase();
+  return pool
+    .filter(
+      (b) =>
+        b.title.toLowerCase().includes(qLow) ||
+        b.author.toLowerCase().includes(qLow) ||
+        b.tags.some((t) => t.toLowerCase().includes(qLow))
+    )
+    .map(fromCurated);
+}
+
 export default function TambahBukuPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("semua");
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<BookCard[] | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [adding, setAdding] = useState<string | null>(null);
-  const [error, setError] = useState("");
 
-  async function doSearch(q: string, subject?: string) {
-    setLoading(true);
-    setError("");
+  // Two-phase search state
+  const [curatedResults, setCuratedResults] = useState<BookCard[] | null>(null);
+  const [olResults, setOlResults] = useState<BookCard[] | null>(null);
+  const [olLoading, setOlLoading] = useState(false);
+  const [olError, setOlError] = useState("");
+
+  const [adding, setAdding] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchIdRef = useRef(0); // cancel stale fetches
+
+  const isSearching = curatedResults !== null || olLoading;
+
+  // Instant curated filter on query change
+  useEffect(() => {
+    if (!query.trim()) {
+      setCuratedResults(null);
+      setOlResults(null);
+      setOlLoading(false);
+      setOlError("");
+      return;
+    }
+    // Show curated matches immediately
+    setCuratedResults(filterCurated(query, tab));
+
+    // Debounce OL fetch by 500ms
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchOL(query, tab);
+    }, 500);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  async function fetchOL(q: string, currentTab: Tab, subject?: string) {
+    const searchId = ++searchIdRef.current;
+    setOlLoading(true);
+    setOlError("");
     try {
-      let url = `https://openlibrary.org/search.json?fields=key,title,author_name,cover_i,isbn,number_of_pages_median&limit=15`;
+      let url = `https://openlibrary.org/search.json?fields=key,title,author_name,cover_i,isbn,number_of_pages_median&limit=12`;
       if (q.trim()) url += `&q=${encodeURIComponent(q)}`;
       if (subject) url += `&subject=${encodeURIComponent(subject)}`;
-      if (tab === "anak" && !subject) url += `&subject=juvenile_literature`;
+      if (currentTab === "anak" && !subject) url += `&subject=juvenile_literature`;
 
       const res = await fetch(url);
       const data = await res.json();
+
+      // Discard if a newer search started
+      if (searchId !== searchIdRef.current) return;
+
       const olCards = (data.docs ?? []).map(fromOL);
 
-      // Merge curated matches first (deduplicated)
-      const pool =
-        tab === "anak" ? BUKU_ANAK
-        : tab === "lokal" ? BUKU_LOKAL
-        : [...BUKU_ANAK, ...BUKU_LOKAL];
+      // Deduplicate against curated
+      const curated = filterCurated(q, currentTab);
+      const seen = new Set(curated.map((b) => b.title.toLowerCase()));
+      const deduped = olCards.filter((b: BookCard) => !seen.has(b.title.toLowerCase()));
 
-      const qLow = q.toLowerCase();
-      const curatedMatches = q.trim()
-        ? pool
-            .filter(
-              (b) =>
-                b.title.toLowerCase().includes(qLow) ||
-                b.author.toLowerCase().includes(qLow)
-            )
-            .map(fromCurated)
-        : [];
-
-      const seen = new Set(curatedMatches.map((b) => b.title.toLowerCase()));
-      const merged = [
-        ...curatedMatches,
-        ...olCards.filter((b) => !seen.has(b.title.toLowerCase())),
-      ];
-      setResults(merged);
-      if (merged.length === 0) setError("Buku tidak ditemukan.");
+      setOlResults(deduped);
     } catch {
-      setError("Gagal mencari buku. Periksa koneksi internet.");
+      if (searchId !== searchIdRef.current) return;
+      setOlError("Gagal memuat hasil dari OpenLibrary.");
     } finally {
-      setLoading(false);
+      if (searchId !== searchIdRef.current) return;
+      setOlLoading(false);
     }
   }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
-    doSearch(query);
+    // Cancel debounce and fire immediately
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setCuratedResults(filterCurated(query, tab));
+    fetchOL(query, tab);
   }
 
   function changeTab(t: Tab) {
     setTab(t);
-    setResults(null);
-    setError("");
-    if (query.trim() && t !== "kategori") doSearch(query);
+    setCuratedResults(null);
+    setOlResults(null);
+    setOlLoading(false);
+    setOlError("");
+    if (query.trim() && t !== "kategori") {
+      setCuratedResults(filterCurated(query, t));
+      fetchOL(query, t);
+    }
   }
 
   async function addBook(card: BookCard, status: "reading" | "want") {
@@ -149,17 +195,25 @@ export default function TambahBukuPage() {
       if (!res.ok) throw new Error(data.error);
       router.push("/rak");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menambahkan buku");
+      setOlError(err instanceof Error ? err.message : "Gagal menambahkan buku");
     } finally {
       setAdding(null);
     }
   }
 
-  const showKategoriGrid = tab === "kategori" && results === null;
-  const showCuratedHome = tab === "semua" && results === null && !loading;
-  const showAnakGrid = tab === "anak" && results === null && !loading;
-  const showLokalGrid = tab === "lokal" && results === null && !loading;
-  const showResults = results !== null;
+  // Merged result list when searching
+  const mergedResults = [
+    ...(curatedResults ?? []),
+    ...(olResults ?? []),
+  ];
+
+  const showKategoriGrid = tab === "kategori" && !isSearching;
+  const showCuratedHome = tab === "semua" && !isSearching;
+  const showAnakGrid = tab === "anak" && !isSearching;
+  const showLokalGrid = tab === "lokal" && !isSearching;
+
+  const noResultsYet = isSearching && mergedResults.length === 0;
+  const noResultsAtAll = isSearching && mergedResults.length === 0 && !olLoading;
 
   return (
     <div className="min-h-screen bg-parchment pb-24">
@@ -184,14 +238,15 @@ export default function TambahBukuPage() {
             type="search"
             placeholder="Cari judul atau pengarang…"
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              if (!e.target.value.trim()) setResults(null);
-            }}
+            onChange={(e) => setQuery(e.target.value)}
             className="input flex-1"
           />
-          <button type="submit" disabled={loading || !query.trim()} className="btn-primary px-5">
-            {loading ? "…" : "Cari"}
+          <button
+            type="submit"
+            disabled={!query.trim()}
+            className="btn-primary px-5"
+          >
+            Cari
           </button>
         </form>
 
@@ -221,28 +276,6 @@ export default function TambahBukuPage() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-5 space-y-6">
-        {error && (
-          <div className="bg-error-soft border border-error/20 rounded-xl px-4 py-3 text-sm text-error text-center">
-            {error}
-          </div>
-        )}
-
-        {/* Loading skeleton */}
-        {loading && (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="card-elevated p-3 flex gap-3 animate-pulse">
-                <div className="w-12 h-16 rounded-lg bg-border flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-border rounded w-3/4" />
-                  <div className="h-3 bg-border rounded w-1/2" />
-                  <div className="h-3 bg-border rounded w-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* Category grid */}
         {showKategoriGrid && (
           <div>
@@ -253,7 +286,11 @@ export default function TambahBukuPage() {
               {KATEGORI.map((k) => (
                 <button
                   key={k.key}
-                  onClick={() => doSearch(query || k.label, k.subject)}
+                  onClick={() => {
+                    setQuery(k.label);
+                    setCuratedResults([]);
+                    fetchOL(k.label, tab, k.subject);
+                  }}
                   className="card-interactive p-4 flex items-center gap-3 text-left"
                 >
                   <span className="text-2xl">{k.emoji}</span>
@@ -276,16 +313,10 @@ export default function TambahBukuPage() {
               </div>
               <div className="space-y-2">
                 {BUKU_ANAK.slice(0, 4).map((b) => (
-                  <BookCardRow
-                    key={b.title}
-                    card={fromCurated(b)}
-                    adding={adding}
-                    onAdd={addBook}
-                  />
+                  <BookCardRow key={b.title} card={fromCurated(b)} adding={adding} onAdd={addBook} />
                 ))}
               </div>
             </section>
-
             <section>
               <div className="section-header">
                 <h2 className="section-title">Buku Lokal Indonesia</h2>
@@ -295,12 +326,7 @@ export default function TambahBukuPage() {
               </div>
               <div className="space-y-2">
                 {BUKU_LOKAL.slice(0, 4).map((b) => (
-                  <BookCardRow
-                    key={b.title}
-                    card={fromCurated(b)}
-                    adding={adding}
-                    onAdd={addBook}
-                  />
+                  <BookCardRow key={b.title} card={fromCurated(b)} adding={adding} onAdd={addBook} />
                 ))}
               </div>
             </section>
@@ -315,12 +341,7 @@ export default function TambahBukuPage() {
             </p>
             <div className="space-y-2">
               {BUKU_ANAK.map((b) => (
-                <BookCardRow
-                  key={b.title}
-                  card={fromCurated(b)}
-                  adding={adding}
-                  onAdd={addBook}
-                />
+                <BookCardRow key={b.title} card={fromCurated(b)} adding={adding} onAdd={addBook} />
               ))}
             </div>
           </section>
@@ -334,21 +355,52 @@ export default function TambahBukuPage() {
             </p>
             <div className="space-y-2">
               {BUKU_LOKAL.map((b) => (
-                <BookCardRow
-                  key={b.title}
-                  card={fromCurated(b)}
-                  adding={adding}
-                  onAdd={addBook}
-                />
+                <BookCardRow key={b.title} card={fromCurated(b)} adding={adding} onAdd={addBook} />
               ))}
             </div>
           </section>
         )}
 
         {/* Search results */}
-        {showResults && !loading && (
+        {isSearching && (
           <div className="space-y-2">
-            {results!.length === 0 ? (
+            {/* Curated results — instant */}
+            {(curatedResults ?? []).map((card) => (
+              <BookCardRow key={card.id} card={card} adding={adding} onAdd={addBook} />
+            ))}
+
+            {/* OL results — async */}
+            {(olResults ?? []).map((card) => (
+              <BookCardRow key={card.id} card={card} adding={adding} onAdd={addBook} />
+            ))}
+
+            {/* OL still loading */}
+            {olLoading && (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="card-elevated p-3 flex gap-3 animate-pulse">
+                    <div className="w-12 h-16 rounded-lg bg-border flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-border rounded w-3/4" />
+                      <div className="h-3 bg-border rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+                {(curatedResults ?? []).length === 0 && (
+                  <p className="text-center text-xs text-ink-muted pt-1">
+                    Mencari di OpenLibrary…
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* OL error */}
+            {olError && (
+              <p className="text-xs text-ink-muted text-center py-2">{olError}</p>
+            )}
+
+            {/* No results at all */}
+            {noResultsAtAll && (
               <div className="text-center py-10">
                 <div className="text-4xl mb-3">🔍</div>
                 <p className="text-ink-secondary text-sm mb-5">
@@ -361,21 +413,12 @@ export default function TambahBukuPage() {
                   + Tambah Buku Manual
                 </Link>
               </div>
-            ) : (
-              results!.map((card) => (
-                <BookCardRow
-                  key={card.id}
-                  card={card}
-                  adding={adding}
-                  onAdd={addBook}
-                />
-              ))
             )}
           </div>
         )}
 
-        {/* Manual add suggestion at bottom of results */}
-        {showResults && !loading && results!.length > 0 && (
+        {/* Manual add suggestion at bottom */}
+        {isSearching && !olLoading && mergedResults.length > 0 && (
           <div className="text-center pt-2 pb-4">
             <p className="text-xs text-ink-muted mb-2">Tidak ada yang cocok?</p>
             <Link
@@ -405,17 +448,12 @@ function BookCardRow({
   return (
     <div className="card-elevated p-3">
       <div className="flex gap-3">
-        {/* Cover — links to detail */}
         <Link
           href={`/buku/${card.id}`}
           className="w-12 h-16 rounded-lg overflow-hidden bg-cream flex-shrink-0 hover:opacity-80 transition-opacity"
         >
           {card.cover_url ? (
-            <img
-              src={card.cover_url}
-              alt={card.title}
-              className="w-full h-full object-cover"
-            />
+            <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-2xl">📗</div>
           )}
