@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { BUKU_ANAK, BUKU_LOKAL } from "@/lib/curated-books";
 import AddToShelfButtons from "./AddToShelfButtons";
@@ -179,7 +179,7 @@ export default async function BookDetailPage({
     const book = await fetchOLBook(id);
     if (!book) notFound();
     const seoSlug = `${toSlug(book.title)}-${id.toLowerCase()}`;
-    redirect(`/buku/${seoSlug}`);
+    permanentRedirect(`/buku/${seoSlug}`);
   }
 
   let book: BookData | null = null;
