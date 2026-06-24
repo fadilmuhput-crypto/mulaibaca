@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
 
   let bookId: string;
   if (book.open_library_id) {
+    // Deduplicate by OpenLibrary ID
     const { data: existing } = await supabase
       .from("books").select("id").eq("open_library_id", book.open_library_id).maybeSingle();
     if (existing) {
@@ -46,10 +47,22 @@ export async function POST(req: NextRequest) {
       bookId = newBook.id;
     }
   } else {
-    const { data: newBook, error: bookErr } = await supabase
-      .from("books").insert(book).select("id").single();
-    if (bookErr || !newBook) return NextResponse.json({ error: "Gagal menyimpan buku" }, { status: 500 });
-    bookId = newBook.id;
+    // For manual books: deduplicate by exact title (case-insensitive) + author
+    const titleNorm = book.title?.trim().toLowerCase();
+    const { data: existingByTitle } = await supabase
+      .from("books")
+      .select("id")
+      .ilike("title", titleNorm)
+      .is("open_library_id", null)
+      .maybeSingle();
+    if (existingByTitle) {
+      bookId = existingByTitle.id;
+    } else {
+      const { data: newBook, error: bookErr } = await supabase
+        .from("books").insert(book).select("id").single();
+      if (bookErr || !newBook) return NextResponse.json({ error: "Gagal menyimpan buku" }, { status: 500 });
+      bookId = newBook.id;
+    }
   }
 
   const { data: shelfItem, error: shelfErr } = await supabase
