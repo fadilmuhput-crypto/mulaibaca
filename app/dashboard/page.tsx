@@ -54,11 +54,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Invite CTA — shown prominently when user is alone in family */}
-        {memberCount <= 1 && session.inviteCode && (
-          <InviteCodeCard inviteCode={session.inviteCode} familyName={session.familyName} />
-        )}
-
         {/* Currently reading */}
         <section>
           <div className="section-header">
@@ -157,19 +152,23 @@ export default async function DashboardPage() {
           </Link>
         </section>
 
-        {/* Compact invite code — once family has members */}
-        {memberCount > 1 && session.inviteCode && (
-          <section className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
-            <p className="text-overline mb-2">Kode undangan keluarga</p>
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xl font-bold text-ink tracking-widest uppercase">
-                {session.inviteCode}
-              </span>
-              <Link href="/profil" className="section-link text-xs">
-                Bagikan →
-              </Link>
-            </div>
-          </section>
+        {/* Invite card — full when alone, compact when family has members */}
+        {session.inviteCode && (
+          memberCount <= 1
+            ? <InviteCodeCard inviteCode={session.inviteCode} familyName={session.familyName} />
+            : (
+              <section className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
+                <p className="text-overline mb-2">Kode undangan keluarga</p>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xl font-bold text-ink tracking-widest uppercase">
+                    {session.inviteCode}
+                  </span>
+                  <Link href="/profil" className="section-link text-xs">
+                    Bagikan →
+                  </Link>
+                </div>
+              </section>
+            )
         )}
 
         {/* Email verification */}
