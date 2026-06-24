@@ -50,24 +50,29 @@ export default function ProfilClient({ session }: { session: Session }) {
   return (
     <div className="space-y-4">
       {/* Member profile card */}
-      <div className="bg-surface rounded-2xl border border-border p-6 space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-amber-soft border border-amber/20 flex items-center justify-center text-2xl">
+      <div className="card-elevated p-6 space-y-5">
+        {/* Current avatar preview */}
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-amber-soft border-2 border-amber/30 flex items-center justify-center text-3xl">
             {avatar}
           </div>
           <div>
             <p className="font-semibold text-ink">{session.memberName}</p>
-            <p className="text-xs text-ink-muted">{session.email}
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <p className="text-xs text-ink-muted">{session.email}</p>
               {session.emailVerified
-                ? <span className="ml-1.5 text-forest">✓ terverifikasi</span>
-                : <span className="ml-1.5 text-amber">⚠ belum terverifikasi</span>}
-            </p>
+                ? <span className="badge-forest">✓ terverifikasi</span>
+                : <span className="badge-amber">⚠ belum terverifikasi</span>
+              }
+            </div>
           </div>
         </div>
 
+        <div className="divider" />
+
         {/* Avatar picker */}
         <div>
-          <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2 block">Avatar</label>
+          <label className="text-overline mb-3 block">Pilih avatar</label>
           <div className="flex gap-2 flex-wrap">
             {AVATARS.map((a) => (
               <button
@@ -76,9 +81,11 @@ export default function ProfilClient({ session }: { session: Session }) {
                 onClick={() => setAvatar(a)}
                 className={`w-11 h-11 text-2xl rounded-xl border-2 transition-all ${
                   avatar === a
-                    ? "border-amber bg-amber-soft scale-110 shadow-sm"
+                    ? "border-amber bg-amber-soft scale-110"
                     : "border-border bg-parchment hover:border-amber/40"
                 }`}
+                aria-label={`Avatar ${a}`}
+                aria-pressed={avatar === a}
               >
                 {a}
               </button>
@@ -88,33 +95,35 @@ export default function ProfilClient({ session }: { session: Session }) {
 
         {/* Name */}
         <div>
-          <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2 block">Nama tampilan</label>
+          <label htmlFor="display-name" className="input-label">Nama tampilan</label>
           <input
+            id="display-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
+            className="input"
           />
         </div>
       </div>
 
       {/* Family card */}
-      <div className="bg-surface rounded-2xl border border-border p-6 space-y-4">
-        <h2 className="font-semibold text-ink flex items-center gap-2">🏠 Keluarga</h2>
+      <div className="card-elevated p-6 space-y-4">
+        <h2 className="text-h3">Keluarga</h2>
 
         {session.memberRole === "admin" ? (
           <div>
-            <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2 block">Nama keluarga</label>
+            <label htmlFor="family-name" className="input-label">Nama keluarga</label>
             <input
+              id="family-name"
               type="text"
               value={familyName}
               onChange={(e) => setFamilyName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
+              className="input"
             />
           </div>
         ) : (
           <div>
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1">Nama keluarga</p>
+            <p className="text-overline mb-1">Nama keluarga</p>
             <p className="text-ink font-medium">{session.familyName}</p>
           </div>
         )}
@@ -122,32 +131,38 @@ export default function ProfilClient({ session }: { session: Session }) {
         {/* Invite code */}
         {session.inviteCode && (
           <div>
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2">Kode undangan</p>
+            <p className="text-overline mb-2">Kode undangan</p>
             <div className="flex items-center gap-3 bg-parchment rounded-xl border border-border px-4 py-3">
               <span className="font-mono text-xl font-bold text-ink tracking-[0.2em] uppercase flex-1">
                 {session.inviteCode}
               </span>
               <button
                 onClick={copyCode}
-                className="text-sm text-amber hover:text-amber-hover font-medium transition-colors"
+                className="btn-ghost-ink min-h-[36px] px-3 text-sm"
               >
                 {copied ? "✓ Disalin" : "Salin"}
               </button>
             </div>
-            <p className="text-xs text-ink-muted mt-1.5">
-              Bagikan kode ini agar anggota keluarga bisa bergabung
-            </p>
+            <p className="input-hint">Bagikan kode ini agar anggota keluarga bisa bergabung</p>
           </div>
         )}
       </div>
 
-      {/* Save button */}
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-      {saved && <p className="text-forest text-sm text-center">✓ Tersimpan</p>}
+      {/* Save */}
+      {error && (
+        <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">
+          {error}
+        </p>
+      )}
+      {saved && (
+        <p className="text-success text-sm text-center bg-success-soft rounded-xl px-4 py-3">
+          ✓ Perubahan tersimpan
+        </p>
+      )}
       <button
         onClick={handleSave}
         disabled={saving || !isDirty}
-        className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
+        className="btn-primary-full-lg"
       >
         {saving ? "Menyimpan…" : "Simpan perubahan"}
       </button>

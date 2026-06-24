@@ -19,9 +19,9 @@ type ShelfItem = {
 };
 
 const TABS = [
-  { key: "reading", label: "Dibaca", icon: "📖" },
-  { key: "want", label: "Mau Baca", icon: "🔖" },
-  { key: "done", label: "Selesai", icon: "✅" },
+  { key: "reading", label: "Dibaca",    icon: "📖" },
+  { key: "want",    label: "Mau Baca",  icon: "🔖" },
+  { key: "done",    label: "Selesai",   icon: "✅" },
 ] as const;
 
 export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[] }) {
@@ -74,15 +74,15 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-sm font-medium transition-all ${
                 tab === t.key
-                  ? "bg-ink text-bg"
+                  ? "bg-ink text-surface"
                   : "bg-surface border border-border text-ink-secondary hover:border-amber/50"
               }`}
             >
-              {t.icon} {t.label}
+              {t.label}
               {count > 0 && (
-                <span className={`text-xs rounded-full px-1.5 ${
+                <span className={`text-xs rounded-full px-1.5 py-0.5 ${
                   tab === t.key ? "bg-white/20" : "bg-border text-ink-muted"
                 }`}>
                   {count}
@@ -99,17 +99,14 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
           <div className="text-4xl mb-3">
             {tab === "reading" ? "📖" : tab === "want" ? "🔖" : "🏆"}
           </div>
-          <p className="text-ink-secondary text-sm">
+          <p className="text-ink-secondary text-sm mb-4">
             {tab === "reading"
               ? "Belum ada buku yang sedang dibaca"
               : tab === "want"
               ? "Belum ada buku dalam daftar ingin baca"
               : "Belum ada buku yang selesai dibaca"}
           </p>
-          <Link
-            href="/rak/tambah"
-            className="inline-block mt-3 text-amber text-sm font-medium hover:text-amber-hover"
-          >
+          <Link href="/rak/tambah" className="btn-secondary inline-flex">
             + Tambah buku
           </Link>
         </div>
@@ -123,10 +120,7 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
                 ? Math.min(Math.round((item.current_page / book.total_pages) * 100), 100)
                 : 0;
             return (
-              <div
-                key={item.id}
-                className="bg-surface rounded-2xl border border-border p-3"
-              >
+              <div key={item.id} className="card-elevated p-3">
                 <div className="flex gap-3">
                   <BookCover src={book.cover_url} title={book.title} />
                   <div className="flex-1 min-w-0">
@@ -137,35 +131,42 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
 
                     {tab === "reading" && (
                       <div className="mt-2">
-                        <div className="h-1.5 bg-border rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-amber rounded-full transition-all"
-                            style={{ width: `${progress}%` }}
-                          />
+                        <div className="progress-bar">
+                          <div className="progress-fill" style={{ width: `${progress}%` }} />
                         </div>
-                        <div className="flex items-center justify-between mt-1">
+                        <div className="mt-1.5">
                           {editingId === item.id ? (
                             <form
                               onSubmit={(e) => {
                                 e.preventDefault();
                                 updateProgress(item.id, parseInt(pageInput) || 0);
                               }}
-                              className="flex gap-1.5 items-center"
+                              className="flex gap-2 items-center"
                             >
                               <input
                                 type="number"
                                 value={pageInput}
                                 onChange={(e) => setPageInput(e.target.value)}
-                                className="w-16 px-2 py-0.5 text-xs border border-amber rounded-lg text-center focus:outline-none"
+                                className="w-20 px-2 py-1.5 text-xs border border-amber rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-amber/30 bg-parchment"
                                 autoFocus
                                 min={0}
                                 max={book.total_pages ?? 9999}
                               />
-                              <span className="text-[10px] text-ink-muted">
+                              <span className="text-xs text-ink-muted">
                                 / {book.total_pages ?? "?"} hal
                               </span>
-                              <button type="submit" className="text-xs text-amber font-medium">
+                              <button
+                                type="submit"
+                                className="text-xs font-medium text-amber hover:text-amber-hover min-h-[36px] px-2"
+                              >
                                 Simpan
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingId(null)}
+                                className="text-xs text-ink-muted hover:text-ink min-h-[36px] px-2"
+                              >
+                                Batal
                               </button>
                             </form>
                           ) : (
@@ -174,11 +175,11 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
                                 setEditingId(item.id);
                                 setPageInput(String(item.current_page ?? 0));
                               }}
-                              className="text-[10px] text-ink-muted hover:text-amber transition-colors"
+                              className="text-xs text-ink-muted hover:text-amber transition-colors min-h-[36px] pr-2"
                             >
                               {item.current_page
                                 ? `Hal ${item.current_page} / ${book.total_pages ?? "?"}`
-                                : "Update halaman"}
+                                : "Update halaman →"}
                             </button>
                           )}
                         </div>
@@ -186,19 +187,19 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-col gap-1.5 items-end">
+                  {/* Action buttons — min 44px touch targets */}
+                  <div className="flex flex-col gap-1 items-end justify-start">
                     {tab === "reading" && (
                       <button
                         onClick={() => markDone(item.id)}
-                        className="text-xs text-forest font-medium hover:text-forest-dark"
+                        className="min-h-[44px] px-3 text-xs font-semibold text-success hover:bg-success-soft rounded-xl transition-colors"
                       >
                         Selesai ✓
                       </button>
                     )}
                     <button
                       onClick={() => removeFromShelf(item.id)}
-                      className="text-xs text-ink-muted hover:text-red-400"
+                      className="min-h-[44px] px-3 text-xs text-ink-muted hover:text-error hover:bg-error-soft rounded-xl transition-colors"
                     >
                       Hapus
                     </button>

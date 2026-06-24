@@ -38,7 +38,6 @@ export default function DaftarPage() {
       }
       if (!authData.user) throw new Error("Gagal membuat akun");
       if (!authData.session) {
-        // Email confirmation required — shouldn't happen if disabled in Supabase
         throw new Error("Cek emailmu untuk verifikasi sebelum melanjutkan.");
       }
 
@@ -64,48 +63,69 @@ export default function DaftarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-parchment flex items-center justify-center px-4 py-8">
+    <div className="min-h-dvh bg-parchment flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
+        {/* Brand */}
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
           <p className="mt-2 text-ink-secondary text-sm">Buat akun untuk mulai membaca bersama keluarga</p>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border p-8 shadow-sm">
-          <h1 className="text-xl font-display font-semibold text-ink mb-6">Daftar</h1>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="text"
-              placeholder="Username (nama tampilan)"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-              autoFocus
-              autoComplete="username"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-              autoComplete="email"
-            />
-            <input
-              type="password"
-              placeholder="Password (min. 8 karakter)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-              autoComplete="new-password"
-            />
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        <div className="card-elevated p-8">
+          <h1 className="text-h2 mb-6">Daftar Akun</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="username" className="input-label">Nama tampilan</label>
+              <input
+                id="username"
+                type="text"
+                placeholder="Nama kamu di keluarga"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="input"
+                autoFocus
+                autoComplete="username"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="input-label">Email</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="nama@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input"
+                autoComplete="email"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="input-label">Password</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="Minimal 8 karakter"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+                autoComplete="new-password"
+              />
+              <p className="input-hint">Password minimal 8 karakter</p>
+            </div>
+
+            {error && (
+              <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">
+                {error}
+              </p>
+            )}
+
             <button
               type="submit"
               disabled={loading || !username.trim() || !email || password.length < 8}
-              className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
+              className="btn-primary-full-lg mt-2"
             >
-              {loading ? "Membuat akun…" : "Daftar →"}
+              {loading ? "Membuat akun…" : "Buat Akun →"}
             </button>
           </form>
         </div>

@@ -61,37 +61,38 @@ export default function BergabungPage() {
   }
 
   return (
-    <div className="min-h-screen bg-parchment flex items-center justify-center px-4 py-8">
+    <div className="min-h-dvh bg-parchment flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
           <p className="mt-2 text-ink-secondary text-sm">Bergabung ke ruang baca keluarga</p>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border p-8 shadow-sm">
+        <div className="card-elevated p-8">
+          {/* Step progress */}
           <div className="flex gap-2 mb-8">
-            <div className={`flex-1 h-1 rounded-full ${step >= 1 ? "bg-amber" : "bg-border"}`} />
-            <div className={`flex-1 h-1 rounded-full ${step >= 2 ? "bg-amber" : "bg-border"}`} />
+            <div className={`flex-1 h-1 rounded-full transition-colors ${step >= 1 ? "bg-amber" : "bg-border"}`} />
+            <div className={`flex-1 h-1 rounded-full transition-colors ${step >= 2 ? "bg-amber" : "bg-border"}`} />
           </div>
 
           {step === 1 && (
             <div>
-              <h1 className="text-xl font-display font-semibold text-ink mb-1">Masukkan kode undangan</h1>
+              <h1 className="text-h2 mb-1">Masukkan kode undangan</h1>
               <p className="text-ink-muted text-sm mb-6">Minta kode dari admin keluargamu</p>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <input
                   type="text"
-                  placeholder="Kode undangan (8 karakter)"
+                  placeholder="KODE8KAR"
                   value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value.toLowerCase())}
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber font-mono text-center tracking-widest uppercase"
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  className="input font-mono text-center text-lg tracking-[0.3em] uppercase"
                   maxLength={8}
                   autoFocus
                 />
                 <button
                   onClick={() => inviteCode.length >= 6 && setStep(2)}
                   disabled={inviteCode.length < 6}
-                  className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
+                  className="btn-primary-full-lg"
                 >
                   Lanjut →
                 </button>
@@ -101,43 +102,65 @@ export default function BergabungPage() {
 
           {step === 2 && (
             <form onSubmit={handleSubmit}>
-              <h1 className="text-xl font-display font-semibold text-ink mb-1">Buat akun</h1>
+              <h1 className="text-h2 mb-1">Buat akun</h1>
               <p className="text-ink-muted text-sm mb-6">Daftarkan dirimu untuk bergabung</p>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Username (nama tampilan)"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-                  autoFocus
-                  autoComplete="username"
-                />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-                  autoComplete="email"
-                />
-                <input
-                  type="password"
-                  placeholder="Password (min. 8 karakter)"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-                  autoComplete="new-password"
-                />
-                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="username" className="input-label">Nama tampilan</label>
+                  <input
+                    id="username"
+                    type="text"
+                    placeholder="Nama kamu di keluarga"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="input"
+                    autoFocus
+                    autoComplete="username"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="input-label">Email</label>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="nama@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input"
+                    autoComplete="email"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="password" className="input-label">Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="Minimal 8 karakter"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input"
+                    autoComplete="new-password"
+                  />
+                </div>
+
+                {error && (
+                  <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">
+                    {error}
+                  </p>
+                )}
+
                 <button
                   type="submit"
                   disabled={loading || !username.trim() || !email || password.length < 8}
-                  className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
+                  className="btn-primary-full-lg"
                 >
                   {loading ? "Bergabung…" : "Bergabung →"}
                 </button>
-                <button type="button" onClick={() => setStep(1)} className="w-full py-2 text-sm text-ink-muted hover:text-ink">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="btn-ghost-ink w-full"
+                >
                   ← Kembali
                 </button>
               </div>

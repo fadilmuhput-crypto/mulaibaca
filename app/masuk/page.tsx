@@ -36,36 +36,54 @@ function MasukForm() {
   }
 
   return (
-    <div className="min-h-screen bg-parchment flex items-center justify-center px-4">
+    <div className="min-h-dvh bg-parchment flex items-center justify-center px-4">
       <div className="w-full max-w-md">
+        {/* Brand */}
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
           <p className="mt-2 text-ink-secondary text-sm">Masuk ke ruang baca keluargamu</p>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border p-8 shadow-sm">
-          <h1 className="text-xl font-display font-semibold text-ink mb-6">Masuk</h1>
-          <form onSubmit={handleLogin} className="space-y-3">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-              autoFocus
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
-            />
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        <div className="card-elevated p-8">
+          <h1 className="text-h2 mb-6">Masuk</h1>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="input-label">Email</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="nama@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input"
+                autoFocus
+                autoComplete="email"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="input-label">Password</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+                autoComplete="current-password"
+              />
+            </div>
+
+            {error && (
+              <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">
+                {error}
+              </p>
+            )}
+
             <button
               type="submit"
               disabled={loading || !email || !password}
-              className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
+              className="btn-primary-full-lg mt-2"
             >
               {loading ? "Masuk…" : "Masuk →"}
             </button>
