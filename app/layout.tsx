@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     siteName: "Mulaibaca",
   },
   verification: {
-    google: "iVM6wykx3g3g3pTQ86zRJ6ut6cjWYK5",
+    google: "iVM6wykx3g3g3pTQ86zRJ6ut6cjWYK5-detLwmk-dvM",
   },
 };
 
