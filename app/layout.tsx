@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Fraunces } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const geist = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${geist.variable} ${fraunces.variable}`}>
       <body className="min-h-screen antialiased">{children}</body>
+      <GoogleAnalytics gaId="G-5KPFNZF5PW" />
     </html>
   );
 }
