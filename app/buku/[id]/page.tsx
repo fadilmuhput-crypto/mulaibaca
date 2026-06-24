@@ -2,7 +2,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { BUKU_ANAK, BUKU_LOKAL } from "@/lib/curated-books";
 import AddToShelfButtons from "./AddToShelfButtons";
-import { BookText } from "lucide-react";
+import BookCover from "@/components/BookCover";
 import { createAdminClient } from "@/lib/supabase-route";
 
 type OLWork = {
@@ -230,13 +230,7 @@ export default async function BookDetailPage({
       <main className="max-w-lg mx-auto px-4 py-6">
         {/* Book hero */}
         <div className="flex gap-5 mb-6">
-          <div className="w-24 h-36 rounded-xl overflow-hidden bg-cream flex-shrink-0 shadow-md">
-            {book.cover_url ? (
-              <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={36} strokeWidth={1.25} /></div>
-            )}
-          </div>
+          <BookCover src={book.cover_url} title={book.title} className="w-24 h-36 rounded-xl shadow-md" />
           <div className="flex-1 min-w-0 pt-1">
             <h1 className="font-display font-bold text-xl text-ink leading-tight">{book.title}</h1>
             {book.author && <p className="text-ink-secondary text-sm mt-1">{book.author}</p>}

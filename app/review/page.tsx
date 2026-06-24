@@ -3,7 +3,8 @@ import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import NavBar from "@/components/NavBar";
-import { BookText, Star, PenLine } from "lucide-react";
+import { Star, PenLine } from "lucide-react";
+import BookCover from "@/components/BookCover";
 
 export const metadata = {
   title: "Review Buku — Mulaibaca",
@@ -59,13 +60,7 @@ export default async function ReviewPage() {
                       href={`/review/tulis?shelf=${item.id}`}
                       className="flex gap-3 items-center bg-surface rounded-2xl border border-border p-3 hover:border-amber/50 transition-colors"
                     >
-                      <div className="w-10 h-14 rounded-lg overflow-hidden bg-cream flex-shrink-0">
-                        {book?.cover_url ? (
-                          <img src={book.cover_url} alt={book?.title ?? ""} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={18} strokeWidth={1.5} /></div>
-                        )}
-                      </div>
+                      <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm text-ink truncate">{book?.title}</p>
                         {book?.author && <p className="text-xs text-ink-muted">{book.author}</p>}
@@ -96,13 +91,7 @@ export default async function ReviewPage() {
                   return (
                     <div key={review.id} className="bg-surface rounded-2xl border border-border p-4">
                       <div className="flex gap-3">
-                        <div className="w-10 h-14 rounded-lg overflow-hidden bg-cream flex-shrink-0">
-                          {book?.cover_url ? (
-                            <img src={book.cover_url} alt={book?.title ?? ""} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={18} strokeWidth={1.5} /></div>
-                          )}
-                        </div>
+                        <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm text-ink">{book?.title}</p>
                           <div className="flex gap-0.5 mt-1">
@@ -183,13 +172,7 @@ export default async function ReviewPage() {
                   className="bg-surface rounded-2xl border border-border p-4 hover:border-amber/50 hover:shadow-sm transition-all"
                 >
                   <div className="flex gap-3 mb-3">
-                    <div className="w-10 h-14 rounded-lg overflow-hidden bg-cream flex-shrink-0">
-                      {book?.cover_url ? (
-                        <img src={book.cover_url} alt={book?.title ?? ""} className="w-full h-full object-cover" loading="lazy" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={16} strokeWidth={1.5} /></div>
-                      )}
-                    </div>
+                    <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm text-ink truncate">{book?.title}</p>
                       {book?.author && <p className="text-xs text-ink-muted truncate">{book.author}</p>}

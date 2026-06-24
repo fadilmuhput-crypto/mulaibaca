@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase-route";
 import AvatarIcon from "@/components/AvatarIcon";
-import { BookText, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
+import BookCover from "@/components/BookCover";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -46,13 +47,7 @@ export default async function PublicReviewPage({
       <main className="max-w-lg mx-auto px-4 py-8">
         {/* Book info */}
         <div className="flex gap-4 mb-6">
-          <div className="w-20 h-28 rounded-xl overflow-hidden bg-cream flex-shrink-0 shadow-md">
-            {book?.cover_url ? (
-              <img src={book.cover_url} alt={book?.title ?? ""} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={28} strokeWidth={1.25} /></div>
-            )}
-          </div>
+          <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-20 h-28 rounded-xl shadow-md" />
           <div className="flex-1">
             <h1 className="font-display font-bold text-xl text-ink leading-tight">
               {book?.title}

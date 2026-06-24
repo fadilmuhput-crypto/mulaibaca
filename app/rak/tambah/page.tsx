@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BUKU_ANAK, BUKU_LOKAL, KATEGORI, type CuratedBook } from "@/lib/curated-books";
-import { BookText, BookOpen, Bookmark, Search } from "lucide-react";
+import { BookOpen, Bookmark, Search } from "lucide-react";
+import BookCover from "@/components/BookCover";
 
 type OLBook = {
   key: string;
@@ -449,15 +450,8 @@ function BookCardRow({
   return (
     <div className="card-elevated p-3">
       <div className="flex gap-3">
-        <Link
-          href={`/buku/${card.id}`}
-          className="w-12 h-16 rounded-lg overflow-hidden bg-cream flex-shrink-0 hover:opacity-80 transition-opacity"
-        >
-          {card.cover_url ? (
-            <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={20} strokeWidth={1.5} /></div>
-          )}
+        <Link href={`/buku/${card.id}`} className="flex-shrink-0 hover:opacity-80 transition-opacity">
+          <BookCover src={card.cover_url} title={card.title} className="w-12 h-16 rounded-lg" />
         </Link>
 
         <div className="flex-1 min-w-0">
