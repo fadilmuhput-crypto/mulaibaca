@@ -23,7 +23,6 @@ export default async function PublicReviewPage({
       shelf_items(books(title, author, cover_url, total_pages))
     `)
     .eq("slug", slug)
-    .eq("is_public", true)
     .maybeSingle();
 
   if (!review) notFound();
