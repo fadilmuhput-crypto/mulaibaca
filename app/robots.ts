@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/dashboard", "/rak", "/log", "/profil", "/api/", "/setup-profil"],
     },
-    sitemap: "https://mulaibaca.my.id/sitemap.xml",
+    sitemap: "https://www.mulaibaca.my.id/sitemap.xml",
   };
 }
