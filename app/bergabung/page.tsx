@@ -14,6 +14,27 @@ export default function BergabungPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [step1Error, setStep1Error] = useState("");
+  const [previewFamilyName, setPreviewFamilyName] = useState("");
+
+  async function handleCheckCode() {
+    setStep1Error("");
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/check-invite?code=${encodeURIComponent(inviteCode)}`);
+      const data = await res.json();
+      if (!data.valid) {
+        setStep1Error(data.error ?? "Kode tidak valid");
+        return;
+      }
+      setPreviewFamilyName(data.familyName);
+      setStep(2);
+    } catch {
+      setStep1Error("Gagal memeriksa kode. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,17 +105,22 @@ export default function BergabungPage() {
                   type="text"
                   placeholder="KODE8KAR"
                   value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  onChange={(e) => { setInviteCode(e.target.value.toUpperCase()); setStep1Error(""); }}
                   className="input font-mono text-center text-lg tracking-[0.3em] uppercase"
                   maxLength={8}
                   autoFocus
                 />
+                {step1Error && (
+                  <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">
+                    {step1Error}
+                  </p>
+                )}
                 <button
-                  onClick={() => inviteCode.length >= 6 && setStep(2)}
-                  disabled={inviteCode.length < 6}
+                  onClick={handleCheckCode}
+                  disabled={inviteCode.length < 6 || loading}
                   className="btn-primary-full-lg"
                 >
-                  Lanjut →
+                  {loading ? "Memeriksa…" : "Lanjut →"}
                 </button>
               </div>
             </div>
@@ -103,7 +129,12 @@ export default function BergabungPage() {
           {step === 2 && (
             <form onSubmit={handleSubmit}>
               <h1 className="text-h2 mb-1">Buat akun</h1>
-              <p className="text-ink-muted text-sm mb-6">Daftarkan dirimu untuk bergabung</p>
+              <p className="text-ink-muted text-sm mb-1">Daftarkan dirimu untuk bergabung</p>
+              {previewFamilyName && (
+                <p className="text-xs font-medium text-forest bg-forest/8 rounded-lg px-3 py-2 mb-5">
+                  Bergabung ke keluarga: <span className="font-bold">{previewFamilyName}</span>
+                </p>
+              )}
               <div className="space-y-4">
                 <div>
                   <label htmlFor="username" className="input-label">Nama tampilan</label>

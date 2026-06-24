@@ -47,6 +47,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Kode undangan tidak valid" }, { status: 404 });
   }
 
+  const { count: memberCount } = await supabase
+    .from("members")
+    .select("id", { count: "exact", head: true })
+    .eq("family_id", family.id);
+
+  if ((memberCount ?? 0) >= 8) {
+    return NextResponse.json({ error: "Keluarga ini sudah penuh (maks. 8 anggota)" }, { status: 409 });
+  }
+
   const { data: member, error: memberErr } = await supabase
     .from("members")
     .insert({

@@ -138,17 +138,20 @@ export default async function DashboardPage() {
         {/* Family members */}
         {familyMembers && familyMembers.length > 1 && (
           <section>
-            <h2 className="section-title mb-3">Anggota keluarga</h2>
+            <div className="section-header">
+              <h2 className="section-title">Anggota keluarga</h2>
+              <Link href="/keluarga" className="section-link">Lihat progress →</Link>
+            </div>
             <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
               {familyMembers.map((m: { id: string; name: string; avatar: string }) => (
-                <div key={m.id} className="flex flex-col items-center gap-1 flex-shrink-0">
+                <Link key={m.id} href="/keluarga" className="flex flex-col items-center gap-1 flex-shrink-0">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
                     m.id === session.memberId ? "border-amber bg-amber-soft text-amber" : "border-border bg-surface text-ink-secondary"
                   }`}>
                     <AvatarIcon avatar={m.avatar} size={22} />
                   </div>
                   <span className="text-xs text-ink-secondary max-w-[48px] truncate text-center">{m.name}</span>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
