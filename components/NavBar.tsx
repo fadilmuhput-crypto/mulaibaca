@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { Session } from "@/lib/session";
 import { createClient } from "@/lib/supabase";
+import AvatarIcon from "@/components/AvatarIcon";
 
 /* ── SVG icon components (Heroicons outline 24px) ── */
 function IconHome({ active }: { active: boolean }) {
@@ -101,8 +102,8 @@ export default function NavBar({ session }: { session: Session }) {
             aria-label="Menu profil"
             aria-expanded={open}
           >
-            <span className="w-8 h-8 rounded-full bg-amber-soft border border-amber/20 flex items-center justify-center text-lg leading-none">
-              {session.memberAvatar}
+            <span className="w-8 h-8 rounded-full bg-amber-soft border border-amber/20 flex items-center justify-center text-amber">
+              <AvatarIcon avatar={session.memberAvatar} size={16} />
             </span>
             <span className="hidden sm:block text-sm font-medium text-ink max-w-[100px] truncate">
               {session.memberName}

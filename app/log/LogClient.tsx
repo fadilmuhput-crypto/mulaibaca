@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { BookOpen, BookText, Check, Sparkles } from "lucide-react";
 
 type Book = {
   id: string;
@@ -85,7 +86,7 @@ export default function LogClient({
       if (!res.ok) throw new Error(data.error);
 
       if (data.streak) setStreak(data.streak);
-      setSuccessMsg(`+${pagesNum} hal tercatat! 🎉`);
+      setSuccessMsg(`+${pagesNum} hal tercatat!`);
       setPages("");
       setDuration("");
       setNote("");
@@ -127,7 +128,8 @@ export default function LogClient({
 
       {/* Success message */}
       {successMsg && (
-        <div className="bg-forest/10 border border-forest/20 rounded-xl px-4 py-3 text-center text-forest font-medium text-sm">
+        <div className="bg-forest/10 border border-forest/20 rounded-xl px-4 py-3 text-center text-forest font-medium text-sm flex items-center justify-center gap-2">
+          <Sparkles size={14} strokeWidth={2} />
           {successMsg}
         </div>
       )}
@@ -135,7 +137,7 @@ export default function LogClient({
       {/* Log form */}
       {shelf.length === 0 ? (
         <div className="text-center py-8">
-          <div className="text-4xl mb-3">📖</div>
+          <div className="flex justify-center text-ink-muted mb-3"><BookOpen size={40} strokeWidth={1.25} /></div>
           <p className="text-ink-secondary text-sm mb-3">Belum ada buku yang sedang dibaca</p>
           <Link href="/rak/tambah" className="text-amber text-sm font-medium hover:text-amber-hover">
             + Tambah buku dulu
@@ -165,7 +167,7 @@ export default function LogClient({
                     {book.cover_url ? (
                       <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xl">📗</div>
+                      <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={20} strokeWidth={1.5} /></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -179,7 +181,7 @@ export default function LogClient({
                   <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
                     isSelected ? "border-amber bg-amber" : "border-border"
                   }`}>
-                    {isSelected && <span className="text-white text-xs">✓</span>}
+                    {isSelected && <Check size={10} strokeWidth={3} className="text-white" />}
                   </div>
                 </button>
               );
@@ -233,7 +235,7 @@ export default function LogClient({
                 disabled={loading || !pages}
                 className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
               >
-                {loading ? "Menyimpan…" : "Catat Bacaan 📖"}
+                {loading ? "Menyimpan…" : "Catat Bacaan"}
               </button>
             </form>
           )}
@@ -253,7 +255,7 @@ export default function LogClient({
                     {book?.cover_url ? (
                       <img src={book.cover_url} alt={book.title ?? ""} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-lg">📗</div>
+                      <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={16} strokeWidth={1.5} /></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">

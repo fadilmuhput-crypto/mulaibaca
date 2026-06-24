@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import NavBar from "@/components/NavBar";
+import { BookText, Star } from "lucide-react";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -54,7 +55,7 @@ export default async function ReviewPage() {
                       {book?.cover_url ? (
                         <img src={book.cover_url} alt={book?.title ?? ""} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xl">📗</div>
+                        <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={18} strokeWidth={1.5} /></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -73,7 +74,7 @@ export default async function ReviewPage() {
         {(reviews ?? []).length > 0 ? (
           <section>
             <h2 className="font-semibold text-ink mb-3 flex items-center gap-2">
-              <span className="text-base">⭐</span> Reviewmu
+              <Star size={14} strokeWidth={2} className="text-amber inline mr-1" /> Reviewmu
             </h2>
             <div className="space-y-3">
               {(reviews ?? []).map((review: {
@@ -91,7 +92,7 @@ export default async function ReviewPage() {
                         {book?.cover_url ? (
                           <img src={book.cover_url} alt={book?.title ?? ""} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xl">📗</div>
+                          <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={18} strokeWidth={1.5} /></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -124,7 +125,7 @@ export default async function ReviewPage() {
           </section>
         ) : unreviewed.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-5xl mb-3">⭐</div>
+            <div className="flex justify-center text-amber mb-3"><Star size={48} strokeWidth={1} /></div>
             <p className="text-ink-secondary text-sm">Selesaikan membaca buku dulu,</p>
             <p className="text-ink-secondary text-sm">lalu tulis reviewnya di sini.</p>
             <Link href="/rak" className="btn-secondary inline-flex mt-3">

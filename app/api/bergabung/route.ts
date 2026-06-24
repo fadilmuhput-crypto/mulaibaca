@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     .insert({
       family_id: family.id,
       name: memberName,
-      avatar: "📖",
+      avatar: "book",
       pin_hash: "",
       role: "member",
       auth_user_id: user.id,

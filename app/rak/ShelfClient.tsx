@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import BookCover from "@/components/BookCover";
+import { BookOpen, Bookmark, Trophy, Sparkles, Check } from "lucide-react";
 
 type Book = {
   title: string;
@@ -126,7 +127,7 @@ export default function ShelfClient({
       {/* Congratulations banner after marking done */}
       {justFinished && tab === "done" && (
         <div className="bg-success-soft border border-success/20 rounded-2xl p-4 mb-4 flex items-start gap-3">
-          <span className="text-2xl flex-shrink-0">🎉</span>
+          <Sparkles size={20} strokeWidth={1.75} className="text-success flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-success">
               Selesai membaca &ldquo;{justFinished.title}&rdquo;!
@@ -155,8 +156,8 @@ export default function ShelfClient({
       {/* Book list */}
       {filtered.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-4xl mb-3">
-            {tab === "reading" ? "📖" : tab === "want" ? "🔖" : "🏆"}
+          <div className="flex justify-center text-ink-muted mb-3">
+            {tab === "reading" ? <BookOpen size={40} strokeWidth={1.25} /> : tab === "want" ? <Bookmark size={40} strokeWidth={1.25} /> : <Trophy size={40} strokeWidth={1.25} />}
           </div>
           <p className="text-ink-secondary text-sm mb-4">
             {tab === "reading"
@@ -244,7 +245,7 @@ export default function ShelfClient({
                     {tab === "done" && (
                       <div className="mt-2">
                         {isReviewed ? (
-                          <span className="badge-forest">✓ Sudah direview</span>
+                          <span className="badge-forest flex items-center gap-1"><Check size={10} strokeWidth={3} />Sudah direview</span>
                         ) : (
                           <Link href={`/review/tulis?shelf=${item.id}`} className="btn-primary-sm text-xs">
                             Tulis Review →
@@ -270,7 +271,7 @@ export default function ShelfClient({
                         onClick={() => markDone(item.id)}
                         className="min-h-[44px] px-3 text-xs font-semibold text-success hover:bg-success-soft rounded-xl transition-colors"
                       >
-                        Selesai ✓
+                        <span className="flex items-center gap-1"><Check size={12} strokeWidth={2.5} />Selesai</span>
                       </button>
                     )}
                     <button

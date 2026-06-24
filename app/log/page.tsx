@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import NavBar from "@/components/NavBar";
 import LogClient from "./LogClient";
+import { Flame } from "lucide-react";
 
 export default async function LogPage() {
   const session = await getSession();
@@ -38,7 +39,7 @@ export default async function LogPage() {
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-2xl font-display font-bold text-ink">Log Baca</h1>
           <div className="flex items-center gap-2 bg-surface border border-border rounded-xl px-3 py-1.5">
-            <span className="text-lg">🔥</span>
+            <Flame size={18} strokeWidth={1.75} className="text-amber" />
             <span className="font-bold text-ink text-lg leading-none">
               {streak?.current_streak ?? 0}
             </span>

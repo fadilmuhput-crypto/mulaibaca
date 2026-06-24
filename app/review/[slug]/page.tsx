@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
+import AvatarIcon from "@/components/AvatarIcon";
+import { BookText, BookOpen } from "lucide-react";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -49,7 +51,7 @@ export default async function PublicReviewPage({
             {book?.cover_url ? (
               <img src={book.cover_url} alt={book?.title ?? ""} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl">📗</div>
+              <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={28} strokeWidth={1.25} /></div>
             )}
           </div>
           <div className="flex-1">
@@ -70,7 +72,7 @@ export default async function PublicReviewPage({
 
         {/* Reviewer */}
         <div className="flex items-center gap-2 mb-6 bg-surface rounded-xl border border-border px-4 py-3">
-          <span className="text-2xl">{member?.avatar ?? "📖"}</span>
+          <span className="text-amber"><AvatarIcon avatar={member?.avatar ?? "book"} size={18} /></span>
           <div>
             <p className="text-sm font-medium text-ink">{member?.name}</p>
             <p className="text-xs text-ink-muted">dari {family?.name}</p>
@@ -82,7 +84,7 @@ export default async function PublicReviewPage({
           {review.q_about && (
             <div className="bg-surface rounded-2xl border border-border p-5">
               <p className="text-xs font-semibold text-amber uppercase tracking-wide mb-2">
-                📖 Tentang buku ini
+                <span className="flex items-center gap-1.5"><BookOpen size={14} strokeWidth={2} />Tentang buku ini</span>
               </p>
               <p className="text-ink text-sm leading-relaxed">{review.q_about}</p>
             </div>

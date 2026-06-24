@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Bookmark, BookOpen } from "lucide-react";
 
 function ManualForm() {
   const router = useRouter();
@@ -100,7 +101,7 @@ function ManualForm() {
                 : "border-border text-ink-secondary hover:border-amber/40"
             }`}
           >
-            <span className="text-xl">🔖</span>
+            <Bookmark size={20} strokeWidth={1.75} />
             Mau Baca
           </button>
           <button
@@ -112,7 +113,7 @@ function ManualForm() {
                 : "border-border text-ink-secondary hover:border-forest/40"
             }`}
           >
-            <span className="text-xl">📖</span>
+            <BookOpen size={20} strokeWidth={1.75} />
             Sedang Baca
           </button>
         </div>

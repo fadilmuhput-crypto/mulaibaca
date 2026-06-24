@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     .insert({
       family_id: family.id,
       name: username.trim(),
-      avatar: "📖",
+      avatar: "book",
       pin_hash: "",
       role: "admin",
       auth_user_id: user.id,

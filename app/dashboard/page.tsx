@@ -6,6 +6,8 @@ import NavBar from "@/components/NavBar";
 import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
+import AvatarIcon from "@/components/AvatarIcon";
+import { Flame, BookOpen, PenLine, Plus } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -48,7 +50,7 @@ export default async function DashboardPage() {
             <p className="text-ink-secondary text-sm mt-0.5">{session.familyName}</p>
           </div>
           <div className="text-center bg-surface rounded-2xl border border-border px-4 py-2" style={{ boxShadow: "var(--shadow-card)" }}>
-            <div className="text-2xl">🔥</div>
+            <div className="flex justify-center text-amber mb-0.5"><Flame size={22} strokeWidth={1.75} /></div>
             <div className="text-xl font-bold text-ink leading-none">{currentStreak}</div>
             <div className="text-xs text-ink-muted mt-0.5">hari</div>
           </div>
@@ -66,7 +68,7 @@ export default async function DashboardPage() {
               href="/rak/tambah"
               className="block border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-amber transition-colors"
             >
-              <div className="text-3xl mb-2">📖</div>
+              <div className="flex justify-center text-ink-muted mb-2"><BookOpen size={32} strokeWidth={1.5} /></div>
               <p className="text-ink-secondary text-sm">Belum ada buku yang dibaca</p>
               <p className="text-amber text-sm font-medium mt-1">+ Tambah buku pertamamu</p>
             </Link>
@@ -120,10 +122,10 @@ export default async function DashboardPage() {
             <div className="flex gap-3 overflow-x-auto pb-1">
               {familyMembers.map((m: { id: string; name: string; avatar: string }) => (
                 <div key={m.id} className="flex flex-col items-center gap-1 flex-shrink-0">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2 ${
-                    m.id === session.memberId ? "border-amber bg-amber-soft" : "border-border bg-surface"
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
+                    m.id === session.memberId ? "border-amber bg-amber-soft text-amber" : "border-border bg-surface text-ink-secondary"
                   }`}>
-                    {m.avatar}
+                    <AvatarIcon avatar={m.avatar} size={22} />
                   </div>
                   <span className="text-xs text-ink-secondary max-w-[48px] truncate text-center">{m.name}</span>
                 </div>
@@ -139,7 +141,7 @@ export default async function DashboardPage() {
             className="bg-forest text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 transition-opacity"
             style={{ boxShadow: "var(--shadow-card)" }}
           >
-            <span className="text-2xl">➕</span>
+            <Plus size={22} strokeWidth={2} />
             <span className="font-medium text-sm">Tambah Buku</span>
           </Link>
           <Link
@@ -147,7 +149,7 @@ export default async function DashboardPage() {
             className="bg-amber text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 transition-opacity"
             style={{ boxShadow: "var(--shadow-card)" }}
           >
-            <span className="text-2xl">📝</span>
+            <PenLine size={22} strokeWidth={1.75} />
             <span className="font-medium text-sm">Catat Bacaan</span>
           </Link>
         </section>

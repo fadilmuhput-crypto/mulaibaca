@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const AVATARS = ["📖", "🌱", "🦋", "🌟", "🎯", "🦉", "🐻", "🌈"];
+import { AVATAR_OPTIONS } from "@/components/AvatarIcon";
+import { Home, Link as LinkIcon } from "lucide-react";
 
 export default function SetupProfilPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"new" | "join" | null>(null);
   const [memberName, setMemberName] = useState("");
-  const [avatar, setAvatar] = useState("📖");
+  const [avatar, setAvatar] = useState("book");
   const [familyName, setFamilyName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -51,15 +51,15 @@ export default function SetupProfilPage() {
           <div className="space-y-3">
             <button
               onClick={() => setMode("new")}
-              className="w-full py-4 rounded-2xl bg-forest text-white font-medium hover:bg-forest-dark transition-colors"
+              className="w-full py-4 rounded-2xl bg-forest text-white font-medium hover:bg-forest-dark transition-colors flex items-center justify-center gap-2"
             >
-              🏠 Buat ruang keluarga baru
+              <Home size={18} strokeWidth={2} /> Buat ruang keluarga baru
             </button>
             <button
               onClick={() => setMode("join")}
-              className="w-full py-4 rounded-2xl border-2 border-border bg-surface text-ink font-medium hover:border-amber/50 transition-all"
+              className="w-full py-4 rounded-2xl border-2 border-border bg-surface text-ink font-medium hover:border-amber/50 transition-all flex items-center justify-center gap-2"
             >
-              🔗 Bergabung ke keluarga (punya kode undangan)
+              <LinkIcon size={18} strokeWidth={2} /> Bergabung ke keluarga (punya kode undangan)
             </button>
           </div>
         </div>
@@ -80,18 +80,29 @@ export default function SetupProfilPage() {
           <form onSubmit={handleSubmit} className="space-y-4 mt-6">
             <div>
               <label className="text-sm font-medium text-ink-secondary mb-2 block">Avatar</label>
-              <div className="flex gap-2 flex-wrap">
-                {AVATARS.map((a) => (
-                  <button key={a} type="button" onClick={() => setAvatar(a)}
-                    className={`w-11 h-11 text-2xl rounded-xl border-2 transition-all ${avatar === a ? "border-amber bg-amber-soft scale-110" : "border-border bg-parchment"}`}>
-                    {a}
+              <div className="grid grid-cols-6 gap-2">
+                {AVATAR_OPTIONS.map(({ key, label, Icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setAvatar(key)}
+                    title={label}
+                    className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all ${
+                      avatar === key
+                        ? "border-amber bg-amber-soft text-amber scale-110"
+                        : "border-border bg-parchment text-ink-secondary hover:border-amber/40 hover:text-amber"
+                    }`}
+                    aria-label={label}
+                    aria-pressed={avatar === key}
+                  >
+                    <Icon size={18} strokeWidth={1.75} />
                   </button>
                 ))}
               </div>
             </div>
             <input type="text" placeholder="Nama kamu" value={memberName}
               onChange={(e) => setMemberName(e.target.value)} autoFocus
-              className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber" />
+              className="w-full px-4 py-3 rounded-xl border border-border bg-panchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber" />
             {mode === "new" ? (
               <input type="text" placeholder="Nama keluarga" value={familyName}
                 onChange={(e) => setFamilyName(e.target.value)}
@@ -104,9 +115,9 @@ export default function SetupProfilPage() {
             {error && <p className="text-red-500 text-sm text-center">{error}</p>}
             <button type="submit" disabled={loading || !memberName.trim()}
               className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40">
-              {loading ? "Menyimpan…" : "Selesai →"}
+              {loading ? "Menyimpan…" : "Selesai"}
             </button>
-            <button type="button" onClick={() => setMode(null)} className="w-full py-2 text-sm text-ink-muted hover:text-ink">← Kembali</button>
+            <button type="button" onClick={() => setMode(null)} className="w-full py-2 text-sm text-ink-muted hover:text-ink">Kembali</button>
           </form>
         </div>
       </div>

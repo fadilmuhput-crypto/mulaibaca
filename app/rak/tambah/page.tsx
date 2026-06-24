@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BUKU_ANAK, BUKU_LOKAL, KATEGORI, type CuratedBook } from "@/lib/curated-books";
+import { BookText, BookOpen, Bookmark, Search } from "lucide-react";
 
 type OLBook = {
   key: string;
@@ -402,7 +403,7 @@ export default function TambahBukuPage() {
             {/* No results at all */}
             {noResultsAtAll && (
               <div className="text-center py-10">
-                <div className="text-4xl mb-3">🔍</div>
+                <div className="flex justify-center text-ink-muted mb-3"><Search size={40} strokeWidth={1.25} /></div>
                 <p className="text-ink-secondary text-sm mb-5">
                   Buku tidak ditemukan di direktori kami.
                 </p>
@@ -455,7 +456,7 @@ function BookCardRow({
           {card.cover_url ? (
             <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-2xl">📗</div>
+            <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={20} strokeWidth={1.5} /></div>
           )}
         </Link>
 
@@ -482,15 +483,17 @@ function BookCardRow({
             <button
               onClick={() => onAdd(card, "reading")}
               disabled={!!isAdding}
-              className="btn-primary-sm"
+              className="btn-primary-sm flex items-center gap-1.5"
             >
+              <BookOpen size={12} strokeWidth={2.5} />
               {adding === card.id + "reading" ? "…" : "Sedang Baca"}
             </button>
             <button
               onClick={() => onAdd(card, "want")}
               disabled={!!isAdding}
-              className="btn-secondary min-h-[44px] px-3 text-xs"
+              className="btn-secondary min-h-[44px] px-3 text-xs flex items-center gap-1.5"
             >
+              <Bookmark size={12} strokeWidth={2.5} />
               {adding === card.id + "want" ? "…" : "Mau Baca"}
             </button>
           </div>

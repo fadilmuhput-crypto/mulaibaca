@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { BookOpen, Sparkles } from "lucide-react";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -84,7 +85,7 @@ function TulisForm() {
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-ink mb-1.5">
-            📖 Buku ini tentang apa?
+            <span className="flex items-center gap-1.5"><BookOpen size={14} strokeWidth={2} />Buku ini tentang apa?</span>
           </label>
           <textarea
             value={qAbout}
@@ -150,7 +151,7 @@ function TulisForm() {
         disabled={loading || !rating}
         className="btn-primary-full-lg"
       >
-        {loading ? "Menyimpan…" : "Publikasikan Review ✨"}
+        {loading ? "Menyimpan…" : <span className="flex items-center gap-2"><Sparkles size={14} strokeWidth={2} />Publikasikan Review</span>}
       </button>
     </form>
   );

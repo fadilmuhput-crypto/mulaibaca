@@ -1,18 +1,19 @@
 import Link from "next/link";
+import { BookOpen, Users, Globe, Flame, Sprout } from "lucide-react";
 
 const features = [
   {
-    icon: "📖",
+    Icon: BookOpen,
     title: "Track Progres Harian",
     desc: "Catat halaman yang kamu baca setiap hari. Streak harian bikin kamu semangat tidak berhenti.",
   },
   {
-    icon: "👨‍👩‍👧",
+    Icon: Users,
     title: "Satu Keluarga, Satu Platform",
     desc: "Suami, istri, dan anak — semua bisa punya rak buku sendiri dalam satu Family Space.",
   },
   {
-    icon: "🌐",
+    Icon: Globe,
     title: "Review yang Menginspirasi",
     desc: "Setiap buku yang selesai, tulis review singkat. Otomatis jadi halaman publik yang bisa dibaca siapa saja.",
   },
@@ -41,7 +42,7 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="mx-auto max-w-5xl px-6 pb-20 pt-20 text-center md:pt-28">
         <div className="mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold" style={{ borderColor: "#E0D8CE", color: "#8A9B8F" }}>
-          🌱 Gerakan Literasi Keluarga Indonesia
+          <Sprout size={12} strokeWidth={2} /> Gerakan Literasi Keluarga Indonesia
         </div>
         <h1 className="mx-auto max-w-3xl text-[clamp(2.4rem,6vw,4rem)] font-bold leading-[1.08] tracking-tight" style={{ fontFamily: "var(--font-display)", color: "#1C2B1E" }}>
           Mulai baca.<br />
@@ -83,7 +84,7 @@ export default function LandingPage() {
               <div key={m.name} className="flex flex-1 flex-col items-center gap-1">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold" style={{ backgroundColor: m.bg, color: "#1C2B1E" }}>{m.name[0]}</div>
                 <span className="text-[10px] font-semibold" style={{ color: "#1C2B1E" }}>{m.name}</span>
-                <span className="text-[10px] font-bold" style={{ color: "#C17A3E" }}>🔥{m.streak}</span>
+                <span className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: "#C17A3E" }}><Flame size={10} strokeWidth={2} />{m.streak}</span>
               </div>
             ))}
           </div>
@@ -98,7 +99,7 @@ export default function LandingPage() {
           <div className="grid gap-6 md:grid-cols-3">
             {features.map((f) => (
               <div key={f.title} className="rounded-2xl border p-6" style={{ borderColor: "#E0D8CE", backgroundColor: "#FAF7F2" }}>
-                <div className="mb-4 text-4xl">{f.icon}</div>
+                <div className="mb-4" style={{ color: "#2D5A3D" }}><f.Icon size={32} strokeWidth={1.5} /></div>
                 <h3 className="mb-2 text-lg font-bold" style={{ fontFamily: "var(--font-display)", color: "#1C2B1E" }}>{f.title}</h3>
                 <p className="text-sm leading-relaxed" style={{ color: "#4B5B4F" }}>{f.desc}</p>
               </div>

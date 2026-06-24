@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BookOpen, Bookmark, Check } from "lucide-react";
 
 type BookPayload = {
   title: string;
@@ -44,8 +45,8 @@ export default function AddToShelfButtons({ book }: { book: BookPayload }) {
 
   if (done) {
     return (
-      <div className="bg-success-soft border border-success/20 rounded-xl px-4 py-3 text-sm text-success text-center font-medium">
-        ✓ Ditambahkan ke rak! Mengalihkan…
+      <div className="bg-success-soft border border-success/20 rounded-xl px-4 py-3 text-sm text-success text-center font-medium flex items-center justify-center gap-2">
+        <Check size={14} strokeWidth={2.5} /> Ditambahkan ke rak! Mengalihkan…
       </div>
     );
   }
@@ -62,14 +63,14 @@ export default function AddToShelfButtons({ book }: { book: BookPayload }) {
         disabled={!!adding}
         className="btn-primary-full"
       >
-        {adding === "reading" ? "Menambahkan…" : "📖 Sedang Baca"}
+        {adding === "reading" ? "Menambahkan…" : <span className="flex items-center justify-center gap-2"><BookOpen size={16} strokeWidth={2} />Sedang Baca</span>}
       </button>
       <button
         onClick={() => addToShelf("want")}
         disabled={!!adding}
         className="btn-secondary w-full min-h-[44px]"
       >
-        {adding === "want" ? "Menambahkan…" : "🔖 Mau Baca"}
+        {adding === "want" ? "Menambahkan…" : <span className="flex items-center justify-center gap-2"><Bookmark size={16} strokeWidth={2} />Mau Baca</span>}
       </button>
     </div>
   );

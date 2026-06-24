@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BUKU_ANAK, BUKU_LOKAL } from "@/lib/curated-books";
 import AddToShelfButtons from "./AddToShelfButtons";
+import { BookText } from "lucide-react";
 
 type OLWork = {
   title?: string;
@@ -166,7 +167,7 @@ export default async function BookDetailPage({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl">📗</div>
+              <div className="w-full h-full flex items-center justify-center text-ink-muted"><BookText size={36} strokeWidth={1.25} /></div>
             )}
           </div>
           <div className="flex-1 min-w-0 pt-1">
