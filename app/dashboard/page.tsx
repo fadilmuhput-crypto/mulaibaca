@@ -56,6 +56,26 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* Quick actions — prominent, always above fold */}
+        <section className="grid grid-cols-2 gap-3">
+          <Link
+            href="/rak/tambah"
+            className="bg-forest text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 active:scale-95 transition-all"
+            style={{ boxShadow: "var(--shadow-card)" }}
+          >
+            <Plus size={22} strokeWidth={2} />
+            <span className="font-medium text-sm">Tambah Buku</span>
+          </Link>
+          <Link
+            href="/log"
+            className="bg-amber text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 active:scale-95 transition-all"
+            style={{ boxShadow: "var(--shadow-card)" }}
+          >
+            <PenLine size={22} strokeWidth={1.75} />
+            <span className="font-medium text-sm">Catat Bacaan</span>
+          </Link>
+        </section>
+
         {/* Currently reading */}
         <section>
           <div className="section-header">
@@ -119,7 +139,7 @@ export default async function DashboardPage() {
         {familyMembers && familyMembers.length > 1 && (
           <section>
             <h2 className="section-title mb-3">Anggota keluarga</h2>
-            <div className="flex gap-3 overflow-x-auto pb-1">
+            <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
               {familyMembers.map((m: { id: string; name: string; avatar: string }) => (
                 <div key={m.id} className="flex flex-col items-center gap-1 flex-shrink-0">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
@@ -134,25 +154,10 @@ export default async function DashboardPage() {
           </section>
         )}
 
-        {/* Quick actions */}
-        <section className="grid grid-cols-2 gap-3">
-          <Link
-            href="/rak/tambah"
-            className="bg-forest text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 transition-opacity"
-            style={{ boxShadow: "var(--shadow-card)" }}
-          >
-            <Plus size={22} strokeWidth={2} />
-            <span className="font-medium text-sm">Tambah Buku</span>
-          </Link>
-          <Link
-            href="/log"
-            className="bg-amber text-white rounded-2xl p-4 flex flex-col gap-2 hover:opacity-90 transition-opacity"
-            style={{ boxShadow: "var(--shadow-card)" }}
-          >
-            <PenLine size={22} strokeWidth={1.75} />
-            <span className="font-medium text-sm">Catat Bacaan</span>
-          </Link>
-        </section>
+        {/* Email verification */}
+        {!session.emailVerified && (
+          <EmailVerifyBanner email={session.email} />
+        )}
 
         {/* Invite card — full when alone, compact when family has members */}
         {session.inviteCode && (
@@ -171,11 +176,6 @@ export default async function DashboardPage() {
                 </div>
               </section>
             )
-        )}
-
-        {/* Email verification */}
-        {!session.emailVerified && (
-          <EmailVerifyBanner email={session.email} />
         )}
       </main>
     </div>

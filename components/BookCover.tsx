@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BookText } from "lucide-react";
 
 type Props = {
   src: string | null;
@@ -14,7 +15,7 @@ export default function BookCover({ src, title, className = "w-12 h-16" }: Props
   if (!src || failed) {
     return (
       <div className={`${className} rounded-lg bg-gradient-to-br from-cream to-amber-soft flex items-center justify-center flex-shrink-0`}>
-        <span className="text-2xl">📗</span>
+        <BookText size={20} strokeWidth={1.5} className="text-amber/60" />
       </div>
     );
   }

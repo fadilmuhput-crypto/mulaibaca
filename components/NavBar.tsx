@@ -94,6 +94,25 @@ export default function NavBar({ session }: { session: Session }) {
           mulaibaca
         </Link>
 
+        {/* Desktop nav links */}
+        <nav className="hidden sm:flex items-center gap-1">
+          {NAV.map(({ href, label, Icon }) => {
+            const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  active ? "bg-amber-soft text-amber" : "text-ink-secondary hover:text-ink hover:bg-parchment"
+                }`}
+              >
+                <Icon active={active} />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
         {/* Profile dropdown */}
         <div className="relative" ref={ref}>
           <button
