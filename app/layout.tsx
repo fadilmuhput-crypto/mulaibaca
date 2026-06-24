@@ -27,6 +27,9 @@ export const metadata: Metadata = {
       "Bangun kebiasaan membaca bersama keluarga. Track progres harian, tulis review buku.",
     siteName: "Mulaibaca",
   },
+  verification: {
+    google: "iVM6wykx3g3g3pTQ86zRJ6ut6cjWYK5",
+  },
 };
 
 export default function RootLayout({
