@@ -32,7 +32,7 @@ export default async function ReviewPage() {
     <div className="min-h-screen bg-parchment pb-20">
       <NavBar session={session} />
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
-        <h1 className="text-2xl font-display font-bold text-ink">Review Buku</h1>
+        <h1 className="text-h1">Review Buku</h1>
 
         {/* Books waiting for review */}
         {unreviewed.length > 0 && (
@@ -61,7 +61,7 @@ export default async function ReviewPage() {
                       <p className="font-medium text-sm text-ink truncate">{book?.title}</p>
                       {book?.author && <p className="text-xs text-ink-muted">{book.author}</p>}
                     </div>
-                    <span className="text-amber text-sm font-medium flex-shrink-0">Tulis →</span>
+                    <span className="btn-primary-sm flex-shrink-0">Tulis →</span>
                   </Link>
                 );
               })}
@@ -127,7 +127,7 @@ export default async function ReviewPage() {
             <div className="text-5xl mb-3">⭐</div>
             <p className="text-ink-secondary text-sm">Selesaikan membaca buku dulu,</p>
             <p className="text-ink-secondary text-sm">lalu tulis reviewnya di sini.</p>
-            <Link href="/rak" className="inline-block mt-3 text-amber text-sm font-medium">
+            <Link href="/rak" className="btn-secondary inline-flex mt-3">
               Ke Rak Buku →
             </Link>
           </div>

@@ -65,7 +65,7 @@ function TulisForm() {
               onClick={() => setRating(s)}
               onMouseEnter={() => setHovered(s)}
               onMouseLeave={() => setHovered(0)}
-              className={`text-4xl transition-transform hover:scale-110 ${
+              className={`text-4xl transition-transform hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center ${
                 s <= (hovered || rating) ? "text-amber" : "text-border"
               }`}
             >
@@ -139,12 +139,16 @@ function TulisForm() {
         </button>
       </div>
 
-      {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+      {error && (
+        <div className="bg-error-soft border border-error/20 rounded-xl px-4 py-3 text-sm text-error text-center">
+          {error}
+        </div>
+      )}
 
       <button
         type="submit"
         disabled={loading || !rating}
-        className="w-full py-3.5 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40"
+        className="btn-primary-full-lg"
       >
         {loading ? "Menyimpan…" : "Publikasikan Review ✨"}
       </button>
@@ -156,8 +160,10 @@ export default function TulisReviewPage() {
   return (
     <div className="min-h-screen bg-parchment pb-10">
       <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
-        <Link href="/review" className="text-ink-secondary hover:text-ink text-lg">←</Link>
-        <h1 className="font-display font-semibold text-ink">Tulis Review</h1>
+        <Link href="/review" className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-secondary hover:text-ink rounded-xl">
+          ←
+        </Link>
+        <h1 className="text-h3">Tulis Review</h1>
       </header>
       <main className="max-w-lg mx-auto px-4 py-6">
         <Suspense fallback={<div className="text-center py-8 text-ink-muted text-sm">Memuat…</div>}>

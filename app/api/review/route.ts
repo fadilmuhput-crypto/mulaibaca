@@ -27,12 +27,37 @@ export async function POST(req: NextRequest) {
     .from("shelf_items").select("book_id, books(title)").eq("id", shelfItemId).single();
 
   const bookTitle = (shelf?.books as unknown as { title: string } | null)?.title ?? "buku";
-  const slug = `${toSlug(`${memberName}-${bookTitle}`)}-${Math.random().toString(36).slice(2, 6)}`;
 
-  const { data, error } = await supabase
+  // Check if review already exists — avoid relying on DB unique constraint for upsert
+  const { data: existing } = await supabase
     .from("reviews")
-    .upsert(
-      {
+    .select("id, slug")
+    .eq("shelf_item_id", shelfItemId)
+    .eq("member_id", memberId)
+    .maybeSingle();
+
+  let data, error;
+
+  if (existing) {
+    // Update existing review; keep the original slug so the public URL stays stable
+    ({ data, error } = await supabase
+      .from("reviews")
+      .update({
+        rating,
+        q_about: qAbout || null,
+        q_memorable: qMemorable || null,
+        q_for_whom: qForWhom || null,
+        is_public: isPublic ?? true,
+        published_at: new Date().toISOString(),
+      })
+      .eq("id", existing.id)
+      .select()
+      .single());
+  } else {
+    const slug = `${toSlug(`${memberName}-${bookTitle}`)}-${Math.random().toString(36).slice(2, 6)}`;
+    ({ data, error } = await supabase
+      .from("reviews")
+      .insert({
         shelf_item_id: shelfItemId,
         member_id: memberId,
         family_id: familyId,
@@ -43,13 +68,13 @@ export async function POST(req: NextRequest) {
         is_public: isPublic ?? true,
         slug,
         published_at: new Date().toISOString(),
-      },
-      { onConflict: "shelf_item_id,member_id", ignoreDuplicates: false }
-    )
-    .select()
-    .single();
+      })
+      .select()
+      .single());
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "Review tidak tersimpan" }, { status: 500 });
   return NextResponse.json(data, { status: 201 });
 }
 

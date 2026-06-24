@@ -10,26 +10,32 @@ export default async function RakPage() {
   if (!session) redirect("/masuk");
 
   const supabase = await createClient();
-  const { data: shelf } = await supabase
-    .from("shelf_items")
-    .select("*, books(*)")
-    .eq("member_id", session.memberId)
-    .order("created_at", { ascending: false });
+
+  const [{ data: shelf }, { data: reviews }] = await Promise.all([
+    supabase
+      .from("shelf_items")
+      .select("*, books(*)")
+      .eq("member_id", session.memberId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("reviews")
+      .select("shelf_item_id")
+      .eq("member_id", session.memberId),
+  ]);
+
+  const reviewedIds = (reviews ?? []).map((r: { shelf_item_id: string }) => r.shelf_item_id);
 
   return (
     <div className="min-h-screen bg-parchment pb-20 sm:pb-0">
       <NavBar session={session} />
       <main className="max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-2xl font-display font-bold text-ink">Rak Buku</h1>
-          <Link
-            href="/rak/tambah"
-            className="text-sm bg-amber text-white px-4 py-2 rounded-xl font-medium hover:bg-amber-hover transition-colors"
-          >
+          <h1 className="text-h1">Rak Buku</h1>
+          <Link href="/rak/tambah" className="btn-primary-sm">
             + Tambah
           </Link>
         </div>
-        <ShelfClient initialShelf={shelf ?? []} />
+        <ShelfClient initialShelf={shelf ?? []} reviewedIds={reviewedIds} />
       </main>
     </div>
   );

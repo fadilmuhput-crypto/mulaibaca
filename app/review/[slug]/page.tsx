@@ -37,10 +37,7 @@ export default async function PublicReviewPage({
         <Link href="/" className="text-xl font-display font-bold text-forest">
           mulaibaca
         </Link>
-        <Link
-          href="/daftar"
-          className="text-xs bg-amber text-white px-3 py-1.5 rounded-lg font-medium hover:bg-amber-hover"
-        >
+        <Link href="/daftar" className="btn-primary-sm">
           Mulai Gratis →
         </Link>
       </header>
@@ -116,10 +113,7 @@ export default async function PublicReviewPage({
           <p className="text-white/70 text-sm mb-4">
             Track progress, tulis review, jaga streak baca harian
           </p>
-          <Link
-            href="/daftar"
-            className="inline-block bg-amber text-white px-6 py-2.5 rounded-xl font-medium hover:bg-amber-hover transition-colors text-sm"
-          >
+          <Link href="/daftar" className="btn-primary-lg inline-flex">
             Buat Ruang Keluarga Gratis →
           </Link>
         </div>

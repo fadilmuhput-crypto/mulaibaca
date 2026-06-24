@@ -19,16 +19,24 @@ type ShelfItem = {
 };
 
 const TABS = [
-  { key: "reading", label: "Dibaca",    icon: "📖" },
-  { key: "want",    label: "Mau Baca",  icon: "🔖" },
-  { key: "done",    label: "Selesai",   icon: "✅" },
+  { key: "reading", label: "Dibaca",   count_label: "sedang dibaca" },
+  { key: "want",    label: "Mau Baca", count_label: "ingin dibaca" },
+  { key: "done",    label: "Selesai",  count_label: "selesai dibaca" },
 ] as const;
 
-export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[] }) {
+export default function ShelfClient({
+  initialShelf,
+  reviewedIds,
+}: {
+  initialShelf: ShelfItem[];
+  reviewedIds: string[];
+}) {
   const [tab, setTab] = useState<"reading" | "want" | "done">("reading");
   const [shelf, setShelf] = useState(initialShelf);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pageInput, setPageInput] = useState("");
+  const [justFinished, setJustFinished] = useState<{ id: string; title: string } | null>(null);
+  const [startingId, setStartingId] = useState<string | null>(null);
 
   const filtered = shelf.filter((i) => i.status === tab);
 
@@ -45,7 +53,23 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
     setEditingId(null);
   }
 
+  async function markReading(id: string) {
+    setStartingId(id);
+    const res = await fetch(`/api/shelf/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "reading" }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setShelf((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
+      setTab("reading");
+    }
+    setStartingId(null);
+  }
+
   async function markDone(id: string) {
+    const item = shelf.find((i) => i.id === id);
     const res = await fetch(`/api/shelf/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -54,6 +78,7 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
     if (res.ok) {
       const updated = await res.json();
       setShelf((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
+      setJustFinished({ id, title: item?.books?.title ?? "Buku" });
       setTab("done");
     }
   }
@@ -64,12 +89,17 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
     if (res.ok) setShelf((prev) => prev.filter((i) => i.id !== id));
   }
 
+  const readingCount = shelf.filter((i) => i.status === "reading").length;
+  const wantCount    = shelf.filter((i) => i.status === "want").length;
+  const doneCount    = shelf.filter((i) => i.status === "done").length;
+  const counts = { reading: readingCount, want: wantCount, done: doneCount };
+
   return (
     <div>
       {/* Tabs */}
       <div className="flex gap-2 mb-5">
         {TABS.map((t) => {
-          const count = shelf.filter((i) => i.status === t.key).length;
+          const count = counts[t.key];
           return (
             <button
               key={t.key}
@@ -92,6 +122,35 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
           );
         })}
       </div>
+
+      {/* Congratulations banner after marking done */}
+      {justFinished && tab === "done" && (
+        <div className="bg-success-soft border border-success/20 rounded-2xl p-4 mb-4 flex items-start gap-3">
+          <span className="text-2xl flex-shrink-0">🎉</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-success">
+              Selesai membaca &ldquo;{justFinished.title}&rdquo;!
+            </p>
+            <p className="text-xs text-ink-muted mt-0.5 mb-2">
+              Bagaimana pendapatmu? Tulis review singkat dan inspirasi orang lain.
+            </p>
+            <div className="flex gap-2">
+              <Link
+                href={`/review/tulis?shelf=${justFinished.id}`}
+                className="btn-primary-sm text-xs"
+              >
+                Tulis Review →
+              </Link>
+              <button
+                onClick={() => setJustFinished(null)}
+                className="text-xs text-ink-muted hover:text-ink min-h-[44px] px-3"
+              >
+                Nanti saja
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Book list */}
       {filtered.length === 0 ? (
@@ -119,6 +178,8 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
               book.total_pages && item.current_page
                 ? Math.min(Math.round((item.current_page / book.total_pages) * 100), 100)
                 : 0;
+            const isReviewed = reviewedIds.includes(item.id);
+
             return (
               <div key={item.id} className="card-elevated p-3">
                 <div className="flex gap-3">
@@ -152,43 +213,58 @@ export default function ShelfClient({ initialShelf }: { initialShelf: ShelfItem[
                                 min={0}
                                 max={book.total_pages ?? 9999}
                               />
-                              <span className="text-xs text-ink-muted">
-                                / {book.total_pages ?? "?"} hal
-                              </span>
-                              <button
-                                type="submit"
-                                className="text-xs font-medium text-amber hover:text-amber-hover min-h-[36px] px-2"
-                              >
+                              <span className="text-xs text-ink-muted">/ {book.total_pages ?? "?"} hal</span>
+                              <button type="submit" className="text-xs font-medium text-amber hover:text-amber-hover min-h-[36px] px-2">
                                 Simpan
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditingId(null)}
-                                className="text-xs text-ink-muted hover:text-ink min-h-[36px] px-2"
-                              >
+                              <button type="button" onClick={() => setEditingId(null)} className="text-xs text-ink-muted hover:text-ink min-h-[36px] px-1">
                                 Batal
                               </button>
                             </form>
                           ) : (
                             <button
-                              onClick={() => {
-                                setEditingId(item.id);
-                                setPageInput(String(item.current_page ?? 0));
-                              }}
-                              className="text-xs text-ink-muted hover:text-amber transition-colors min-h-[36px] pr-2"
+                              onClick={() => { setEditingId(item.id); setPageInput(String(item.current_page ?? 0)); }}
+                              className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-amber transition-colors min-h-[36px] pr-2 group"
                             >
+                              <span className="w-4 h-4 rounded bg-border group-hover:bg-amber-soft flex items-center justify-center transition-colors">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </span>
                               {item.current_page
                                 ? `Hal ${item.current_page} / ${book.total_pages ?? "?"}`
-                                : "Update halaman →"}
+                                : "Update halaman"}
                             </button>
                           )}
                         </div>
                       </div>
                     )}
+
+                    {/* Done tab: review status */}
+                    {tab === "done" && (
+                      <div className="mt-2">
+                        {isReviewed ? (
+                          <span className="badge-forest">✓ Sudah direview</span>
+                        ) : (
+                          <Link href={`/review/tulis?shelf=${item.id}`} className="btn-primary-sm text-xs">
+                            Tulis Review →
+                          </Link>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Action buttons — min 44px touch targets */}
+                  {/* Action buttons */}
                   <div className="flex flex-col gap-1 items-end justify-start">
+                    {tab === "want" && (
+                      <button
+                        onClick={() => markReading(item.id)}
+                        disabled={startingId === item.id}
+                        className="min-h-[44px] px-3 text-xs font-semibold text-forest hover:bg-success-soft rounded-xl transition-colors disabled:opacity-50"
+                      >
+                        {startingId === item.id ? "…" : "Mulai Baca"}
+                      </button>
+                    )}
                     {tab === "reading" && (
                       <button
                         onClick={() => markDone(item.id)}
