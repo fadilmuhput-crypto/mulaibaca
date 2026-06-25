@@ -157,7 +157,7 @@ export default async function ReviewPage() {
         {(publicReviews ?? []).length === 0 ? (
           <div className="text-center py-16">
             <div className="flex justify-center text-amber mb-3"><Star size={48} strokeWidth={1} /></div>
-            <p className="text-ink-secondary">Belum ada review publik.</p>
+            <p className="text-ink-secondary">Jadilah yang pertama menulis review!</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">

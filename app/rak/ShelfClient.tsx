@@ -161,10 +161,10 @@ export default function ShelfClient({
           </div>
           <p className="text-ink-secondary text-sm mb-4">
             {tab === "reading"
-              ? "Belum ada buku yang sedang dibaca"
+              ? "Yuk, mulai dengan buku pertama!"
               : tab === "want"
-              ? "Belum ada buku dalam daftar ingin baca"
-              : "Belum ada buku yang selesai dibaca"}
+              ? "Simpan buku yang ingin kamu baca nanti"
+              : "Buku yang selesai dibaca akan muncul di sini"}
           </p>
           <Link href="/rak/tambah" className="btn-secondary inline-flex">
             + Tambah buku

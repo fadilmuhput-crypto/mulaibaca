@@ -139,9 +139,9 @@ export default function LogClient({
       {shelf.length === 0 ? (
         <div className="text-center py-8">
           <div className="flex justify-center text-ink-muted mb-3"><BookOpen size={40} strokeWidth={1.25} /></div>
-          <p className="text-ink-secondary text-sm mb-3">Belum ada buku yang sedang dibaca</p>
+          <p className="text-ink-secondary text-sm mb-3">Tambah buku ke rak dulu, baru bisa catat ya!</p>
           <Link href="/rak/tambah" className="text-amber text-sm font-medium hover:text-amber-hover">
-            + Tambah buku dulu
+            + Tambah buku
           </Link>
         </div>
       ) : (

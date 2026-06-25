@@ -128,15 +128,15 @@ export default async function KeluargaPage() {
 
         {/* Summary stats */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid #0C0C0A", boxShadow: "var(--shadow-brutal-xs)" }}>
+          <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-xs)" }}>
             <div className="font-display text-2xl font-black text-amber">{totalStreak}</div>
             <div className="text-xs text-ink-muted mt-0.5 font-medium">Total streak</div>
           </div>
-          <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid #0C0C0A", boxShadow: "var(--shadow-brutal-xs)" }}>
+          <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-xs)" }}>
             <div className="font-display text-2xl font-black text-ink">{totalPagesWeek}</div>
             <div className="text-xs text-ink-muted mt-0.5 font-medium">Hal minggu ini</div>
           </div>
-          <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid #0C0C0A", boxShadow: "var(--shadow-brutal-xs)" }}>
+          <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-xs)" }}>
             <div className="font-display text-2xl font-black text-forest">{activeReaders}</div>
             <div className="text-xs text-ink-muted mt-0.5 font-medium">Sedang baca</div>
           </div>
@@ -149,7 +149,7 @@ export default async function KeluargaPage() {
             <div
               key={m.id}
               className="bg-surface rounded-2xl p-4"
-              style={{ border: "1.5px solid #0C0C0A", boxShadow: "var(--shadow-brutal-sm)" }}
+              style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}
             >
               <div className="flex items-start gap-3">
                 {/* Rank + avatar */}
@@ -204,7 +204,7 @@ export default async function KeluargaPage() {
                   ) : (
                     <div className="flex items-center gap-1.5 mt-2 text-xs text-ink-muted">
                       <BookOpen size={12} strokeWidth={1.75} />
-                      Belum ada buku yang dibaca
+                      Sedang memilih buku…
                     </div>
                   )}
                 </div>
