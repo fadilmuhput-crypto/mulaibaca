@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BUKU_ANAK, BUKU_LOKAL, type CuratedBook } from "@/lib/curated-books";
+import type { CuratedBook } from "@/lib/curated-books";
 import { BookOpen, Bookmark, Search, ChevronLeft } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import type { FamilyBook } from "./page";
@@ -39,20 +39,6 @@ const MOOD_PILLS = [
 
 type MoodKey = typeof MOOD_PILLS[number]["key"];
 
-const ALL_CURATED = [...BUKU_ANAK, ...BUKU_LOKAL];
-
-function getInspirasiBuku(mood: MoodKey | null): CuratedBook[] {
-  if (!mood) {
-    // Featured mix: first 4 lokal + first 4 anak
-    return [...BUKU_LOKAL.slice(0, 4), ...BUKU_ANAK.slice(0, 4)];
-  }
-  const moodDef = MOOD_PILLS.find((m) => m.key === mood)!;
-  const filtered = ALL_CURATED.filter((b) =>
-    b.tags.some((t) => (moodDef.tags as readonly string[]).includes(t))
-  );
-  return filtered.length >= 2 ? filtered : ALL_CURATED.slice(0, 8);
-}
-
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
 }
@@ -86,18 +72,15 @@ function fromOL(b: OLBook): BookCard {
   };
 }
 
-function filterCurated(q: string): BookCard[] {
-  if (!q.trim()) return [];
-  const qLow = q.toLowerCase();
-  return ALL_CURATED.filter(
-    (b) =>
-      b.title.toLowerCase().includes(qLow) ||
-      b.author.toLowerCase().includes(qLow) ||
-      b.tags.some((t) => t.toLowerCase().includes(qLow))
-  ).map(fromCurated);
-}
-
-export default function TambahBukuClient({ familyBooks }: { familyBooks: FamilyBook[] }) {
+export default function TambahBukuClient({
+  familyBooks,
+  anakBooks,
+  lokalBooks,
+}: {
+  familyBooks: FamilyBook[];
+  anakBooks: CuratedBook[];
+  lokalBooks: CuratedBook[];
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [activeMood, setActiveMood] = useState<MoodKey | null>(null);
@@ -108,6 +91,28 @@ export default function TambahBukuClient({ familyBooks }: { familyBooks: FamilyB
   const [adding, setAdding] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchIdRef = useRef(0);
+
+  const allCurated = [...lokalBooks, ...anakBooks];
+
+  function getInspirasiBuku(mood: MoodKey | null): CuratedBook[] {
+    if (!mood) return [...lokalBooks.slice(0, 4), ...anakBooks.slice(0, 4)];
+    const moodDef = MOOD_PILLS.find((m) => m.key === mood)!;
+    const filtered = allCurated.filter((b) =>
+      b.tags.some((t) => (moodDef.tags as readonly string[]).includes(t))
+    );
+    return filtered.length >= 2 ? filtered : allCurated.slice(0, 8);
+  }
+
+  function filterCurated(q: string): BookCard[] {
+    if (!q.trim()) return [];
+    const qLow = q.toLowerCase();
+    return allCurated.filter(
+      (b) =>
+        b.title.toLowerCase().includes(qLow) ||
+        b.author.toLowerCase().includes(qLow) ||
+        b.tags.some((t) => t.toLowerCase().includes(qLow))
+    ).map(fromCurated);
+  }
 
   const isSearching = curatedResults !== null || olLoading;
   const inspirasiBuku = getInspirasiBuku(activeMood);
@@ -359,7 +364,7 @@ export default function TambahBukuClient({ familyBooks }: { familyBooks: FamilyB
                     <h2 className="section-title">Penulis Indonesia</h2>
                   </div>
                   <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                    {BUKU_LOKAL.map((b) => (
+                    {lokalBooks.map((b) => (
                       <HScrollCard
                         key={b.title}
                         card={fromCurated(b)}
@@ -375,7 +380,7 @@ export default function TambahBukuClient({ familyBooks }: { familyBooks: FamilyB
                     <h2 className="section-title">Untuk Anak</h2>
                   </div>
                   <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                    {BUKU_ANAK.map((b) => (
+                    {anakBooks.map((b) => (
                       <HScrollCard
                         key={b.title}
                         card={fromCurated(b)}

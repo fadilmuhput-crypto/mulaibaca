@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-route";
 import TambahBukuClient from "./TambahBukuClient";
+import type { CuratedBook } from "@/lib/curated-books";
 
 export type FamilyBook = {
   memberName: string;
@@ -50,5 +52,20 @@ export default async function TambahBukuPage() {
       });
   }
 
-  return <TambahBukuClient familyBooks={familyBooks} />;
+  const adminClient = createAdminClient();
+  const { data: curatedRows } = await adminClient
+    .from("curated_books")
+    .select("title,author,cover_url,open_library_id,total_pages,description,category,tags")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("title", { ascending: true });
+
+  const anakBooks: CuratedBook[] = ((curatedRows ?? []) as CuratedBook[]).filter(
+    (b) => b.category === "anak"
+  );
+  const lokalBooks: CuratedBook[] = ((curatedRows ?? []) as CuratedBook[]).filter(
+    (b) => b.category === "lokal"
+  );
+
+  return <TambahBukuClient familyBooks={familyBooks} anakBooks={anakBooks} lokalBooks={lokalBooks} />;
 }

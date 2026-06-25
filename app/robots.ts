@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard", "/rak", "/log", "/profil", "/api/", "/setup-profil", "/keluarga"],
+      disallow: ["/dashboard", "/rak", "/log", "/profil", "/api/", "/setup-profil", "/keluarga", "/admin"],
     },
     sitemap: "https://www.mulaibaca.my.id/sitemap.xml",
   };
