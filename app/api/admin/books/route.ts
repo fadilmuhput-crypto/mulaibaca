@@ -6,8 +6,8 @@ async function getAdminAuth(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
   const { data: member } = await supabase
-    .from("members").select("id, role").eq("auth_user_id", user.id).maybeSingle();
-  if (!member || member.role !== "admin") return null;
+    .from("members").select("id, is_cms_admin").eq("auth_user_id", user.id).maybeSingle();
+  if (!member || !member.is_cms_admin) return null;
   return { userId: user.id, memberId: member.id };
 }
 

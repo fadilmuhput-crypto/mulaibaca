@@ -4,6 +4,7 @@ export type Member = {
   name: string;
   avatar: string;
   role: "admin" | "member";
+  is_cms_admin: boolean;
   created_at: string;
   weekly_pages_goal: number;
 };

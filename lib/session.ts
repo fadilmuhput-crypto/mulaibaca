@@ -11,6 +11,7 @@ export type Session = {
   memberName: string;
   memberAvatar: string;
   memberRole: "admin" | "member";
+  isCmsAdmin: boolean;
   weeklyPagesGoal: number;
 };
 
@@ -21,7 +22,7 @@ export async function getSession(): Promise<Session | null> {
 
   const { data: member } = await supabase
     .from("members")
-    .select("*, families(name, invite_code), weekly_pages_goal")
+    .select("*, families(name, invite_code), weekly_pages_goal, is_cms_admin")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -40,6 +41,7 @@ export async function getSession(): Promise<Session | null> {
     memberName: member.name,
     memberAvatar: member.avatar,
     memberRole: member.role as "admin" | "member",
+    isCmsAdmin: (member.is_cms_admin as boolean) ?? false,
     weeklyPagesGoal: (member.weekly_pages_goal as number) ?? 0,
   };
 }
