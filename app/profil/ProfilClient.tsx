@@ -186,7 +186,7 @@ export default function ProfilClient({
               onChange={(e) => !usernameAlreadySet && setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
               readOnly={usernameAlreadySet}
               placeholder="contoh: fadilmuhput"
-              className={`input pl-9 pr-9 ${usernameAlreadySet ? "bg-parchment text-ink-secondary cursor-default" : ""}`}
+              className={`input input-icon-lr ${usernameAlreadySet ? "bg-parchment text-ink-secondary cursor-default" : ""}`}
             />
             {!usernameAlreadySet && username && (
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs">

@@ -214,7 +214,7 @@ export default function JelajahClient({
               placeholder="Cari judul, pengarang, atau genre…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="input pl-9 pr-9 w-full"
+              className="input input-icon-lr w-full"
             />
             {query && (
               <button
