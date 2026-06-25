@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import BookCover from "@/components/BookCover";
-import { Search, X } from "lucide-react";
+import { Search, X, Camera } from "lucide-react";
 import type { AdminBook } from "./page";
 
 type OLResult = {
@@ -53,6 +53,10 @@ export default function BukuForm({
   const [error, setError] = useState("");
   const [tagInput, setTagInput] = useState("");
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
   const [olQuery, setOlQuery] = useState("");
   const [olResults, setOlResults] = useState<OLResult[]>([]);
   const [olLoading, setOlLoading] = useState(false);
@@ -60,6 +64,26 @@ export default function BukuForm({
 
   function set(key: keyof FormData, value: unknown) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload/cover", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Gagal upload");
+      set("cover_url", data.url);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Gagal upload foto");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   }
 
   async function searchOL() {
@@ -226,22 +250,45 @@ export default function BukuForm({
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="input-label">Cover URL</label>
+          <label className="input-label">Cover</label>
           <div className="flex gap-3 items-start">
-            <input
-              type="url"
-              value={form.cover_url}
-              onChange={(e) => set("cover_url", e.target.value)}
-              placeholder="https://covers.openlibrary.org/b/isbn/…"
-              className="input flex-1"
-            />
-            {form.cover_url && (
-              <BookCover
-                src={form.cover_url}
-                title={form.title}
-                className="w-12 h-16 rounded-lg flex-shrink-0"
+            <div className="relative flex-shrink-0">
+              <BookCover src={form.cover_url || null} title={form.title} className="w-14 h-20 rounded-lg" />
+              {uploading && (
+                <div className="absolute inset-0 bg-ink/40 rounded-lg flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0 space-y-2">
+              <input
+                type="url"
+                value={form.cover_url}
+                onChange={(e) => set("cover_url", e.target.value)}
+                placeholder="https://covers.openlibrary.org/b/isbn/…"
+                className="input"
               />
-            )}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="btn-ghost-ink text-xs px-3 py-1.5 inline-flex items-center gap-1.5"
+                >
+                  <Camera size={13} strokeWidth={2} />
+                  {uploading ? "Mengupload…" : "Upload foto"}
+                </button>
+                {uploadError && <span className="text-xs text-error">{uploadError}</span>}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleCoverUpload}
+                className="hidden"
+                aria-label="Upload foto cover"
+              />
+            </div>
           </div>
         </div>
         <div className="sm:col-span-2">
