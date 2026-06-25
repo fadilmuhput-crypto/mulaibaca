@@ -1,24 +1,25 @@
 import Link from "next/link";
 import { BookOpen, Users, Globe, Flame } from "lucide-react";
+import LandingDemo from "@/components/LandingDemo";
 
 const features = [
   {
     num: "01",
     Icon: BookOpen,
     title: "Track Progres Harian",
-    desc: "Catat halaman yang kamu baca setiap hari. Streak harian bikin kamu dan keluarga semangat tidak berhenti.",
+    desc: "Catat halaman yang kamu baca setiap hari. Streak harian membuat kamu dan keluarga tetap termotivasi untuk tidak berhenti.",
   },
   {
     num: "02",
     Icon: Users,
-    title: "Satu Keluarga, Satu Platform",
-    desc: "Suami, istri, dan anak — semua bisa punya rak buku sendiri dalam satu Family Space.",
+    title: "Satu Keluarga, Satu Ruang",
+    desc: "Ayah, ibu, dan anak — semua punya rak buku sendiri, tapi streak dan pencapaian terlihat bersama dalam satu Family Space.",
   },
   {
     num: "03",
     Icon: Globe,
-    title: "Review yang Menginspirasi",
-    desc: "Setiap buku yang selesai, tulis review singkat. Otomatis jadi halaman publik yang bisa dibaca siapa saja.",
+    title: "Review yang Jadi Warisan",
+    desc: "Setiap buku yang selesai, tulis ulasan singkat. Otomatis jadi halaman publik yang bisa menginspirasi keluarga lain.",
   },
 ];
 
@@ -112,7 +113,7 @@ export default function LandingPage() {
               color: "#3D4E45",
               marginBottom: "2rem",
             }}>
-              Platform untuk membangun kebiasaan membaca di lingkungan keluarga — tracking harian, review buku, dan streak yang bikin semua anggota semangat.
+              Anak yang tumbuh melihat orang tuanya membaca akan membaca. Mulaibaca membantu keluargamu membangun kebiasaan itu — dengan tracking harian, streak bersama, dan review yang saling menginspirasi.
             </p>
 
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const, marginBottom: "0.875rem" }}>
@@ -187,8 +188,8 @@ export default function LandingPage() {
             </div>
             <div style={{ display: "flex", borderTop: `1.5px solid ${INK}`, padding: "12px 16px" }}>
               {[
-                { name: "Fadil", streak: 12, bg: "#dbeafe" },
-                { name: "Istri", streak: 8, bg: "#fce7f3" },
+                { name: "Ayah", streak: 12, bg: "#dbeafe" },
+                { name: "Ibu", streak: 8, bg: "#fce7f3" },
                 { name: "Anak", streak: 5, bg: "#d1fae5" },
               ].map((m) => (
                 <div key={m.name} style={{ flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "3px" }}>
@@ -266,6 +267,41 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* DEMO SECTION */}
+      <section style={{ backgroundColor: FOREST, borderTop: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, padding: "5rem 0" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 1.25rem" }}>
+          <div style={{ display: "grid", gap: "3rem", alignItems: "center" }} className="lg:grid-cols-[1fr_480px]">
+
+            {/* Left: text */}
+            <div>
+              <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.4)", marginBottom: "1rem" }}>
+                Coba Tanpa Daftar
+              </p>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 5vw, 3.25rem)", fontWeight: 800, color: "#FAF7F2", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: "1.25rem" }}>
+                Rasakan<br />
+                <span style={{ color: LIME, fontStyle: "italic" }}>sebelum daftar</span>
+              </h2>
+              <p style={{ fontSize: "0.9375rem", lineHeight: 1.75, color: "rgba(255,255,255,0.65)", maxWidth: "400px" }}>
+                Pilih buku, catat halaman yang kamu baca hari ini, dan lihat bagaimana streak dan progres terbentuk. Tiga langkah — 30 detik.
+              </p>
+              <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column" as const, gap: "10px" }}>
+                {["Tidak perlu akun", "Tidak ada data yang disimpan", "Persis seperti pengalaman nyata"].map((t) => (
+                  <div key={t} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: LIME, border: `1px solid ${INK}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4L3 5.5L6.5 2" stroke={INK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.75)" }}>{t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: interactive demo */}
+            <LandingDemo />
+          </div>
+        </div>
+      </section>
+
       {/* CTA — LIME */}
       <section style={{ backgroundColor: LIME, borderTop: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, padding: "5rem 0" }}>
         <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 1.25rem", textAlign: "center" as const }}>
@@ -276,7 +312,7 @@ export default function LandingPage() {
             Indonesia membaca<br />dimulai dari rumah
           </h2>
           <p style={{ fontSize: "1rem", color: "#3D4E45", lineHeight: 1.65, maxWidth: "440px", margin: "0 auto 2.25rem" }}>
-            Satu keluarga yang membaca setiap hari bisa menginspirasi keluarga lain. Review yang kamu tulis hari ini bisa jadi alasan seseorang memulai buku besok.
+            Kebiasaan membaca tidak diwariskan lewat nasihat — tapi lewat contoh. Mulai dari dirimu, dan biarkan keluargamu mengikuti.
           </p>
           <Link href="/daftar" style={{
             display: "inline-flex", alignItems: "center",
