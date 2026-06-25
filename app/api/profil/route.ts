@@ -17,13 +17,14 @@ export async function PATCH(req: NextRequest) {
   const auth = await getAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, avatar, familyName } = await req.json();
+  const { name, avatar, familyName, weeklyPagesGoal } = await req.json();
   const admin = createAdminClient();
 
-  if (name || avatar) {
-    const updates: Record<string, string> = {};
+  if (name || avatar || weeklyPagesGoal !== undefined) {
+    const updates: Record<string, string | number> = {};
     if (name?.trim()) updates.name = name.trim();
     if (avatar) updates.avatar = avatar;
+    if (weeklyPagesGoal !== undefined) updates.weekly_pages_goal = Math.max(0, Math.floor(Number(weeklyPagesGoal)));
 
     const { error } = await admin
       .from("members")

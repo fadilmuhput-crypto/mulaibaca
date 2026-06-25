@@ -7,7 +7,7 @@ import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
 import AvatarIcon from "@/components/AvatarIcon";
-import { Flame, BookOpen, PenLine, Plus } from "lucide-react";
+import { Flame, BookOpen, PenLine, Plus, Target } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -15,7 +15,16 @@ export default async function DashboardPage() {
 
   const supabase = await createClient();
 
-  const [{ data: shelf }, { data: familyMembers }, { data: streaks }] = await Promise.all([
+  const weekStart = (() => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    return monday.toISOString();
+  })();
+
+  const [{ data: shelf }, { data: familyMembers }, { data: streaks }, { data: weeklyShelf }] = await Promise.all([
     supabase
       .from("shelf_items")
       .select("*, books(*)")
@@ -32,7 +41,22 @@ export default async function DashboardPage() {
       .select("*")
       .eq("member_id", session.memberId)
       .maybeSingle(),
+    supabase
+      .from("shelf_items")
+      .select("id")
+      .eq("member_id", session.memberId),
   ]);
+
+  const weeklyShelfIds = (weeklyShelf ?? []).map((s: { id: string }) => s.id);
+  let weeklyPagesRead = 0;
+  if (weeklyShelfIds.length > 0) {
+    const { data: weekLogs } = await supabase
+      .from("reading_logs")
+      .select("pages_read")
+      .in("shelf_item_id", weeklyShelfIds)
+      .gte("created_at", weekStart);
+    weeklyPagesRead = (weekLogs ?? []).reduce((sum: number, l: { pages_read: number }) => sum + l.pages_read, 0);
+  }
 
   const currentStreak = streaks?.current_streak ?? 0;
   const readingNow = shelf ?? [];
@@ -75,6 +99,48 @@ export default async function DashboardPage() {
             <span className="font-semibold text-sm">Catat Bacaan</span>
           </Link>
         </section>
+
+        {/* Weekly goal progress */}
+        {session.weeklyPagesGoal > 0 ? (
+          <section>
+            {(() => {
+              const goal = session.weeklyPagesGoal;
+              const pct = Math.min(Math.round((weeklyPagesRead / goal) * 100), 100);
+              const met = weeklyPagesRead >= goal;
+              return (
+                <Link href="/profil" className="block bg-surface rounded-2xl p-4" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-xs)" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Target size={16} strokeWidth={1.75} className={met ? "text-forest" : "text-amber"} />
+                      <span className="text-overline">{met ? "Target tercapai!" : "Target minggu ini"}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-ink-secondary">{weeklyPagesRead} / {goal} hal</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div
+                      className="progress-fill transition-all"
+                      style={{ width: `${pct}%`, backgroundColor: met ? "var(--color-forest)" : "var(--color-amber)" }}
+                    />
+                  </div>
+                  {!met && (
+                    <p className="text-xs text-ink-muted mt-1.5">{goal - weeklyPagesRead} halaman lagi untuk mencapai target</p>
+                  )}
+                </Link>
+              );
+            })()}
+          </section>
+        ) : (
+          <Link
+            href="/profil"
+            className="flex items-center justify-between bg-amber-soft rounded-2xl px-4 py-3 border border-amber/20"
+          >
+            <div className="flex items-center gap-2">
+              <Target size={16} strokeWidth={1.75} className="text-amber" />
+              <span className="text-sm text-ink-secondary">Tetapkan target membaca mingguanmu</span>
+            </div>
+            <span className="text-amber text-sm font-semibold">→</span>
+          </Link>
+        )}
 
         {/* Currently reading */}
         <section>

@@ -11,6 +11,7 @@ export type Session = {
   memberName: string;
   memberAvatar: string;
   memberRole: "admin" | "member";
+  weeklyPagesGoal: number;
 };
 
 export async function getSession(): Promise<Session | null> {
@@ -20,7 +21,7 @@ export async function getSession(): Promise<Session | null> {
 
   const { data: member } = await supabase
     .from("members")
-    .select("*, families(name, invite_code)")
+    .select("*, families(name, invite_code), weekly_pages_goal")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -39,5 +40,6 @@ export async function getSession(): Promise<Session | null> {
     memberName: member.name,
     memberAvatar: member.avatar,
     memberRole: member.role as "admin" | "member",
+    weeklyPagesGoal: (member.weekly_pages_goal as number) ?? 0,
   };
 }

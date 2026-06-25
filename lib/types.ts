@@ -5,6 +5,7 @@ export type Member = {
   avatar: string;
   role: "admin" | "member";
   created_at: string;
+  weekly_pages_goal: number;
 };
 
 export type Family = {
