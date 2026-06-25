@@ -7,7 +7,7 @@ import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
 import AvatarIcon from "@/components/AvatarIcon";
-import { Flame, BookOpen, PenLine, Plus, Target } from "lucide-react";
+import { Flame, BookOpen, PenLine, Plus, Target, Library, BookMarked, LayoutDashboard } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -219,6 +219,42 @@ export default async function DashboardPage() {
                   <span className="text-xs text-ink-secondary max-w-[48px] truncate text-center">{m.name}</span>
                 </Link>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* Admin CMS — only for isCmsAdmin */}
+        {session.isCmsAdmin && (
+          <section>
+            <div className="section-header mb-3">
+              <div className="flex items-center gap-1.5">
+                <LayoutDashboard size={14} strokeWidth={2} className="text-ink-muted" />
+                <h2 className="section-title">Admin CMS</h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                href="/admin/buku"
+                className="bg-surface rounded-xl border border-border p-4 flex flex-col gap-2 hover:border-forest/40 hover:bg-forest/5 transition-all"
+                style={{ boxShadow: "var(--shadow-brutal-xs)" }}
+              >
+                <BookMarked size={20} strokeWidth={1.75} className="text-forest" />
+                <div>
+                  <p className="font-semibold text-sm text-ink">Kurasi Buku</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Kelola buku pilihan editorial</p>
+                </div>
+              </Link>
+              <Link
+                href="/admin/perpustakaan"
+                className="bg-surface rounded-xl border border-border p-4 flex flex-col gap-2 hover:border-amber/40 hover:bg-amber-soft/40 transition-all"
+                style={{ boxShadow: "var(--shadow-brutal-xs)" }}
+              >
+                <Library size={20} strokeWidth={1.75} className="text-amber" />
+                <div>
+                  <p className="font-semibold text-sm text-ink">Perpustakaan</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Lengkapi data buku pengguna</p>
+                </div>
+              </Link>
             </div>
           </section>
         )}
