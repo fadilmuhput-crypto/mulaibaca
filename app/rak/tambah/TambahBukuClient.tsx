@@ -266,21 +266,34 @@ export default function TambahBukuClient({
             )}
             {olError && <p className="text-xs text-ink-muted text-center py-2">{olError}</p>}
             {noResultsAtAll && (
-              <div className="text-center py-10">
+              <div className="rounded-2xl border-2 border-dashed border-border p-6 text-center">
                 <div className="flex justify-center text-ink-muted mb-3">
-                  <Search size={40} strokeWidth={1.25} />
+                  <Search size={36} strokeWidth={1.25} />
                 </div>
-                <p className="text-ink-secondary text-sm mb-5">Buku tidak ditemukan di direktori kami.</p>
-                <Link href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`} className="btn-primary inline-flex">
-                  + Tambah Buku Manual
+                <p className="font-semibold text-ink text-sm mb-1">
+                  "{query}" tidak ditemukan
+                </p>
+                <p className="text-xs text-ink-muted mb-5">
+                  Coba kata kunci lain, atau tambahkan buku ini secara manual ke rakmu.
+                </p>
+                <Link
+                  href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`}
+                  className="btn-primary inline-flex"
+                >
+                  + Tambah buku ini manual
                 </Link>
               </div>
             )}
             {!olLoading && mergedResults.length > 0 && (
-              <div className="text-center pt-2 pb-4">
-                <p className="text-xs text-ink-muted mb-2">Tidak ada yang cocok?</p>
-                <Link href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`} className="btn-ghost-ink inline-flex">
-                  + Tambah buku manual
+              <div className="rounded-xl bg-parchment border border-border p-4 flex items-center justify-between gap-3">
+                <p className="text-xs text-ink-secondary leading-relaxed">
+                  Tidak menemukan yang cocok?
+                </p>
+                <Link
+                  href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`}
+                  className="btn-ghost-ink inline-flex flex-shrink-0 text-xs"
+                >
+                  + Tambah manual
                 </Link>
               </div>
             )}
