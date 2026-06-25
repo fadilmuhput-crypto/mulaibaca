@@ -31,7 +31,7 @@ export default async function RakPage() {
       <main className="max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-h1">Rak Buku</h1>
-          <Link href="/rak/tambah" className="btn-primary-sm">
+          <Link href="/jelajah" className="btn-primary-sm">
             + Tambah
           </Link>
         </div>

@@ -83,7 +83,7 @@ export default async function DashboardPage() {
         {/* Quick actions — prominent, always above fold */}
         <section className="grid grid-cols-2 gap-3">
           <Link
-            href="/rak/tambah"
+            href="/jelajah"
             className="bg-forest text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card"
             style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}
           >
@@ -151,7 +151,7 @@ export default async function DashboardPage() {
 
           {readingNow.length === 0 ? (
             <Link
-              href="/rak/tambah"
+              href="/jelajah"
               className="block border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-amber transition-colors"
             >
               <div className="flex justify-center text-ink-muted mb-2"><BookOpen size={32} strokeWidth={1.5} /></div>

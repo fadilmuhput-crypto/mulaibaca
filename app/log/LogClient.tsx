@@ -253,7 +253,7 @@ export default function LogClient({
             <BookOpen size={40} strokeWidth={1.25} />
           </div>
           <p className="text-ink-secondary text-sm mb-3">Tambah buku ke rak dulu, baru bisa catat ya!</p>
-          <Link href="/rak/tambah" className="text-amber text-sm font-medium hover:text-amber-hover">
+          <Link href="/jelajah" className="text-amber text-sm font-medium hover:text-amber-hover">
             + Tambah buku
           </Link>
         </div>

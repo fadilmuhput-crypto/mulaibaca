@@ -216,7 +216,7 @@ export default async function BookDetailPage({
     <div className="min-h-screen bg-parchment pb-10">
       <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
         <Link
-          href="/rak/tambah"
+          href="/jelajah"
           className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-secondary hover:text-ink rounded-xl"
           aria-label="Kembali"
         >

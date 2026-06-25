@@ -69,7 +69,7 @@ function fromOL(b: OLBook): BookCard {
   };
 }
 
-export default function TambahBukuClient({
+export default function JelajahClient({
   familyBooks,
   anakBooks,
   lokalBooks,
@@ -263,7 +263,7 @@ export default function TambahBukuClient({
                 <div className="text-4xl mb-3">📚</div>
                 <p className="font-semibold text-ink text-sm mb-1">"{query}" tidak ditemukan</p>
                 <p className="text-xs text-ink-muted mb-5">Coba kata kunci lain, atau tambahkan buku ini secara manual.</p>
-                <Link href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`} className="btn-primary inline-flex">
+                <Link href={`/jelajah/manual?title=${encodeURIComponent(query)}`} className="btn-primary inline-flex">
                   + Tambah buku ini manual
                 </Link>
               </div>
@@ -272,7 +272,7 @@ export default function TambahBukuClient({
             {!olLoading && mergedResults.length > 0 && (
               <div className="rounded-xl bg-parchment border border-border p-4 flex items-center justify-between gap-3">
                 <p className="text-xs text-ink-secondary">Tidak menemukan yang cocok?</p>
-                <Link href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`} className="btn-ghost-ink text-xs">
+                <Link href={`/jelajah/manual?title=${encodeURIComponent(query)}`} className="btn-ghost-ink text-xs">
                   + Tambah manual
                 </Link>
               </div>
@@ -348,7 +348,7 @@ export default function TambahBukuClient({
             {/* Manual add */}
             <div className="border-t-2 border-dashed border-border pt-6 text-center">
               <p className="text-xs text-ink-muted mb-3">Tidak menemukan buku yang dicari?</p>
-              <Link href="/rak/tambah/manual" className="btn-ghost-ink inline-flex">
+              <Link href="/jelajah/manual" className="btn-ghost-ink inline-flex">
                 + Tambah buku manual
               </Link>
             </div>

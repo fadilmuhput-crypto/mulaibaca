@@ -195,7 +195,7 @@ export default function ShelfClient({
               ? "Simpan buku yang ingin kamu baca nanti"
               : "Buku yang selesai dibaca akan muncul di sini"}
           </p>
-          <Link href="/rak/tambah" className="btn-secondary inline-flex">+ Tambah buku</Link>
+          <Link href="/jelajah" className="btn-secondary inline-flex">+ Tambah buku</Link>
         </div>
       )}
 
@@ -297,7 +297,7 @@ export default function ShelfClient({
             );
           })}
 
-          <Link href="/rak/tambah" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-border text-sm text-ink-muted hover:border-amber/40 hover:text-amber transition-colors">
+          <Link href="/jelajah" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-border text-sm text-ink-muted hover:border-amber/40 hover:text-amber transition-colors">
             + Tambah buku lain
           </Link>
         </div>
@@ -338,7 +338,7 @@ export default function ShelfClient({
               );
             })}
           </div>
-          <Link href="/rak/tambah" className="flex items-center justify-center gap-2 w-full mt-4 py-3 rounded-xl border-2 border-dashed border-border text-sm text-ink-muted hover:border-amber/40 hover:text-amber transition-colors">
+          <Link href="/jelajah" className="flex items-center justify-center gap-2 w-full mt-4 py-3 rounded-xl border-2 border-dashed border-border text-sm text-ink-muted hover:border-amber/40 hover:text-amber transition-colors">
             + Tambah buku
           </Link>
         </div>
