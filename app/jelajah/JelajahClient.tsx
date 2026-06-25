@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { CuratedBook } from "@/lib/curated-books";
+import { CATEGORY_TREE, findSubCategory, countBooksInCategory } from "@/lib/category-tree";
 import { BookOpen, Bookmark, Search, ChevronLeft, X } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import type { FamilyBook } from "./page";
@@ -28,12 +29,12 @@ type BookCard = {
   tags: string[];
 };
 
-type Section = "semua" | "lokal" | "anak";
+type AudienceFilter = "semua" | "lokal" | "anak";
 
-const SECTIONS: { key: Section; label: string }[] = [
-  { key: "semua",  label: "Semua" },
-  { key: "lokal",  label: "Penulis Lokal" },
-  { key: "anak",   label: "Untuk Anak" },
+const AUDIENCES: { key: AudienceFilter; label: string }[] = [
+  { key: "semua", label: "Semua" },
+  { key: "lokal", label: "Lokal" },
+  { key: "anak", label: "Anak" },
 ];
 
 function toSlug(s: string) {
@@ -80,7 +81,9 @@ export default function JelajahClient({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [section, setSection] = useState<Section>("semua");
+  const [audienceFilter, setAudienceFilter] = useState<AudienceFilter>("semua");
+  const [activeParent, setActiveParent] = useState<string | null>(null);
+  const [activeSub, setActiveSub] = useState<string | null>(null);
   const [curatedResults, setCuratedResults] = useState<BookCard[] | null>(null);
   const [olResults, setOlResults] = useState<BookCard[] | null>(null);
   const [olLoading, setOlLoading] = useState(false);
@@ -92,14 +95,42 @@ export default function JelajahClient({
 
   const allCurated = [...lokalBooks, ...anakBooks];
 
-  // Pick featured: first curated book with cover + description
+  const baseBooks =
+    audienceFilter === "lokal" ? lokalBooks
+    : audienceFilter === "anak" ? anakBooks
+    : allCurated;
+
+  const displayBooks: CuratedBook[] = (() => {
+    if (activeSub) {
+      const sub = findSubCategory(activeSub);
+      if (sub) return baseBooks.filter((b) => b.tags.some((t) => sub.matchTags.includes(t)));
+    }
+    if (activeParent) {
+      const parent = CATEGORY_TREE.find((c) => c.key === activeParent);
+      if (parent) return baseBooks.filter((b) => b.tags.some((t) => parent.matchTags.includes(t)));
+    }
+    return baseBooks;
+  })();
+
   const featured = allCurated.find((b) => b.cover_url && b.description);
 
-  // Books to show in grid based on section
-  const displayBooks: CuratedBook[] =
-    section === "lokal" ? lokalBooks
-    : section === "anak" ? anakBooks
-    : allCurated;
+  const activeParentNode = CATEGORY_TREE.find((c) => c.key === activeParent);
+  const activeSubNode = activeSub ? findSubCategory(activeSub) : null;
+  const activeCatLabel = activeSubNode?.label ?? activeParentNode?.label ?? null;
+
+  function selectParent(key: string) {
+    if (activeParent === key) {
+      setActiveParent(null);
+      setActiveSub(null);
+    } else {
+      setActiveParent(key);
+      setActiveSub(null);
+    }
+  }
+
+  function selectSub(key: string) {
+    setActiveSub((prev) => (prev === key ? null : key));
+  }
 
   function filterCurated(q: string): BookCard[] {
     if (!q.trim()) return [];
@@ -196,6 +227,7 @@ export default function JelajahClient({
 
   return (
     <div className="min-h-screen bg-parchment pb-24">
+
       {/* ── Sticky header ── */}
       <header className="bg-surface border-b-2 border-ink sticky top-0 z-10">
         <div className="flex items-center gap-3 px-4 py-3 max-w-lg mx-auto">
@@ -281,7 +313,7 @@ export default function JelajahClient({
 
         ) : (
           /* ── DISCOVERY MODE ── */
-          <div className="py-5 space-y-8">
+          <div className="py-5 space-y-7">
 
             {/* Family reading */}
             {familyBooks.length > 0 && (
@@ -299,49 +331,132 @@ export default function JelajahClient({
               </section>
             )}
 
-            {/* Featured book — library spotlight */}
-            {featured && (
+            {/* ── Category browse ── */}
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <SectionLabel className="mb-0">Jelajah kategori</SectionLabel>
+                {/* Audience filter */}
+                <div className="flex gap-0.5 bg-parchment rounded-xl p-1 border border-border">
+                  {AUDIENCES.map((a) => (
+                    <button
+                      key={a.key}
+                      onClick={() => setAudienceFilter(a.key)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                        audienceFilter === a.key
+                          ? "bg-ink text-white"
+                          : "text-ink-muted hover:text-ink"
+                      }`}
+                    >
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Parent category pills */}
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                {CATEGORY_TREE.map((cat) => {
+                  const count = countBooksInCategory(baseBooks, cat.matchTags);
+                  const isActive = activeParent === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      onClick={() => selectParent(cat.key)}
+                      className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
+                        isActive
+                          ? "border-ink bg-ink text-white"
+                          : "border-border bg-surface text-ink-secondary hover:border-ink/30 hover:text-ink"
+                      }`}
+                    >
+                      {cat.label}
+                      {count > 0 && (
+                        <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-full ${
+                          isActive ? "bg-white/20 text-white" : "bg-border text-ink-muted"
+                        }`}>
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Sub-category pills */}
+              {activeParent && (
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pt-2 pb-1 -mx-4 px-4">
+                  {activeParentNode?.children.map((sub) => {
+                    const count = countBooksInCategory(baseBooks, sub.matchTags);
+                    const isActive = activeSub === sub.key;
+                    return (
+                      <button
+                        key={sub.key}
+                        onClick={() => selectSub(sub.key)}
+                        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                          isActive
+                            ? "border-amber bg-amber text-white"
+                            : count === 0
+                            ? "border-border/50 bg-parchment text-ink-muted/50 cursor-default"
+                            : "border-border bg-parchment text-ink-secondary hover:border-amber/50 hover:text-ink"
+                        }`}
+                        disabled={count === 0}
+                      >
+                        {sub.label}
+                        {count > 0 && (
+                          <span className={`text-[10px] ${isActive ? "opacity-80" : "text-ink-muted"}`}>
+                            {count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Featured (only when no category active) */}
+            {!activeParent && featured && (
               <section>
                 <SectionLabel>Pilihan editorial</SectionLabel>
                 <FeaturedCard card={fromCurated(featured)} adding={adding} onAdd={addBook} />
               </section>
             )}
 
-            {/* Section tabs */}
+            {/* Book grid */}
             <section>
               <div className="flex items-center justify-between mb-3">
-                <SectionLabel className="mb-0">Koleksi kami</SectionLabel>
-                <div className="flex gap-1 bg-parchment rounded-xl p-1 border border-border">
-                  {SECTIONS.map((s) => (
-                    <button
-                      key={s.key}
-                      onClick={() => setSection(s.key)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        section === s.key
-                          ? "bg-ink text-white"
-                          : "text-ink-muted hover:text-ink"
-                      }`}
-                    >
-                      {s.label}
-                    </button>
+                <SectionLabel className="mb-0">
+                  {activeCatLabel ?? "Koleksi kami"}
+                  {" "}
+                  <span className="font-normal text-ink-muted">({displayBooks.length})</span>
+                </SectionLabel>
+                {(activeParent || activeSub) && (
+                  <button
+                    onClick={() => { setActiveParent(null); setActiveSub(null); }}
+                    className="text-[11px] text-ink-muted hover:text-ink flex items-center gap-0.5 transition-colors"
+                  >
+                    <X size={11} strokeWidth={2.5} />
+                    Hapus filter
+                  </button>
+                )}
+              </div>
+
+              {displayBooks.length > 0 ? (
+                <div className="grid grid-cols-3 gap-x-3 gap-y-5">
+                  {displayBooks.map((b) => (
+                    <ShelfBookCard
+                      key={b.title}
+                      card={fromCurated(b)}
+                      adding={adding}
+                      onAdd={addBook}
+                    />
                   ))}
                 </div>
-              </div>
-
-              {/* 3-col book grid — library shelf feel */}
-              <div className="grid grid-cols-3 gap-x-3 gap-y-5">
-                {displayBooks.map((b) => (
-                  <ShelfBookCard
-                    key={b.title}
-                    card={fromCurated(b)}
-                    adding={adding}
-                    onAdd={addBook}
-                  />
-                ))}
-              </div>
-
-              {displayBooks.length === 0 && (
-                <p className="text-center text-sm text-ink-muted py-8">Belum ada buku di bagian ini.</p>
+              ) : (
+                <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center">
+                  <p className="text-2xl mb-2">📭</p>
+                  <p className="text-sm font-semibold text-ink mb-1">Belum ada buku di sini</p>
+                  <p className="text-xs text-ink-muted">Coba kategori lain atau tambahkan buku secara manual</p>
+                </div>
               )}
             </section>
 
@@ -429,7 +544,6 @@ function ShelfBookCard({
 
   return (
     <div className="flex flex-col">
-      {/* Cover — tap to toggle actions */}
       <div className="relative" onClick={() => setShowActions((v) => !v)}>
         <BookCover
           src={card.cover_url}
@@ -502,7 +616,7 @@ function SearchResultCard({
               disabled={!!isAdding}
               className="btn-secondary min-h-[44px] px-3 text-xs flex items-center gap-1.5"
             >
-              <Bookmark size={12} strokeWidth={2.5} />
+              <Bookmark size={12} strokeWidth={2} />
               {adding === card.id + "want" ? "…" : "Simpan"}
             </button>
           </div>
