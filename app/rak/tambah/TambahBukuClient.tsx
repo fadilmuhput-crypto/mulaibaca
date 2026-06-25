@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { CuratedBook } from "@/lib/curated-books";
-import { BookOpen, Bookmark, Search, ChevronLeft } from "lucide-react";
+import { BookOpen, Bookmark, Search, ChevronLeft, X } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import type { FamilyBook } from "./page";
 
@@ -28,16 +28,13 @@ type BookCard = {
   tags: string[];
 };
 
-const MOOD_PILLS = [
-  { key: "petualangan", label: "Petualangan", tags: ["petualangan", "fantasi"] },
-  { key: "inspirasi",   label: "Inspirasi",   tags: ["inspirasi", "pengembangan diri", "pendidikan", "karakter", "edukasi"] },
-  { key: "humor",       label: "Humor",        tags: ["humor", "fabel", "cerita rakyat", "legenda", "moral"] },
-  { key: "sejarah",     label: "Sejarah",      tags: ["sejarah", "sastra"] },
-  { key: "romance",     label: "Romance",      tags: ["romance", "drama", "persahabatan", "keluarga"] },
-  { key: "sains",       label: "Sains & Bisnis", tags: ["sains", "filsafat", "non-fiksi", "bisnis", "keuangan"] },
-] as const;
+type Section = "semua" | "lokal" | "anak";
 
-type MoodKey = typeof MOOD_PILLS[number]["key"];
+const SECTIONS: { key: Section; label: string }[] = [
+  { key: "semua",  label: "Semua" },
+  { key: "lokal",  label: "Penulis Lokal" },
+  { key: "anak",   label: "Untuk Anak" },
+];
 
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
@@ -83,7 +80,7 @@ export default function TambahBukuClient({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [activeMood, setActiveMood] = useState<MoodKey | null>(null);
+  const [section, setSection] = useState<Section>("semua");
   const [curatedResults, setCuratedResults] = useState<BookCard[] | null>(null);
   const [olResults, setOlResults] = useState<BookCard[] | null>(null);
   const [olLoading, setOlLoading] = useState(false);
@@ -91,31 +88,33 @@ export default function TambahBukuClient({
   const [adding, setAdding] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchIdRef = useRef(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const allCurated = [...lokalBooks, ...anakBooks];
 
-  function getInspirasiBuku(mood: MoodKey | null): CuratedBook[] {
-    if (!mood) return [...lokalBooks.slice(0, 4), ...anakBooks.slice(0, 4)];
-    const moodDef = MOOD_PILLS.find((m) => m.key === mood)!;
-    const filtered = allCurated.filter((b) =>
-      b.tags.some((t) => (moodDef.tags as readonly string[]).includes(t))
-    );
-    return filtered.length >= 2 ? filtered : allCurated.slice(0, 8);
-  }
+  // Pick featured: first curated book with cover + description
+  const featured = allCurated.find((b) => b.cover_url && b.description);
+
+  // Books to show in grid based on section
+  const displayBooks: CuratedBook[] =
+    section === "lokal" ? lokalBooks
+    : section === "anak" ? anakBooks
+    : allCurated;
 
   function filterCurated(q: string): BookCard[] {
     if (!q.trim()) return [];
     const qLow = q.toLowerCase();
-    return allCurated.filter(
-      (b) =>
-        b.title.toLowerCase().includes(qLow) ||
-        b.author.toLowerCase().includes(qLow) ||
-        b.tags.some((t) => t.toLowerCase().includes(qLow))
-    ).map(fromCurated);
+    return allCurated
+      .filter(
+        (b) =>
+          b.title.toLowerCase().includes(qLow) ||
+          b.author.toLowerCase().includes(qLow) ||
+          b.tags.some((t) => t.toLowerCase().includes(qLow))
+      )
+      .map(fromCurated);
   }
 
   const isSearching = curatedResults !== null || olLoading;
-  const inspirasiBuku = getInspirasiBuku(activeMood);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -154,20 +153,13 @@ export default function TambahBukuClient({
     }
   }
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!query.trim()) return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setCuratedResults(filterCurated(query));
-    fetchOL(query);
-  }
-
   function clearSearch() {
     setQuery("");
     setCuratedResults(null);
     setOlResults(null);
     setOlLoading(false);
     setOlError("");
+    inputRef.current?.blur();
   }
 
   async function addBook(card: BookCard, status: "reading" | "want") {
@@ -204,8 +196,8 @@ export default function TambahBukuClient({
 
   return (
     <div className="min-h-screen bg-parchment pb-24">
-      {/* Sticky header */}
-      <header className="bg-surface border-b border-border sticky top-0 z-10">
+      {/* ── Sticky header ── */}
+      <header className="bg-surface border-b-2 border-ink sticky top-0 z-10">
         <div className="flex items-center gap-3 px-4 py-3 max-w-lg mx-auto">
           <Link
             href="/rak"
@@ -214,44 +206,43 @@ export default function TambahBukuClient({
           >
             <ChevronLeft size={20} strokeWidth={2} />
           </Link>
-          <h1 className="text-h2 flex-1">Tambah Buku</h1>
-        </div>
-
-        <form onSubmit={handleSearch} className="flex gap-2 px-4 pb-3 max-w-lg mx-auto">
           <div className="relative flex-1">
-            <Search size={16} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+            <Search size={15} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
             <input
+              ref={inputRef}
               type="search"
-              placeholder="Cari judul atau pengarang…"
+              placeholder="Cari judul, pengarang, atau genre…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="input pl-9"
+              className="input pl-9 pr-9 w-full"
             />
+            {query && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-ink-muted hover:text-ink"
+                aria-label="Hapus pencarian"
+              >
+                <X size={14} strokeWidth={2.5} />
+              </button>
+            )}
           </div>
-          {query ? (
-            <button type="button" onClick={clearSearch} className="btn-ghost-ink px-4 text-sm">
-              Batal
-            </button>
-          ) : (
-            <button type="submit" disabled={!query.trim()} className="btn-primary px-5">
-              Cari
-            </button>
-          )}
-        </form>
+        </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-5 space-y-7">
+      <main className="max-w-lg mx-auto px-4">
 
         {/* ── SEARCH RESULTS ── */}
-        {isSearching && (
-          <div className="space-y-2">
+        {isSearching ? (
+          <div className="py-5 space-y-2">
             {mergedResults.map((card) => (
               <SearchResultCard key={card.id} card={card} adding={adding} onAdd={addBook} />
             ))}
+
             {olLoading && (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="card-elevated p-3 flex gap-3 animate-pulse">
+                  <div key={i} className="bg-surface rounded-2xl border border-border p-3 flex gap-3 animate-pulse">
                     <div className="w-12 h-16 rounded-lg bg-border flex-shrink-0" />
                     <div className="flex-1 space-y-2 pt-1">
                       <div className="h-4 bg-border rounded w-3/4" />
@@ -260,106 +251,87 @@ export default function TambahBukuClient({
                   </div>
                 ))}
                 {(curatedResults ?? []).length === 0 && (
-                  <p className="text-center text-xs text-ink-muted pt-1">Mencari di OpenLibrary…</p>
+                  <p className="text-center text-xs text-ink-muted pt-1">Mencari di katalog OpenLibrary…</p>
                 )}
               </div>
             )}
+
             {olError && <p className="text-xs text-ink-muted text-center py-2">{olError}</p>}
+
             {noResultsAtAll && (
-              <div className="rounded-2xl border-2 border-dashed border-border p-6 text-center">
-                <div className="flex justify-center text-ink-muted mb-3">
-                  <Search size={36} strokeWidth={1.25} />
-                </div>
-                <p className="font-semibold text-ink text-sm mb-1">
-                  "{query}" tidak ditemukan
-                </p>
-                <p className="text-xs text-ink-muted mb-5">
-                  Coba kata kunci lain, atau tambahkan buku ini secara manual ke rakmu.
-                </p>
-                <Link
-                  href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`}
-                  className="btn-primary inline-flex"
-                >
+              <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center">
+                <div className="text-4xl mb-3">📚</div>
+                <p className="font-semibold text-ink text-sm mb-1">"{query}" tidak ditemukan</p>
+                <p className="text-xs text-ink-muted mb-5">Coba kata kunci lain, atau tambahkan buku ini secara manual.</p>
+                <Link href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`} className="btn-primary inline-flex">
                   + Tambah buku ini manual
                 </Link>
               </div>
             )}
+
             {!olLoading && mergedResults.length > 0 && (
               <div className="rounded-xl bg-parchment border border-border p-4 flex items-center justify-between gap-3">
-                <p className="text-xs text-ink-secondary leading-relaxed">
-                  Tidak menemukan yang cocok?
-                </p>
-                <Link
-                  href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`}
-                  className="btn-ghost-ink inline-flex flex-shrink-0 text-xs"
-                >
+                <p className="text-xs text-ink-secondary">Tidak menemukan yang cocok?</p>
+                <Link href={`/rak/tambah/manual?title=${encodeURIComponent(query)}`} className="btn-ghost-ink text-xs">
                   + Tambah manual
                 </Link>
               </div>
             )}
           </div>
-        )}
 
-        {/* ── DISCOVERY MODE ── */}
-        {!isSearching && (
-          <>
-            {/* 1. Lagi dibaca keluargamu */}
+        ) : (
+          /* ── DISCOVERY MODE ── */
+          <div className="py-5 space-y-8">
+
+            {/* Family reading */}
             {familyBooks.length > 0 && (
               <section>
-                <h2 className="section-title mb-3">Lagi dibaca keluargamu</h2>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                <SectionLabel>Sedang dibaca keluarga</SectionLabel>
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                   {familyBooks.map((fb, i) => (
-                    <div
-                      key={i}
-                      className="flex-shrink-0 w-28 bg-surface rounded-xl border border-border p-2"
-                    >
-                      <BookCover
-                        src={fb.coverUrl}
-                        title={fb.title}
-                        className="w-full h-[88px] rounded-lg mb-2"
-                      />
-                      <p className="text-xs font-medium text-ink line-clamp-2 leading-tight mb-1">
-                        {fb.title}
-                      </p>
-                      <p className="text-[10px] text-amber font-medium truncate">
-                        {fb.memberName}
-                      </p>
+                    <div key={i} className="flex-shrink-0 w-24">
+                      <BookCover src={fb.coverUrl} title={fb.title} className="w-full h-[88px] rounded-xl mb-1.5" />
+                      <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{fb.title}</p>
+                      <p className="text-[10px] text-amber font-semibold truncate mt-0.5">{fb.memberName}</p>
                     </div>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* 2. Mood pills */}
-            <section>
-              <h2 className="section-title mb-3">Pilih suasana</h2>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                {MOOD_PILLS.map((mood) => (
-                  <button
-                    key={mood.key}
-                    onClick={() => setActiveMood(activeMood === mood.key ? null : mood.key)}
-                    className={`flex-shrink-0 min-h-[36px] px-4 rounded-full text-sm font-medium border transition-all ${
-                      activeMood === mood.key
-                        ? "bg-forest text-white border-forest"
-                        : "bg-surface border-border text-ink-secondary hover:border-amber/50 hover:text-ink"
-                    }`}
-                  >
-                    {mood.label}
-                  </button>
-                ))}
-              </div>
-            </section>
+            {/* Featured book — library spotlight */}
+            {featured && (
+              <section>
+                <SectionLabel>Pilihan editorial</SectionLabel>
+                <FeaturedCard card={fromCurated(featured)} adding={adding} onAdd={addBook} />
+              </section>
+            )}
 
-            {/* 3. Inspirasi pilihan (grid 2-col) */}
+            {/* Section tabs */}
             <section>
-              <h2 className="section-title mb-3">
-                {activeMood
-                  ? `Inspirasi · ${MOOD_PILLS.find((m) => m.key === activeMood)?.label}`
-                  : "Inspirasi pilihan"}
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {inspirasiBuku.map((b) => (
-                  <InspirasiBukuCard
+              <div className="flex items-center justify-between mb-3">
+                <SectionLabel className="mb-0">Koleksi kami</SectionLabel>
+                <div className="flex gap-1 bg-parchment rounded-xl p-1 border border-border">
+                  {SECTIONS.map((s) => (
+                    <button
+                      key={s.key}
+                      onClick={() => setSection(s.key)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        section === s.key
+                          ? "bg-ink text-white"
+                          : "text-ink-muted hover:text-ink"
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3-col book grid — library shelf feel */}
+              <div className="grid grid-cols-3 gap-x-3 gap-y-5">
+                {displayBooks.map((b) => (
+                  <ShelfBookCard
                     key={b.title}
                     card={fromCurated(b)}
                     adding={adding}
@@ -367,62 +339,37 @@ export default function TambahBukuClient({
                   />
                 ))}
               </div>
+
+              {displayBooks.length === 0 && (
+                <p className="text-center text-sm text-ink-muted py-8">Belum ada buku di bagian ini.</p>
+              )}
             </section>
 
-            {/* 4 & 5: Horizontal scroll sections — hidden when mood active */}
-            {!activeMood && (
-              <>
-                <section>
-                  <div className="section-header">
-                    <h2 className="section-title">Penulis Indonesia</h2>
-                  </div>
-                  <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                    {lokalBooks.map((b) => (
-                      <HScrollCard
-                        key={b.title}
-                        card={fromCurated(b)}
-                        adding={adding}
-                        onAdd={addBook}
-                      />
-                    ))}
-                  </div>
-                </section>
-
-                <section>
-                  <div className="section-header">
-                    <h2 className="section-title">Untuk Anak</h2>
-                  </div>
-                  <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                    {anakBooks.map((b) => (
-                      <HScrollCard
-                        key={b.title}
-                        card={fromCurated(b)}
-                        adding={adding}
-                        onAdd={addBook}
-                      />
-                    ))}
-                  </div>
-                </section>
-              </>
-            )}
-
             {/* Manual add */}
-            <div className="text-center pt-2">
-              <p className="text-xs text-ink-muted mb-2">Tidak menemukan buku yang dicari?</p>
+            <div className="border-t-2 border-dashed border-border pt-6 text-center">
+              <p className="text-xs text-ink-muted mb-3">Tidak menemukan buku yang dicari?</p>
               <Link href="/rak/tambah/manual" className="btn-ghost-ink inline-flex">
                 + Tambah buku manual
               </Link>
             </div>
-          </>
+          </div>
         )}
       </main>
     </div>
   );
 }
 
-/* ── Sub-components ────────────────────────────── */
+/* ── Helper components ─────────────────────────────── */
 
-function InspirasiBukuCard({
+function SectionLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <h2 className={`text-[11px] font-black text-ink-muted uppercase tracking-[0.12em] mb-3 ${className}`}>
+      {children}
+    </h2>
+  );
+}
+
+function FeaturedCard({
   card,
   adding,
   onAdd,
@@ -433,35 +380,31 @@ function InspirasiBukuCard({
 }) {
   const isAdding = adding?.startsWith(card.id);
   return (
-    <div className="card-elevated flex flex-col overflow-hidden">
-      <Link href={`/buku/${card.id}`} className="block hover:opacity-90 transition-opacity">
-        <BookCover
-          src={card.cover_url}
-          title={card.title}
-          className="w-full h-[130px] rounded-none"
-        />
-      </Link>
-      <div className="p-2.5 flex flex-col gap-2 flex-1">
-        <div>
-          <Link href={`/buku/${card.id}`}>
-            <p className="text-xs font-semibold text-ink line-clamp-2 leading-snug hover:text-amber transition-colors">
-              {card.title}
-            </p>
-          </Link>
-          <p className="text-[10px] text-ink-muted mt-0.5 truncate">{card.author}</p>
-        </div>
-        <div className="flex gap-1.5 mt-auto">
+    <div
+      className="bg-surface rounded-2xl overflow-hidden flex gap-4 p-4"
+      style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}
+    >
+      <BookCover src={card.cover_url} title={card.title} className="w-[72px] h-[100px] rounded-xl flex-shrink-0" />
+      <div className="flex-1 min-w-0 flex flex-col">
+        <span className="text-[10px] font-black text-amber uppercase tracking-[0.1em] mb-1">★ Pilihan</span>
+        <p className="font-display font-bold text-ink text-base leading-snug line-clamp-2">{card.title}</p>
+        <p className="text-xs text-ink-muted mt-0.5 mb-2">{card.author}</p>
+        {card.description && (
+          <p className="text-xs text-ink-secondary leading-relaxed line-clamp-3 mb-3">{card.description}</p>
+        )}
+        <div className="flex gap-2 mt-auto">
           <button
             onClick={() => onAdd(card, "reading")}
             disabled={!!isAdding}
-            className="flex-1 min-h-[36px] rounded-lg bg-amber text-white text-[11px] font-semibold disabled:opacity-40 transition-opacity"
+            className="flex items-center gap-1.5 bg-ink text-white text-xs font-semibold px-3 min-h-[34px] rounded-lg hover:bg-ink/80 transition-colors disabled:opacity-40"
           >
-            {adding === card.id + "reading" ? "…" : "Baca"}
+            <BookOpen size={12} strokeWidth={2.5} />
+            {adding === card.id + "reading" ? "…" : "Baca Sekarang"}
           </button>
           <button
             onClick={() => onAdd(card, "want")}
             disabled={!!isAdding}
-            className="min-h-[36px] px-2 rounded-lg border border-border text-ink-secondary hover:border-amber/50 transition-colors"
+            className="min-h-[34px] px-3 rounded-lg border border-border text-ink-secondary hover:border-amber/50 hover:text-amber transition-colors"
             aria-label="Simpan ke ingin baca"
           >
             <Bookmark size={13} strokeWidth={2} />
@@ -472,7 +415,7 @@ function InspirasiBukuCard({
   );
 }
 
-function HScrollCard({
+function ShelfBookCard({
   card,
   adding,
   onAdd,
@@ -482,24 +425,38 @@ function HScrollCard({
   onAdd: (card: BookCard, status: "reading" | "want") => void;
 }) {
   const isAdding = adding?.startsWith(card.id);
+  const [showActions, setShowActions] = useState(false);
+
   return (
-    <div className="flex-shrink-0 w-[108px] bg-surface rounded-xl border border-border p-2 flex flex-col gap-1.5">
-      <Link href={`/buku/${card.id}`} className="hover:opacity-90 transition-opacity">
+    <div className="flex flex-col">
+      {/* Cover — tap to toggle actions */}
+      <div className="relative" onClick={() => setShowActions((v) => !v)}>
         <BookCover
           src={card.cover_url}
           title={card.title}
-          className="w-full h-[84px] rounded-lg"
+          className="w-full h-[120px] rounded-xl cursor-pointer"
         />
-      </Link>
-      <p className="text-[11px] font-medium text-ink line-clamp-2 leading-snug">{card.title}</p>
-      <p className="text-[10px] text-ink-muted truncate">{card.author}</p>
-      <button
-        onClick={() => onAdd(card, "want")}
-        disabled={!!isAdding}
-        className="mt-auto min-h-[32px] w-full rounded-lg border border-border text-[11px] text-ink-secondary hover:border-amber/60 hover:text-amber disabled:opacity-40 transition-colors"
-      >
-        {adding === card.id + "want" ? "…" : "+ Simpan"}
-      </button>
+        {showActions && (
+          <div className="absolute inset-0 bg-ink/70 rounded-xl flex flex-col items-center justify-center gap-2 p-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); onAdd(card, "reading"); }}
+              disabled={!!isAdding}
+              className="w-full py-1.5 rounded-lg bg-amber text-white text-[11px] font-bold disabled:opacity-50"
+            >
+              {adding === card.id + "reading" ? "…" : "Baca"}
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onAdd(card, "want"); }}
+              disabled={!!isAdding}
+              className="w-full py-1.5 rounded-lg bg-white/10 border border-white/30 text-white text-[11px] font-semibold disabled:opacity-50"
+            >
+              {adding === card.id + "want" ? "…" : "Simpan"}
+            </button>
+          </div>
+        )}
+      </div>
+      <p className="text-[11px] font-semibold text-ink line-clamp-2 leading-snug mt-1.5">{card.title}</p>
+      <p className="text-[10px] text-ink-muted truncate mt-0.5">{card.author}</p>
     </div>
   );
 }
@@ -515,22 +472,14 @@ function SearchResultCard({
 }) {
   const isAdding = adding?.startsWith(card.id);
   return (
-    <div className="card-elevated p-3">
+    <div className="bg-surface rounded-2xl border border-border p-3">
       <div className="flex gap-3">
-        <Link href={`/buku/${card.id}`} className="flex-shrink-0 hover:opacity-80 transition-opacity">
-          <BookCover src={card.cover_url} title={card.title} className="w-12 h-16 rounded-lg" />
-        </Link>
+        <BookCover src={card.cover_url} title={card.title} className="w-12 h-16 rounded-lg flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <Link href={`/buku/${card.id}`}>
-            <p className="font-medium text-ink text-sm line-clamp-2 hover:text-amber transition-colors">
-              {card.title}
-            </p>
-          </Link>
+          <p className="font-semibold text-ink text-sm line-clamp-2">{card.title}</p>
           <p className="text-xs text-ink-muted mt-0.5">{card.author}</p>
           {card.description && (
-            <p className="text-xs text-ink-secondary mt-1 line-clamp-2 leading-relaxed">
-              {card.description}
-            </p>
+            <p className="text-xs text-ink-secondary mt-1 line-clamp-2 leading-relaxed">{card.description}</p>
           )}
           {card.tags.length > 0 && (
             <div className="flex gap-1 mt-1.5 flex-wrap">
@@ -546,7 +495,7 @@ function SearchResultCard({
               className="btn-primary-sm flex items-center gap-1.5"
             >
               <BookOpen size={12} strokeWidth={2.5} />
-              {adding === card.id + "reading" ? "…" : "Sedang Baca"}
+              {adding === card.id + "reading" ? "…" : "Baca"}
             </button>
             <button
               onClick={() => onAdd(card, "want")}
@@ -554,7 +503,7 @@ function SearchResultCard({
               className="btn-secondary min-h-[44px] px-3 text-xs flex items-center gap-1.5"
             >
               <Bookmark size={12} strokeWidth={2.5} />
-              {adding === card.id + "want" ? "…" : "Mau Baca"}
+              {adding === card.id + "want" ? "…" : "Simpan"}
             </button>
           </div>
         </div>
