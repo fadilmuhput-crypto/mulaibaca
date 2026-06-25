@@ -7,6 +7,7 @@ import type { Session } from "@/lib/session";
 import { createClient } from "@/lib/supabase";
 import AvatarIcon from "@/components/AvatarIcon";
 import FeedbackModal from "@/components/FeedbackModal";
+import NotificationBell from "@/components/NotificationBell";
 
 /* ── SVG icon components (Heroicons outline 24px) ── */
 function IconHome({ active }: { active: boolean }) {
@@ -118,6 +119,9 @@ export default function NavBar({ session }: { session: Session }) {
           })}
         </nav>
 
+        <div className="flex items-center gap-1">
+        <NotificationBell />
+
         {/* Profile dropdown */}
         <div className="relative" ref={ref}>
           <button
@@ -191,6 +195,7 @@ export default function NavBar({ session }: { session: Session }) {
             </div>
           )}
         </div>
+        </div>{/* end flex items-center gap-1 */}
       </header>
 
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
