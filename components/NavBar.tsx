@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase";
 import AvatarIcon from "@/components/AvatarIcon";
 import FeedbackModal from "@/components/FeedbackModal";
 import NotificationBell from "@/components/NotificationBell";
+import GuestBanner from "@/components/GuestBanner";
 
 /* ── SVG icon components (Heroicons outline 24px) ── */
 function IconHome({ active }: { active: boolean }) {
@@ -91,6 +92,7 @@ export default function NavBar({ session }: { session: Session }) {
 
   return (
     <>
+      {session.isAnonymous && <GuestBanner />}
       {/* ── Top header ──────────────────────── */}
       <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <Link href="/dashboard" className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>

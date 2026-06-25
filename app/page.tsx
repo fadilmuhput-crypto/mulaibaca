@@ -129,7 +129,7 @@ export default function LandingPage() {
               }}>
                 Buat Family Space Gratis →
               </Link>
-              <Link href="/review" style={{
+              <Link href="/coba" style={{
                 display: "inline-flex", alignItems: "center",
                 padding: "0.875rem 1.5rem",
                 backgroundColor: "transparent", color: INK,
@@ -138,7 +138,7 @@ export default function LandingPage() {
                 borderRadius: "6px",
                 textDecoration: "none",
               }}>
-                Lihat review buku
+                Coba tanpa daftar
               </Link>
             </div>
             <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>
@@ -314,18 +314,28 @@ export default function LandingPage() {
           <p style={{ fontSize: "1rem", color: "#3D4E45", lineHeight: 1.65, maxWidth: "440px", margin: "0 auto 2.25rem" }}>
             Kebiasaan membaca tidak diwariskan lewat nasihat — tapi lewat contoh. Mulai dari dirimu, dan biarkan keluargamu mengikuti.
           </p>
-          <Link href="/daftar" style={{
-            display: "inline-flex", alignItems: "center",
-            padding: "1rem 2rem",
-            backgroundColor: INK, color: PARCHMENT,
-            fontWeight: 700, fontSize: "1rem",
-            border: `1.5px solid ${INK}`,
-            borderRadius: "6px",
-            boxShadow: `4px 4px 0 ${FOREST}`,
-            textDecoration: "none",
-          }}>
-            Mulai Sekarang, Gratis →
-          </Link>
+          <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "12px" }}>
+            <Link href="/daftar" style={{
+              display: "inline-flex", alignItems: "center",
+              padding: "1rem 2rem",
+              backgroundColor: INK, color: PARCHMENT,
+              fontWeight: 700, fontSize: "1rem",
+              border: `1.5px solid ${INK}`,
+              borderRadius: "6px",
+              boxShadow: `4px 4px 0 ${FOREST}`,
+              textDecoration: "none",
+            }}>
+              Mulai Sekarang, Gratis →
+            </Link>
+            <Link href="/coba" style={{
+              fontSize: "0.875rem",
+              color: "#3D4E45",
+              textDecoration: "underline",
+              textDecorationStyle: "dotted" as const,
+            }}>
+              atau coba dulu tanpa daftar
+            </Link>
+          </div>
         </div>
       </section>
 

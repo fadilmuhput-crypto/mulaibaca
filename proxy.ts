@@ -40,7 +40,9 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/masuk", req.url));
   }
 
-  if (isAuthPage && session) {
+  // Anonymous users can visit /daftar and /masuk to upgrade their account
+  const isAnonymous = session?.user?.is_anonymous ?? false;
+  if (isAuthPage && session && !isAnonymous) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

@@ -4,6 +4,7 @@ export type Session = {
   userId: string;
   email: string;
   emailVerified: boolean;
+  isAnonymous: boolean;
   familyId: string;
   familyName: string;
   inviteCode: string;
@@ -36,6 +37,7 @@ export async function getSession(): Promise<Session | null> {
     userId: user.id,
     email: user.email ?? "",
     emailVerified: !!user.email_confirmed_at,
+    isAnonymous: user.is_anonymous ?? false,
     familyId: member.family_id,
     familyName: family?.name ?? "",
     inviteCode: family?.invite_code ?? "",
