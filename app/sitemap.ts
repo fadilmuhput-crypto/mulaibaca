@@ -30,20 +30,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    const [{ data: reviews }, { data: olBooks }] = await Promise.all([
+    const timeout = <T>(p: Promise<T>, ms = 5000): Promise<T> =>
+      Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+
+    const [{ data: reviews }, { data: olBooks }] = await timeout(Promise.all([
       supabase
         .from("reviews")
         .select("slug, published_at")
         .eq("is_public", true)
         .order("published_at", { ascending: false })
         .limit(500),
-      // Books added by users via OpenLibrary search
       supabase
         .from("books")
         .select("title, open_library_id")
         .not("open_library_id", "is", null)
         .limit(500),
-    ]);
+    ]));
 
     const reviewRoutes: MetadataRoute.Sitemap = (reviews ?? []).map((r) => ({
       url: `${base}/review/${r.slug}`,
