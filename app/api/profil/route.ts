@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
   const auth = await getAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, avatar, familyName, weeklyPagesGoal, username, memberType } = await req.json();
+  const { name, avatar, birthDate, familyName, weeklyPagesGoal, username, memberType } = await req.json();
   const admin = createAdminClient();
 
   const updates: Record<string, string | number | null> = {};
@@ -53,6 +53,7 @@ export async function PATCH(req: NextRequest) {
   if (avatar) updates.avatar = avatar;
   if (weeklyPagesGoal !== undefined) updates.weekly_pages_goal = Math.max(0, Math.floor(Number(weeklyPagesGoal)));
   if (memberType) updates.member_type = memberType;
+  if (birthDate !== undefined) updates.birth_date = birthDate || null;
 
   // Username: only settable once (one-time update)
   if (username !== undefined) {

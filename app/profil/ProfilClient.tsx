@@ -30,6 +30,7 @@ export default function ProfilClient({
   const [familyName, setFamilyName] = useState(session.familyName);
   const [weeklyGoal, setWeeklyGoal] = useState(session.weeklyPagesGoal);
   const [memberType, setMemberType] = useState(session.memberType);
+  const [birthDate, setBirthDate] = useState(session.memberBirthDate ?? "");
   const [username, setUsername] = useState(session.memberUsername ?? "");
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [usernameError, setUsernameError] = useState("");
@@ -56,6 +57,7 @@ export default function ProfilClient({
     familyName !== session.familyName ||
     weeklyGoal !== session.weeklyPagesGoal ||
     memberType !== session.memberType ||
+    birthDate !== (session.memberBirthDate ?? "") ||
     (!usernameAlreadySet && username.trim() && usernameStatus === "available");
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export default function ProfilClient({
   async function handleSave() {
     setSaving(true); setSaved(false); setError("");
     try {
-      const body: Record<string, unknown> = { name, avatar, familyName, weeklyPagesGoal: weeklyGoal, memberType };
+      const body: Record<string, unknown> = { name, avatar, birthDate, familyName, weeklyPagesGoal: weeklyGoal, memberType };
       if (!usernameAlreadySet && username.trim() && usernameStatus === "available") {
         body.username = username.trim();
       }
@@ -306,6 +308,22 @@ export default function ProfilClient({
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Date of birth */}
+      <div>
+        <label htmlFor="birth-date" className="input-label">Tanggal lahir</label>
+        <input
+          id="birth-date"
+          type="date"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+          className="input mt-1"
+          max={new Date().toISOString().split("T")[0]}
+        />
+        {session.memberAge !== null && (
+          <p className="input-hint">{session.memberAge} tahun</p>
+        )}
       </div>
 
       {/* ── Setup akun (for dummy accounts managed by admin) ── */}
