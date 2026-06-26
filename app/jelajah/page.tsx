@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-route";
 import JelajahClient from "./JelajahClient";
 import type { CuratedBook } from "@/lib/curated-books";
+import type { JelajahSection } from "@/lib/jelajah-sections";
 
 export type FamilyBook = {
   memberName: string;
@@ -53,14 +54,33 @@ export default async function JelajahPage() {
   }
 
   const adminClient = createAdminClient();
-  const { data: curatedRows } = await adminClient
-    .from("curated_books")
-    .select("title,author,cover_url,open_library_id,total_pages,description,category,tags")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("title", { ascending: true });
+  const [{ data: curatedRows }, { data: sectionRows }, { data: sectionBooksRows }] = await Promise.all([
+    adminClient
+      .from("curated_books")
+      .select("title,author,cover_url,open_library_id,total_pages,description,category,tags")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("title", { ascending: true }),
+    adminClient
+      .from("jelajah_sections")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true }),
+    adminClient
+      .from("jelajah_section_books")
+      .select("section_id, sort_order, curated_books(title,author,cover_url,open_library_id,total_pages,description,category,tags)")
+      .order("sort_order", { ascending: true }),
+  ]);
 
   const allBooks = (curatedRows ?? []) as CuratedBook[];
 
-  return <JelajahClient familyBooks={familyBooks} allBooks={allBooks} />;
+  // Pasangkan buku ke masing-masing section
+  const sections: JelajahSection[] = (sectionRows ?? []).map((s) => {
+    const books = (sectionBooksRows ?? [])
+      .filter((sb: { section_id: string }) => sb.section_id === s.id)
+      .map((sb: { curated_books: unknown }) => sb.curated_books as CuratedBook);
+    return { ...s, books } as JelajahSection;
+  });
+
+  return <JelajahClient familyBooks={familyBooks} allBooks={allBooks} sections={sections} />;
 }

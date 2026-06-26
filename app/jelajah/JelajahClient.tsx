@@ -3,11 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { CuratedBook } from "@/lib/curated-books";
 import { CATEGORY_TREE, findSubCategory, countBooksInCategory } from "@/lib/category-tree";
-import { BookOpen, Bookmark, Search, ChevronLeft, X } from "lucide-react";
+import { BookOpen, Bookmark, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import type { FamilyBook } from "./page";
+import type { JelajahSection, BannerConfig } from "@/lib/jelajah-sections";
 
 type OLBook = {
   key: string;
@@ -81,9 +83,11 @@ function augmentBooks(books: CuratedBook[]): CuratedBook[] {
 export default function JelajahClient({
   familyBooks,
   allBooks,
+  sections,
 }: {
   familyBooks: FamilyBook[];
   allBooks: CuratedBook[];
+  sections: JelajahSection[];
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -112,8 +116,6 @@ export default function JelajahClient({
     }
     return augmented;
   })();
-
-  const featured = allBooks.find((b) => b.cover_url && b.description);
 
   const activeParentNode = CATEGORY_TREE.find((c) => c.key === activeParent);
   const activeSubNode = activeSub ? findSubCategory(activeSub) : null;
@@ -396,13 +398,10 @@ export default function JelajahClient({
               )}
             </section>
 
-            {/* Featured — only when no category active */}
-            {!activeParent && featured && (
-              <section>
-                <SectionLabel>Pilihan editorial</SectionLabel>
-                <FeaturedCard card={fromCurated(featured)} adding={adding} onAdd={addBook} />
-              </section>
-            )}
+            {/* ── DB Sections (featured, grid_v, grid_h, banner) — hanya saat tidak ada filter ── */}
+            {!activeParent && sections.map((sec) => (
+              <SectionRenderer key={sec.id} section={sec} adding={adding} onAdd={addBook} />
+            ))}
 
             {/* Book grid */}
             <section>
@@ -454,6 +453,214 @@ export default function JelajahClient({
         )}
       </main>
     </div>
+  );
+}
+
+/* ── Section renderer (DB-driven) ──────────────────── */
+
+function SectionRenderer({
+  section,
+  adding,
+  onAdd,
+}: {
+  section: JelajahSection;
+  adding: string | null;
+  onAdd: (card: BookCard, status: "reading" | "want") => void;
+}) {
+  switch (section.type) {
+    case "featured":
+      return <FeaturedSection section={section} adding={adding} onAdd={onAdd} />;
+    case "grid_v":
+      return <GridVSection section={section} adding={adding} onAdd={onAdd} />;
+    case "grid_h":
+      return <GridHSection section={section} adding={adding} onAdd={onAdd} />;
+    case "banner":
+      return <BannerSection section={section} />;
+    default:
+      return null;
+  }
+}
+
+function FeaturedSection({
+  section,
+  adding,
+  onAdd,
+}: {
+  section: JelajahSection;
+  adding: string | null;
+  onAdd: (card: BookCard, status: "reading" | "want") => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const books = (section.books ?? []).map(fromCurated);
+  if (books.length === 0) return null;
+  const card = books[idx];
+  return (
+    <section>
+      <SectionLabel>{section.title}</SectionLabel>
+      {section.subtitle && <p className="text-xs text-ink-muted -mt-2 mb-3">{section.subtitle}</p>}
+      <FeaturedCard card={card} adding={adding} onAdd={onAdd} />
+      {books.length > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-3">
+          <button
+            onClick={() => setIdx((i) => Math.max(0, i - 1))}
+            disabled={idx === 0}
+            className="w-7 h-7 flex items-center justify-center rounded-full border border-border text-ink-muted disabled:opacity-20 hover:border-ink/30"
+            aria-label="Sebelumnya"
+          >
+            <ChevronLeft size={13} strokeWidth={2.5} />
+          </button>
+          <div className="flex gap-1.5">
+            {books.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`rounded-full transition-all ${
+                  i === idx ? "w-4 h-2 bg-ink" : "w-2 h-2 bg-border hover:bg-ink-muted"
+                }`}
+                aria-label={`Buku ${i + 1}`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => setIdx((i) => Math.min(books.length - 1, i + 1))}
+            disabled={idx === books.length - 1}
+            className="w-7 h-7 flex items-center justify-center rounded-full border border-border text-ink-muted disabled:opacity-20 hover:border-ink/30"
+            aria-label="Berikutnya"
+          >
+            <ChevronRight size={13} strokeWidth={2.5} />
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function GridVSection({
+  section,
+  adding,
+  onAdd,
+}: {
+  section: JelajahSection;
+  adding: string | null;
+  onAdd: (card: BookCard, status: "reading" | "want") => void;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const books = (section.books ?? []).map(fromCurated);
+  if (books.length === 0) return null;
+  const visible = showAll ? books : books.slice(0, 9);
+  return (
+    <section>
+      <SectionLabel>{section.title}</SectionLabel>
+      {section.subtitle && <p className="text-xs text-ink-muted -mt-2 mb-3">{section.subtitle}</p>}
+      <div className="grid grid-cols-3 gap-x-3 gap-y-5">
+        {visible.map((b) => (
+          <ShelfBookCard key={b.id} card={b} adding={adding} onAdd={onAdd} />
+        ))}
+      </div>
+      {!showAll && books.length > 9 && (
+        <button
+          onClick={() => setShowAll(true)}
+          className="mt-4 w-full rounded-xl border border-border py-2.5 text-xs font-semibold text-ink-secondary hover:border-amber/50 hover:text-ink transition-colors"
+        >
+          Tampilkan {books.length - 9} buku lainnya
+        </button>
+      )}
+    </section>
+  );
+}
+
+function GridHSection({
+  section,
+  adding,
+  onAdd,
+}: {
+  section: JelajahSection;
+  adding: string | null;
+  onAdd: (card: BookCard, status: "reading" | "want") => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const books = (section.books ?? []).map(fromCurated);
+  if (books.length === 0) return null;
+  return (
+    <section>
+      <SectionLabel>{section.title}</SectionLabel>
+      {section.subtitle && <p className="text-xs text-ink-muted -mt-2 mb-3">{section.subtitle}</p>}
+      {!expanded ? (
+        <>
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+            {books.map((b) => (
+              <div key={b.id} className="flex-shrink-0 w-24">
+                <BookCover src={b.cover_url} title={b.title} className="w-full h-[88px] rounded-xl mb-1.5" />
+                <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
+                <p className="text-[10px] text-ink-muted truncate mt-0.5">{b.author}</p>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => setExpanded(true)}
+            className="mt-3 w-full rounded-xl bg-forest text-white text-xs font-semibold py-2.5 flex items-center justify-center gap-1.5 hover:bg-forest-dark transition-colors"
+          >
+            Lihat semua ({books.length} buku)
+            <ChevronRight size={13} strokeWidth={2.5} />
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-x-3 gap-y-5">
+            {books.map((b) => (
+              <ShelfBookCard key={b.id} card={b} adding={adding} onAdd={onAdd} />
+            ))}
+          </div>
+          <button
+            onClick={() => setExpanded(false)}
+            className="mt-3 w-full rounded-xl border border-border py-2.5 text-xs font-semibold text-ink-muted hover:text-ink transition-colors"
+          >
+            Sembunyikan
+          </button>
+        </>
+      )}
+    </section>
+  );
+}
+
+function BannerSection({ section }: { section: JelajahSection }) {
+  const cfg = section.config as BannerConfig;
+  if (!cfg?.items?.length) return null;
+  const layout = cfg.layout ?? 1;
+  const items = cfg.items.slice(0, layout);
+
+  return (
+    <section>
+      {section.title && <SectionLabel>{section.title}</SectionLabel>}
+      <div className={`grid gap-3 ${layout === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+        {items.map((item, i) => (
+          <Link
+            key={i}
+            href={item.link_url || "#"}
+            className="relative block rounded-2xl overflow-hidden"
+            style={{ aspectRatio: layout === 1 ? "3/1" : "3/2" }}
+          >
+            {item.image_url && (
+              <Image src={item.image_url} alt={item.title ?? `Banner ${i + 1}`} fill className="object-cover" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60" />
+            {(item.title || item.cta_text) && (
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                {item.title && (
+                  <p className="text-white font-bold text-sm leading-tight mb-1.5 drop-shadow">{item.title}</p>
+                )}
+                {item.cta_text && (
+                  <span className="inline-flex items-center gap-1 bg-amber text-white text-[11px] font-semibold px-3 py-1 rounded-lg">
+                    {item.cta_text}
+                    <ChevronRight size={11} strokeWidth={2.5} />
+                  </span>
+                )}
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
