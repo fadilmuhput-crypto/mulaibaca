@@ -18,12 +18,16 @@ type OLResult = {
 type FormData = {
   title: string;
   author: string;
-  category: "anak" | "lokal";
   description: string;
   cover_url: string;
   open_library_id: string;
+  isbn: string;
   total_pages: string;
+  categories: string[];
   tags: string[];
+  publisher: string;
+  published_year: string;
+  language: string;
   is_active: boolean;
 };
 
@@ -31,12 +35,16 @@ function initForm(book?: AdminBook): FormData {
   return {
     title: book?.title ?? "",
     author: book?.author ?? "",
-    category: book?.category ?? "lokal",
     description: book?.description ?? "",
     cover_url: book?.cover_url ?? "",
     open_library_id: book?.open_library_id ?? "",
+    isbn: book?.isbn ?? "",
     total_pages: book?.total_pages ? String(book.total_pages) : "",
+    categories: book?.categories ?? [],
     tags: book?.tags ?? [],
+    publisher: book?.publisher ?? "",
+    published_year: book?.published_year ? String(book.published_year) : "",
+    language: book?.language ?? "id",
     is_active: book?.is_active ?? true,
   };
 }
@@ -220,35 +228,33 @@ export default function BukuForm({
           <input type="text" value={form.author} onChange={(e) => set("author", e.target.value)} className="input" required />
         </div>
         <div>
-          <label className="input-label">Kategori *</label>
-          <select
-            value={form.category}
-            onChange={(e) => set("category", e.target.value as "anak" | "lokal")}
-            className="input"
-          >
-            <option value="lokal">Lokal / Umum</option>
-            <option value="anak">Anak</option>
-          </select>
+          <label className="input-label">ISBN</label>
+          <input type="text" value={form.isbn} onChange={(e) => set("isbn", e.target.value)} className="input" placeholder="cth: 9780735211292" />
+        </div>
+        <div>
+          <label className="input-label">Penerbit</label>
+          <input type="text" value={form.publisher} onChange={(e) => set("publisher", e.target.value)} className="input" placeholder="Nama penerbit" />
+        </div>
+        <div>
+          <label className="input-label">Tahun Terbit</label>
+          <input type="number" min={1000} max={2099} value={form.published_year} onChange={(e) => set("published_year", e.target.value)} className="input" placeholder="cth: 2024" />
         </div>
         <div>
           <label className="input-label">Total Halaman</label>
-          <input
-            type="number" min={1}
-            value={form.total_pages}
-            onChange={(e) => set("total_pages", e.target.value)}
-            placeholder="cth: 320"
-            className="input"
-          />
+          <input type="number" min={1} value={form.total_pages} onChange={(e) => set("total_pages", e.target.value)} placeholder="cth: 320" className="input" />
         </div>
         <div>
           <label className="input-label">Open Library ID</label>
-          <input
-            type="text"
-            value={form.open_library_id}
-            onChange={(e) => set("open_library_id", e.target.value)}
-            placeholder="cth: OL82538W"
-            className="input"
-          />
+          <input type="text" value={form.open_library_id} onChange={(e) => set("open_library_id", e.target.value)} placeholder="cth: OL82538W" className="input" />
+        </div>
+        <div>
+          <label className="input-label">Bahasa</label>
+          <select value={form.language} onChange={(e) => set("language", e.target.value)} className="input">
+            <option value="id">Indonesia</option>
+            <option value="en">Inggris</option>
+            <option value="ar">Arab</option>
+            <option value="other">Lainnya</option>
+          </select>
         </div>
         <div className="sm:col-span-2">
           <label className="input-label">Cover</label>
@@ -262,104 +268,48 @@ export default function BukuForm({
               )}
             </div>
             <div className="flex-1 min-w-0 space-y-2">
-              <input
-                type="url"
-                value={form.cover_url}
-                onChange={(e) => set("cover_url", e.target.value)}
-                placeholder="https://covers.openlibrary.org/b/isbn/…"
-                className="input"
-              />
+              <input type="url" value={form.cover_url} onChange={(e) => set("cover_url", e.target.value)} placeholder="https://covers.openlibrary.org/b/isbn/…" className="input" />
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="btn-ghost-ink text-xs px-3 py-1.5 inline-flex items-center gap-1.5"
-                >
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="btn-ghost-ink text-xs px-3 py-1.5 inline-flex items-center gap-1.5">
                   <Camera size={13} strokeWidth={2} />
                   {uploading ? "Mengupload…" : "Upload foto"}
                 </button>
                 {uploadError && <span className="text-xs text-error">{uploadError}</span>}
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleCoverUpload}
-                className="hidden"
-                aria-label="Upload foto cover"
-              />
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleCoverUpload} className="hidden" aria-label="Upload foto cover" />
             </div>
           </div>
         </div>
         <div className="sm:col-span-2">
           <label className="input-label">Deskripsi</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => set("description", e.target.value)}
-            rows={3}
-            placeholder="Ringkasan singkat buku ini…"
-            className="input resize-none"
-          />
+          <textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Ringkasan singkat buku ini…" className="input resize-none" />
         </div>
       </div>
 
-      {/* Tags */}
+      {/* Kategori dari CATEGORY_TREE */}
       <div>
-        <label className="input-label">Tags</label>
-        <div className="flex gap-2 mb-2">
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
-            placeholder="Ketik tag lalu Enter…"
-            className="input flex-1"
-          />
-          <button type="button" onClick={addTag} className="btn-secondary px-4 text-sm">
-            Tambah
-          </button>
-        </div>
-        {form.tags.length > 0 && (
-          <div className="flex gap-2 flex-wrap mb-3">
-            {form.tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-soft text-amber text-xs font-semibold border border-amber/30"
-              >
-                {tag}
-                <button type="button" onClick={() => removeTag(tag)} className="hover:text-error">
-                  <X size={11} strokeWidth={2.5} />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Tag suggestions from CATEGORY_TREE */}
+        <label className="input-label">Kategori</label>
         <div className="rounded-xl border border-border bg-parchment p-3 space-y-3">
-          <p className="text-[10px] font-black text-ink-muted uppercase tracking-wider">Pilih dari kategori</p>
           {CATEGORY_TREE.map((root) => (
             <div key={root.key}>
               <p className="text-[10px] font-semibold text-ink-secondary mb-1.5">{root.label}</p>
               <div className="flex flex-wrap gap-1.5">
                 {root.children.map((sub) => {
-                  const primaryTag = sub.matchTags[0];
-                  const active = form.tags.includes(primaryTag);
+                  const active = form.categories.includes(sub.key);
                   return (
                     <button
                       key={sub.key}
                       type="button"
                       onClick={() => {
                         if (active) {
-                          removeTag(primaryTag);
-                        } else if (!form.tags.includes(primaryTag)) {
-                          set("tags", [...form.tags, primaryTag]);
+                          set("categories", form.categories.filter((c: string) => c !== sub.key));
+                        } else {
+                          set("categories", [...form.categories, sub.key]);
                         }
                       }}
                       className={`text-[11px] px-2 py-1 rounded-lg border transition-all ${
                         active
-                          ? "bg-amber text-white border-amber font-semibold"
+                          ? "bg-forest text-white border-forest font-semibold"
                           : "bg-surface border-border text-ink-secondary hover:border-amber/50 hover:text-ink"
                       }`}
                     >
@@ -371,6 +321,27 @@ export default function BukuForm({
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Tags */}
+      <div>
+        <label className="input-label">Tags</label>
+        <div className="flex gap-2 mb-2">
+          <input type="text" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} placeholder="Ketik tag lalu Enter…" className="input flex-1" />
+          <button type="button" onClick={addTag} className="btn-secondary px-4 text-sm">Tambah</button>
+        </div>
+        {form.tags.length > 0 && (
+          <div className="flex gap-2 flex-wrap mb-3">
+            {form.tags.map((tag) => (
+              <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-soft text-amber text-xs font-semibold border border-amber/30">
+                {tag}
+                <button type="button" onClick={() => removeTag(tag)} className="hover:text-error">
+                  <X size={11} strokeWidth={2.5} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Active toggle */}

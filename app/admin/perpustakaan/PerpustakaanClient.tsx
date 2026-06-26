@@ -14,6 +14,9 @@ function completeness(b: LibraryBook) {
     { key: "halaman", ok: !!b.total_pages },
     { key: "pengarang", ok: !!b.author },
     { key: "isbn", ok: !!b.isbn },
+    { key: "deskripsi", ok: !!b.description },
+    { key: "kategori", ok: (b.categories ?? []).length > 0 },
+    { key: "penerbit", ok: !!b.publisher },
   ];
   const filled = fields.filter((f) => f.ok).length;
   return { fields, filled, total: fields.length, complete: filled === fields.length };

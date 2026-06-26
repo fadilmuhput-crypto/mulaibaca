@@ -6,6 +6,7 @@ export type CuratedBook = {
   total_pages: number | null;
   description: string;
   category: "anak" | "lokal";
+  categories?: string[];
   tags: string[];
 };
 

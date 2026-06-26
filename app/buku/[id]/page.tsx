@@ -26,6 +26,10 @@ type BookData = {
   description: string | null;
   subjects: string[];
   year: string | null;
+  isbn: string | null;
+  publisher: string | null;
+  published_year: number | null;
+  language: string;
 };
 
 function toSlug(s: string) {
@@ -94,6 +98,10 @@ async function fetchOLBook(olId: string): Promise<BookData | null> {
       description,
       subjects: (work.subjects ?? []).slice(0, 8),
       year: work.first_publish_date ?? null,
+      isbn: null,
+      publisher: null,
+      published_year: null,
+      language: "id",
     };
   } catch {
     return null;
@@ -113,6 +121,10 @@ function findCurated(slug: string): BookData | null {
     description: book.description,
     subjects: book.tags,
     year: null,
+    isbn: "isbn" in book ? (book as Record<string, string | null>).isbn : null,
+    publisher: "publisher" in book ? (book as Record<string, string | null>).publisher : null,
+    published_year: "published_year" in book ? (book as Record<string, number | null>).published_year : null,
+    language: "language" in book ? (book as Record<string, string>).language || "id" : "id",
   };
 }
 
@@ -234,19 +246,17 @@ export default async function BookDetailPage({
           <div className="flex-1 min-w-0 pt-1">
             <h1 className="font-display font-bold text-xl text-ink leading-tight">{book.title}</h1>
             {book.author && <p className="text-ink-secondary text-sm mt-1">{book.author}</p>}
-            <div className="flex flex-wrap gap-3 mt-3 text-xs text-ink-muted">
+            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-xs text-ink-muted">
               {book.total_pages && (
                 <span className="flex items-center gap-1">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
                   {book.total_pages} halaman
                 </span>
               )}
-              {book.year && (
-                <span className="flex items-center gap-1">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  {book.year}
-                </span>
-              )}
+              {book.isbn && <span>ISBN: {book.isbn}</span>}
+              {book.publisher && <span>{book.publisher}</span>}
+              {(book.published_year || book.year) && <span>{book.published_year || book.year}</span>}
+              {book.language && book.language !== "id" && <span>{book.language === "en" ? "Inggris" : book.language === "ar" ? "Arab" : book.language}</span>}
             </div>
           </div>
         </div>

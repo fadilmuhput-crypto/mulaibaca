@@ -44,10 +44,11 @@ function bookUrl(card: BookCard): string {
 }
 
 function fromCurated(b: CuratedBook): BookCard {
-  // Inject "anak" tag so anak-anak category matching works via tags
-  const tags = b.category === "anak" && !b.tags.includes("anak")
-    ? [...b.tags, "anak"]
-    : b.tags;
+  // Combine tags from categories + tags for full category matching
+  const allTags = [...new Set([
+    ...(b.categories ?? []),
+    ...(b.category === "anak" && !b.tags.includes("anak") ? [...b.tags, "anak"] : b.tags),
+  ])];
   return {
     id: toSlug(b.title),
     title: b.title,
@@ -56,8 +57,8 @@ function fromCurated(b: CuratedBook): BookCard {
     open_library_id: b.open_library_id,
     total_pages: b.total_pages,
     description: b.description,
-    tags,
-    isLokal: false, // category:"lokal" = koleksi umum, bukan "penulis Indonesia"
+    tags: allTags,
+    isLokal: false,
   };
 }
 
@@ -78,13 +79,15 @@ function fromOL(b: OLBook): BookCard {
   };
 }
 
-// Books augmented with injected tags for category matching
+// Books augmented with combined categories + tags for category matching
 function augmentBooks(books: CuratedBook[]): CuratedBook[] {
-  return books.map((b) =>
-    b.category === "anak" && !b.tags.includes("anak")
-      ? { ...b, tags: [...b.tags, "anak"] }
-      : b
-  );
+  return books.map((b) => ({
+    ...b,
+    tags: [...new Set([
+      ...(b.categories ?? []),
+      ...(b.category === "anak" && !b.tags.includes("anak") ? [...b.tags, "anak"] : b.tags),
+    ])],
+  }));
 }
 
 // ── Age group helper ─────────────────────────────────────────────────────────
@@ -369,7 +372,7 @@ export default function JelajahClient({
 
             {/* ── Buku Anak section ── */}
             {(() => {
-              const anakBooks = augmented.filter((b) => b.category === "anak");
+              const anakBooks = augmented.filter((b) => b.category === "anak" || (b.categories ?? []).some((c: string) => CATEGORY_TREE[2]?.matchTags.includes(c)));
               if (anakBooks.length === 0) return null;
 
               const isChild = memberType === "anak";

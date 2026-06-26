@@ -57,7 +57,7 @@ export default async function JelajahPage() {
   const [{ data: curatedRows }, { data: sectionRows }, { data: sectionBooksRows }] = await Promise.all([
     adminClient
       .from("curated_books")
-      .select("title,author,cover_url,open_library_id,total_pages,description,category,tags")
+      .select("title,author,cover_url,open_library_id,total_pages,description,category,categories,tags")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("title", { ascending: true }),
@@ -68,7 +68,7 @@ export default async function JelajahPage() {
       .order("sort_order", { ascending: true }),
     adminClient
       .from("jelajah_section_books")
-      .select("section_id, sort_order, curated_books(title,author,cover_url,open_library_id,total_pages,description,category,tags)")
+      .select("section_id, sort_order, curated_books(title,author,cover_url,open_library_id,total_pages,description,category,categories,tags)")
       .order("sort_order", { ascending: true }),
   ]);
 

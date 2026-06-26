@@ -10,8 +10,13 @@ export type AdminBook = {
   open_library_id: string | null;
   total_pages: number | null;
   description: string;
-  category: "anak" | "lokal";
+  category: string;
+  categories: string[];
   tags: string[];
+  isbn: string | null;
+  publisher: string | null;
+  published_year: number | null;
+  language: string;
   is_active: boolean;
   sort_order: number;
   created_at: string;

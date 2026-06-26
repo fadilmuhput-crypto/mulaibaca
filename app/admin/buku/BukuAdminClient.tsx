@@ -21,8 +21,7 @@ export default function BukuAdminClient({ initialBooks }: { initialBooks: AdminB
     if (filterCat !== "semua") {
       const root = CATEGORY_TREE.find((c) => c.key === filterCat);
       if (root) {
-        const tagsWithCategory = b.category === "anak" ? [...b.tags, "anak"] : b.tags;
-        matchCat = root.matchTags.some((t) => tagsWithCategory.includes(t));
+        matchCat = root.matchTags.some((t) => (b.categories ?? []).includes(t));
       }
     }
     const matchSearch =
@@ -37,10 +36,7 @@ export default function BukuAdminClient({ initialBooks }: { initialBooks: AdminB
   function countForCat(key: string) {
     const root = CATEGORY_TREE.find((c) => c.key === key);
     if (!root) return 0;
-    return books.filter((b) => {
-      const tags = b.category === "anak" ? [...b.tags, "anak"] : b.tags;
-      return root.matchTags.some((t) => tags.includes(t));
-    }).length;
+    return books.filter((b) => root.matchTags.some((t) => (b.categories ?? []).includes(t))).length;
   }
 
   async function toggleActive(book: AdminBook) {
@@ -152,17 +148,12 @@ export default function BukuAdminClient({ initialBooks }: { initialBooks: AdminB
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 flex-wrap">
                 {(() => {
-                  const tagsWithCat = book.category === "anak" ? [...book.tags, "anak"] : book.tags;
-                  const matched = CATEGORY_TREE.find((c) => c.matchTags.some((t) => tagsWithCat.includes(t)));
+                  const matched = CATEGORY_TREE.find((c) => c.matchTags.some((t) => (book.categories ?? []).includes(t)));
                   return matched ? (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-parchment text-ink-muted">
                       {matched.label}
                     </span>
-                  ) : (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-border text-ink-muted">
-                      {book.category}
-                    </span>
-                  );
+                  ) : null;
                 })()}
                 {!book.is_active && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-error-soft text-error">

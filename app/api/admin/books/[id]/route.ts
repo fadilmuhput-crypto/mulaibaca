@@ -17,17 +17,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json();
-  const { title, author, category, description, cover_url, open_library_id, total_pages, tags, is_active, sort_order } = body;
+  const { title, author, description, cover_url, open_library_id, isbn, total_pages, categories, tags, publisher, published_year, language, is_active, sort_order } = body;
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (title !== undefined) updates.title = title.trim();
   if (author !== undefined) updates.author = author.trim();
-  if (category !== undefined) updates.category = category;
-  if (description !== undefined) updates.description = description.trim();
+  if (description !== undefined) updates.description = description?.trim() ?? "";
   if (cover_url !== undefined) updates.cover_url = cover_url?.trim() || null;
   if (open_library_id !== undefined) updates.open_library_id = open_library_id?.trim() || null;
+  if (isbn !== undefined) updates.isbn = isbn?.trim() || null;
   if (total_pages !== undefined) updates.total_pages = total_pages ? Math.floor(Number(total_pages)) : null;
+  if (categories !== undefined) updates.categories = Array.isArray(categories) ? categories.filter(Boolean) : [];
   if (tags !== undefined) updates.tags = Array.isArray(tags) ? tags.filter(Boolean) : [];
+  if (publisher !== undefined) updates.publisher = publisher?.trim() || null;
+  if (published_year !== undefined) updates.published_year = published_year ? Math.floor(Number(published_year)) : null;
+  if (language !== undefined) updates.language = language || "id";
   if (is_active !== undefined) updates.is_active = Boolean(is_active);
   if (sort_order !== undefined) updates.sort_order = Number(sort_order);
 

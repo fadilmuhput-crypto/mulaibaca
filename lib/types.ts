@@ -33,6 +33,13 @@ export type Book = {
   isbn: string | null;
   open_library_id: string | null;
   total_pages: number | null;
+  description: string | null;
+  categories: string[];
+  tags: string[];
+  publisher: string | null;
+  published_year: number | null;
+  language: string;
+  is_active: boolean;
 };
 
 export type ShelfItem = {

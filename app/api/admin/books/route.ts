@@ -31,10 +31,10 @@ export async function POST(req: NextRequest) {
   const auth = await getAdminAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { title, author, category, description, cover_url, open_library_id, total_pages, tags, is_active } = await req.json();
+  const { title, author, description, cover_url, open_library_id, isbn, total_pages, categories, tags, publisher, published_year, language, is_active } = await req.json();
 
-  if (!title?.trim() || !author?.trim() || !["anak", "lokal"].includes(category)) {
-    return NextResponse.json({ error: "Judul, pengarang, dan kategori wajib diisi" }, { status: 400 });
+  if (!title?.trim() || !author?.trim()) {
+    return NextResponse.json({ error: "Judul dan pengarang wajib diisi" }, { status: 400 });
   }
 
   const admin = createAdminClient();
@@ -43,12 +43,17 @@ export async function POST(req: NextRequest) {
     .insert({
       title: title.trim(),
       author: author.trim(),
-      category,
+      category: "lokal",
       description: description?.trim() ?? "",
       cover_url: cover_url?.trim() || null,
       open_library_id: open_library_id?.trim() || null,
+      isbn: isbn?.trim() || null,
       total_pages: total_pages ? Math.floor(Number(total_pages)) : null,
+      categories: Array.isArray(categories) ? categories.filter(Boolean) : [],
       tags: Array.isArray(tags) ? tags.filter(Boolean) : [],
+      publisher: publisher?.trim() || null,
+      published_year: published_year ? Math.floor(Number(published_year)) : null,
+      language: language || "id",
       is_active: is_active !== false,
       sort_order: 0,
     })
