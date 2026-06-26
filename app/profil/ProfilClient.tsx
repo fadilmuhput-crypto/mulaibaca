@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@/lib/session";
-import type { ProfilStats } from "./page";
+import type { ProfilStats, ActingAsInfo } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
-import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink, Users, LogIn } from "lucide-react";
+import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink, Users, LogIn, Mail } from "lucide-react";
 import Link from "next/link";
 
 const MEMBER_TYPES = [
@@ -18,9 +18,11 @@ const MEMBER_TYPES = [
 export default function ProfilClient({
   session,
   stats,
+  actingAsInfo,
 }: {
   session: Session;
   stats: ProfilStats;
+  actingAsInfo: ActingAsInfo;
 }) {
   const router = useRouter();
   const [name, setName] = useState(session.memberName);
@@ -39,6 +41,12 @@ export default function ProfilClient({
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
   const [joinSuccess, setJoinSuccess] = useState("");
+  // Setup akun state (for dummy accounts)
+  const [setupEmail, setSetupEmail] = useState("");
+  const [setupPassword, setSetupPassword] = useState("");
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [setupError, setSetupError] = useState("");
+  const [setupSuccess, setSetupSuccess] = useState(false);
   const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const usernameAlreadySet = !!session.memberUsername;
 
@@ -119,6 +127,27 @@ export default function ProfilClient({
     }
   }
 
+  async function handleSetup() {
+    setSetupLoading(true);
+    setSetupError("");
+    setSetupSuccess(false);
+    try {
+      const res = await fetch("/api/auth/setup-akun", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: setupEmail.trim(), password: setupPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSetupSuccess(true);
+      setTimeout(() => router.refresh(), 1200);
+    } catch (err) {
+      setSetupError(err instanceof Error ? err.message : "Gagal setup akun");
+    } finally {
+      setSetupLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
 
@@ -154,10 +183,27 @@ export default function ProfilClient({
           <div>
             <p className="font-semibold text-ink">{session.memberName}</p>
             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-              <p className="text-xs text-ink-muted">{session.email}</p>
-              {session.emailVerified
-                ? <span className="badge-forest flex items-center gap-1"><Check size={10} strokeWidth={3} />terverifikasi</span>
-                : <span className="badge-amber flex items-center gap-1"><AlertTriangle size={10} strokeWidth={2.5} />belum terverifikasi</span>}
+              {actingAsInfo ? (
+                actingAsInfo.isDummy ? (
+                  <span className="badge-amber flex items-center gap-1 text-xs">
+                    <AlertTriangle size={10} strokeWidth={2.5} />Akun dummy — atur email & password
+                  </span>
+                ) : (
+                  <>
+                    <p className="text-xs text-ink-muted">{actingAsInfo.email}</p>
+                    {actingAsInfo.emailVerified
+                      ? <span className="badge-forest flex items-center gap-1"><Check size={10} strokeWidth={3} />terverifikasi</span>
+                      : <span className="badge-amber flex items-center gap-1"><AlertTriangle size={10} strokeWidth={2.5} />belum terverifikasi</span>}
+                  </>
+                )
+              ) : (
+                <>
+                  <p className="text-xs text-ink-muted">{session.email}</p>
+                  {session.emailVerified
+                    ? <span className="badge-forest flex items-center gap-1"><Check size={10} strokeWidth={3} />terverifikasi</span>
+                    : <span className="badge-amber flex items-center gap-1"><AlertTriangle size={10} strokeWidth={2.5} />belum terverifikasi</span>}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -261,6 +307,59 @@ export default function ProfilClient({
           </div>
         </div>
       </div>
+
+      {/* ── Setup akun (for dummy accounts managed by admin) ── */}
+      {actingAsInfo?.isDummy && !setupSuccess && (
+        <div className="card-elevated p-6 space-y-4">
+          <div>
+            <h2 className="text-h3 flex items-center gap-2">
+              <Mail size={16} strokeWidth={2} className="text-ink-muted" />
+              Setup Akun
+            </h2>
+            <p className="text-xs text-ink-muted mt-1">
+              Akun ini masih menggunakan email dummy. Atur email dan password agar bisa login mandiri.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="setup-email" className="input-label">Email</label>
+              <input
+                id="setup-email"
+                type="email"
+                placeholder="nama@email.com"
+                value={setupEmail}
+                onChange={(e) => setSetupEmail(e.target.value)}
+                className="input mt-1"
+                autoComplete="email"
+              />
+            </div>
+            <div>
+              <label htmlFor="setup-password" className="input-label">Password</label>
+              <input
+                id="setup-password"
+                type="password"
+                placeholder="Minimal 6 karakter"
+                value={setupPassword}
+                onChange={(e) => setSetupPassword(e.target.value)}
+                className="input mt-1"
+                autoComplete="new-password"
+              />
+            </div>
+            {setupError && (
+              <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">
+                {setupError}
+              </p>
+            )}
+            <button
+              onClick={handleSetup}
+              disabled={setupLoading || !setupEmail.trim() || setupPassword.length < 6}
+              className="btn-primary-full-lg"
+            >
+              {setupLoading ? "Menyimpan…" : "Simpan Email & Password →"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Family card ── */}
       <div className="card-elevated p-6 space-y-4">

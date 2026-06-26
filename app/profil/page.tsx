@@ -5,6 +5,8 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import ProfilClient from "./ProfilClient";
 
+const DUMMY_DOMAIN = "@child.mulaibaca.app";
+
 export type ProfilStats = {
   booksFinished: number;
   totalPagesRead: number;
@@ -12,12 +14,17 @@ export type ProfilStats = {
   familyMemberCount: number;
 };
 
+export type ActingAsInfo = {
+  email: string;
+  emailVerified: boolean;
+  isDummy: boolean;
+} | null;
+
 export default async function ProfilPage() {
   const session = await getSession();
   if (!session) redirect("/masuk");
 
   const supabase = await createClient();
-
   const adminClient = createAdminClient();
 
   const [{ data: doneShelf }, { data: logs }, { data: streak }, { count: memberCount }] = await Promise.all([
@@ -41,6 +48,28 @@ export default async function ProfilPage() {
       .eq("family_id", session.familyId),
   ]);
 
+  // Fetch acting-as member's auth email
+  let actingAsInfo: ActingAsInfo = null;
+  if (session.actingAs) {
+    const { data: targetMember } = await adminClient
+      .from("members")
+      .select("auth_user_id")
+      .eq("id", session.actingAs)
+      .maybeSingle();
+
+    if (targetMember?.auth_user_id) {
+      const { data: authUser } = await adminClient.auth.admin.getUserById(targetMember.auth_user_id as string);
+      if (authUser?.user) {
+        const email = authUser.user.email ?? "";
+        actingAsInfo = {
+          email,
+          emailVerified: !!authUser.user.email_confirmed_at,
+          isDummy: email.endsWith(DUMMY_DOMAIN),
+        };
+      }
+    }
+  }
+
   const stats: ProfilStats = {
     booksFinished: doneShelf?.length ?? 0,
     totalPagesRead: (logs ?? []).reduce((s, l) => s + ((l as { pages_read: number }).pages_read), 0),
@@ -53,7 +82,7 @@ export default async function ProfilPage() {
       <NavBar session={session} />
       <main className="max-w-lg mx-auto px-4 py-6">
         <h1 className="text-h1 mb-6">Profil</h1>
-        <ProfilClient session={session} stats={stats} />
+        <ProfilClient session={session} stats={stats} actingAsInfo={actingAsInfo} />
       </main>
     </div>
   );
