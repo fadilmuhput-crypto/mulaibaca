@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, ChevronDown, ChevronRight, HelpCircle, BookOpen, MessageSquare } from "lucide-react";
+
+const SAMPLE_FAQ = [
+  { q: "Apa itu Mulaibaca?", a: "Mulaibaca adalah aplikasi pencatat bacaan untuk keluarga. Kamu bisa melacak buku yang sedang dibaca, mau dibaca, dan sudah selesai — semua dalam satu ruang keluarga." },
+  { q: "Bagaimana cara menambahkan anggota keluarga?", a: "Buka halaman Keluarga, lalu klik tombol 'Tambah Anggota'. Kamu bisa mengundang lewat link undangan atau kode undangan." },
+  { q: "Bagaimana cara menambahkan buku ke rak?", a: "Cari buku di halaman Jelajah, lalu tekan tombol 'Mau Baca' atau 'Sedang Baca'. Buku akan otomatis masuk ke Rak Bukumu." },
+  { q: "Apakah Mulaibaca gratis?", a: "Ya, Mulaibaca gratis digunakan. Tidak ada biaya berlangganan untuk fitur dasar seperti mencatat buku, membuat keluarga, dan melihat statistik bacaan." },
+];
 
 const CATEGORIES = [
   { key: "komplain", label: "⚠️ Komplain" },
@@ -11,6 +18,30 @@ const CATEGORIES = [
   { key: "bug", label: "🐛 Lapor Bug" },
   { key: "lainnya", label: "✉️ Lainnya" },
 ];
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-surface rounded-xl border border-border overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
+      >
+        <span className="text-sm font-semibold text-ink">{q}</span>
+        <ChevronDown
+          size={16}
+          strokeWidth={2}
+          className={`flex-shrink-0 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          <p className="text-sm text-ink-secondary leading-relaxed">{a}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function BantuanPage() {
   const [name, setName] = useState("");
@@ -72,80 +103,107 @@ export default function BantuanPage() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-h1">Hubungi Kami</h1>
-          <p className="text-sm text-ink-muted mt-1">Ada pertanyaan atau masalah? Isi form di bawah.</p>
+      <main className="max-w-lg mx-auto px-4 py-8 space-y-10">
+
+        {/* Hero */}
+        <div>
+          <h1 className="text-h1">Bantuan</h1>
+          <p className="text-sm text-ink-muted mt-1">Temukan jawaban atau hubungi tim kami</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="name" className="input-label">Nama</label>
-              <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama kamu" className="input" />
-            </div>
-            <div>
-              <label htmlFor="email" className="input-label">Email</label>
-              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@contoh.com" className="input" />
-            </div>
-          </div>
-
-          <div>
-            <label className="input-label">Kategori *</label>
-            <div className="flex gap-2 flex-wrap mt-1">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.key}
-                  type="button"
-                  onClick={() => setCategory(category === c.key ? "" : c.key)}
-                  className={`px-3 py-1.5 rounded-xl border text-sm transition-all ${
-                    category === c.key
-                      ? "border-amber bg-amber-soft text-amber font-semibold"
-                      : "border-border text-ink-secondary hover:border-amber/40"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="subject" className="input-label">Subjek</label>
-            <input id="subject" type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Inti pesan kamu" className="input" />
-          </div>
-
-          <div>
-            <label htmlFor="message" className="input-label">Pesan *</label>
-            <textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={5}
-              placeholder="Ceritakan detailnya…"
-              className="input resize-none mt-1 w-full"
-              required
-              autoFocus
-            />
-          </div>
-
-          {error && (
-            <p role="alert" className="text-error text-sm bg-error-soft rounded-xl px-4 py-3">{error}</p>
-          )}
-
-          <button type="submit" disabled={sending || !message.trim()} className="btn-primary-full-lg flex items-center justify-center gap-2">
-            {sending ? (
-              <>
-                <Loader2 size={16} className="animate-spin" />
-                Mengirim…
-              </>
-            ) : "Kirim Pesan →"}
-          </button>
-        </form>
-
-        <div className="mt-8 space-y-2 text-center text-sm text-ink-muted">
-          <p>Atau lihat <Link href="/faq" className="text-amber hover:text-amber-hover font-medium">FAQ</Link> atau <Link href="/panduan" className="text-amber hover:text-amber-hover font-medium">Panduan</Link></p>
+        {/* Quick links */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href="/panduan"
+            className="bg-surface rounded-2xl border border-border p-4 flex flex-col items-center text-center gap-2 hover:border-amber/40 transition-colors"
+          >
+            <BookOpen size={22} strokeWidth={1.75} className="text-amber" />
+            <span className="text-sm font-semibold text-ink">Panduan</span>
+            <span className="text-[11px] text-ink-muted">Cara menggunakan Mulaibaca</span>
+          </Link>
+          <Link
+            href="/faq"
+            className="bg-surface rounded-2xl border border-border p-4 flex flex-col items-center text-center gap-2 hover:border-amber/40 transition-colors"
+          >
+            <HelpCircle size={22} strokeWidth={1.75} className="text-amber" />
+            <span className="text-sm font-semibold text-ink">FAQ</span>
+            <span className="text-[11px] text-ink-muted">Pertanyaan umum</span>
+          </Link>
         </div>
+
+        {/* FAQ section */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-h2">FAQ</h2>
+            <Link href="/faq" className="text-xs text-amber font-semibold flex items-center gap-0.5 hover:text-amber-hover transition-colors">
+              Lihat semua <ChevronRight size={13} strokeWidth={2.5} />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {SAMPLE_FAQ.map((faq) => (
+              <FaqItem key={faq.q} {...faq} />
+            ))}
+          </div>
+        </section>
+
+        {/* Contact form */}
+        <section id="hubungi">
+          <h2 className="text-h2 mb-1">Hubungi Kami</h2>
+          <p className="text-sm text-ink-muted mb-5">Ada pertanyaan atau masalah? Isi form di bawah.</p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="name" className="input-label">Nama</label>
+                <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama kamu" className="input" />
+              </div>
+              <div>
+                <label htmlFor="email" className="input-label">Email</label>
+                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@contoh.com" className="input" />
+              </div>
+            </div>
+
+            <div>
+              <label className="input-label">Kategori *</label>
+              <div className="flex gap-2 flex-wrap mt-1">
+                {CATEGORIES.map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => setCategory(category === c.key ? "" : c.key)}
+                    className={`px-3 py-1.5 rounded-xl border text-sm transition-all ${
+                      category === c.key
+                        ? "border-amber bg-amber-soft text-amber font-semibold"
+                        : "border-border text-ink-secondary hover:border-amber/40"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="subject" className="input-label">Subjek</label>
+              <input id="subject" type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Inti pesan kamu" className="input" />
+            </div>
+
+            <div>
+              <label htmlFor="message" className="input-label">Pesan *</label>
+              <textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} rows={5} placeholder="Ceritakan detailnya…" className="input resize-none mt-1 w-full" required />
+            </div>
+
+            {error && (
+              <p role="alert" className="text-error text-sm bg-error-soft rounded-xl px-4 py-3">{error}</p>
+            )}
+
+            <button type="submit" disabled={sending || !message.trim()} className="btn-primary-full-lg flex items-center justify-center gap-2">
+              {sending ? (
+                <><Loader2 size={16} className="animate-spin" /> Mengirim…</>
+              ) : "Kirim Pesan →"}
+            </button>
+          </form>
+        </section>
       </main>
     </div>
   );

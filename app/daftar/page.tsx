@@ -160,11 +160,11 @@ export default function DaftarPage() {
             <Link href="/bergabung" className="text-amber hover:text-amber-hover font-medium">Bergabung ke keluarga</Link>
           </p>
           <div className="flex items-center justify-center gap-3 pt-3 text-xs">
+            <Link href="/bantuan" className="hover:text-ink transition-colors">Bantuan</Link>
+            <span className="text-border">|</span>
             <Link href="/panduan" className="hover:text-ink transition-colors">Panduan</Link>
             <span className="text-border">|</span>
             <Link href="/faq" className="hover:text-ink transition-colors">FAQ</Link>
-            <span className="text-border">|</span>
-            <Link href="/bantuan" className="hover:text-ink transition-colors">Bantuan</Link>
           </div>
         </div>
       </div>
