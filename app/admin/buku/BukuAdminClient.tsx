@@ -6,17 +6,25 @@ import { useRouter } from "next/navigation";
 import BookCover from "@/components/BookCover";
 import type { AdminBook } from "./page";
 import { Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { CATEGORY_TREE } from "@/lib/category-tree";
 
 export default function BukuAdminClient({ initialBooks }: { initialBooks: AdminBook[] }) {
   const router = useRouter();
   const [books, setBooks] = useState(initialBooks);
-  const [filterCat, setFilterCat] = useState<"semua" | "anak" | "lokal">("semua");
+  const [filterCat, setFilterCat] = useState("semua");
   const [search, setSearch] = useState("");
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const filtered = books.filter((b) => {
-    const matchCat = filterCat === "semua" || b.category === filterCat;
+    let matchCat = true;
+    if (filterCat !== "semua") {
+      const root = CATEGORY_TREE.find((c) => c.key === filterCat);
+      if (root) {
+        const tagsWithCategory = b.category === "anak" ? [...b.tags, "anak"] : b.tags;
+        matchCat = root.matchTags.some((t) => tagsWithCategory.includes(t));
+      }
+    }
     const matchSearch =
       !search.trim() ||
       b.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -24,9 +32,16 @@ export default function BukuAdminClient({ initialBooks }: { initialBooks: AdminB
     return matchCat && matchSearch;
   });
 
-  const anakCount = books.filter((b) => b.category === "anak").length;
-  const lokalCount = books.filter((b) => b.category === "lokal").length;
   const activeCount = books.filter((b) => b.is_active).length;
+
+  function countForCat(key: string) {
+    const root = CATEGORY_TREE.find((c) => c.key === key);
+    if (!root) return 0;
+    return books.filter((b) => {
+      const tags = b.category === "anak" ? [...b.tags, "anak"] : b.tags;
+      return root.matchTags.some((t) => tags.includes(t));
+    }).length;
+  }
 
   async function toggleActive(book: AdminBook) {
     setToggling(book.id);
@@ -77,25 +92,29 @@ export default function BukuAdminClient({ initialBooks }: { initialBooks: AdminB
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-5">
-        <div className="flex gap-2">
-          {(
-            [
-              { key: "semua", label: `Semua (${books.length})` },
-              { key: "anak", label: `Anak (${anakCount})` },
-              { key: "lokal", label: `Lokal (${lokalCount})` },
-            ] as { key: "semua" | "anak" | "lokal"; label: string }[]
-          ).map((t) => (
+      <div className="flex flex-col gap-3 mb-5">
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            onClick={() => setFilterCat("semua")}
+            className={`flex-shrink-0 min-h-[36px] px-3 rounded-xl text-xs font-medium transition-all ${
+              filterCat === "semua"
+                ? "bg-ink text-surface"
+                : "bg-surface border border-border text-ink-secondary hover:border-amber/50"
+            }`}
+          >
+            Semua ({books.length})
+          </button>
+          {CATEGORY_TREE.map((cat) => (
             <button
-              key={t.key}
-              onClick={() => setFilterCat(t.key)}
-              className={`min-h-[40px] px-4 rounded-xl text-sm font-medium transition-all ${
-                filterCat === t.key
+              key={cat.key}
+              onClick={() => setFilterCat(cat.key)}
+              className={`flex-shrink-0 min-h-[36px] px-3 rounded-xl text-xs font-medium transition-all ${
+                filterCat === cat.key
                   ? "bg-ink text-surface"
                   : "bg-surface border border-border text-ink-secondary hover:border-amber/50"
               }`}
             >
-              {t.label}
+              {cat.label} ({countForCat(cat.key)})
             </button>
           ))}
         </div>
@@ -132,15 +151,19 @@ export default function BukuAdminClient({ initialBooks }: { initialBooks: AdminB
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 flex-wrap">
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
-                    book.category === "anak"
-                      ? "bg-amber-soft text-amber"
-                      : "bg-forest/10 text-forest"
-                  }`}
-                >
-                  {book.category}
-                </span>
+                {(() => {
+                  const tagsWithCat = book.category === "anak" ? [...book.tags, "anak"] : book.tags;
+                  const matched = CATEGORY_TREE.find((c) => c.matchTags.some((t) => tagsWithCat.includes(t)));
+                  return matched ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-parchment text-ink-muted">
+                      {matched.label}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-border text-ink-muted">
+                      {book.category}
+                    </span>
+                  );
+                })()}
                 {!book.is_active && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-error-soft text-error">
                     nonaktif

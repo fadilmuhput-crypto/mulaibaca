@@ -36,6 +36,13 @@ function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
 }
 
+function bookUrl(card: BookCard): string {
+  if (/^OL\d+/i.test(card.id)) {
+    return `/buku/${toSlug(card.title)}-${card.id.toLowerCase()}`;
+  }
+  return `/buku/${card.id}`;
+}
+
 function fromCurated(b: CuratedBook): BookCard {
   // Inject "anak" tag so anak-anak category matching works via tags
   const tags = b.category === "anak" && !b.tags.includes("anak")
@@ -689,13 +696,17 @@ function FeaturedCard({
       className="bg-surface rounded-2xl overflow-hidden flex gap-4 p-4"
       style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}
     >
-      <BookCover src={card.cover_url} title={card.title} className="w-[72px] h-[100px] rounded-xl flex-shrink-0" />
+      <Link href={bookUrl(card)} className="flex-shrink-0">
+        <BookCover src={card.cover_url} title={card.title} className="w-[72px] h-[100px] rounded-xl" />
+      </Link>
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="flex items-center gap-1.5 mb-1">
           <span className="text-[10px] font-black text-amber uppercase tracking-[0.1em]">★ Pilihan</span>
           {card.isLokal && <span className="text-[9px] font-semibold text-ink-muted bg-border/60 px-1.5 py-0.5 rounded-full">🇮🇩 Lokal</span>}
         </div>
-        <p className="font-display font-bold text-ink text-base leading-snug line-clamp-2">{card.title}</p>
+        <Link href={bookUrl(card)} className="hover:text-amber transition-colors">
+          <p className="font-display font-bold text-ink text-base leading-snug line-clamp-2">{card.title}</p>
+        </Link>
         <p className="text-xs text-ink-muted mt-0.5 mb-2">{card.author}</p>
         {card.description && (
           <p className="text-xs text-ink-secondary leading-relaxed line-clamp-3 mb-3">{card.description}</p>
@@ -743,7 +754,6 @@ function ShelfBookCard({
           title={card.title}
           className="w-full h-[120px] rounded-xl cursor-pointer"
         />
-        {/* Lokal badge */}
         {card.isLokal && (
           <span className="absolute top-1.5 left-1.5 text-[8px] font-bold bg-ink/70 text-white px-1.5 py-0.5 rounded-full leading-none">
             🇮🇩
@@ -765,10 +775,19 @@ function ShelfBookCard({
             >
               {adding === card.id + "want" ? "…" : "Simpan"}
             </button>
+            <Link
+              href={bookUrl(card)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full py-1.5 rounded-lg bg-white/20 text-white text-[11px] font-semibold text-center"
+            >
+              Detail →
+            </Link>
           </div>
         )}
       </div>
-      <p className="text-[11px] font-semibold text-ink line-clamp-2 leading-snug mt-1.5">{card.title}</p>
+      <Link href={bookUrl(card)} className="hover:text-amber transition-colors">
+        <p className="text-[11px] font-semibold text-ink line-clamp-2 leading-snug mt-1.5">{card.title}</p>
+      </Link>
       <p className="text-[10px] text-ink-muted truncate mt-0.5">{card.author}</p>
     </div>
   );
@@ -787,10 +806,14 @@ function SearchResultCard({
   return (
     <div className="bg-surface rounded-2xl border border-border p-3">
       <div className="flex gap-3">
-        <BookCover src={card.cover_url} title={card.title} className="w-12 h-16 rounded-lg flex-shrink-0" />
+        <Link href={bookUrl(card)} className="flex-shrink-0">
+          <BookCover src={card.cover_url} title={card.title} className="w-12 h-16 rounded-lg" />
+        </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-start gap-2">
-            <p className="font-semibold text-ink text-sm line-clamp-2 flex-1">{card.title}</p>
+            <Link href={bookUrl(card)} className="flex-1 hover:text-amber transition-colors">
+              <p className="font-semibold text-ink text-sm line-clamp-2">{card.title}</p>
+            </Link>
             {card.isLokal && (
               <span className="flex-shrink-0 text-[9px] font-semibold text-ink-muted bg-border/60 px-1.5 py-0.5 rounded-full mt-0.5">🇮🇩 Lokal</span>
             )}

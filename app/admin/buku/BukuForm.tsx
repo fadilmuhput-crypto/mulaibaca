@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import BookCover from "@/components/BookCover";
 import { Search, X, Camera } from "lucide-react";
 import type { AdminBook } from "./page";
+import { CATEGORY_TREE } from "@/lib/category-tree";
 
 type OLResult = {
   key: string;
@@ -312,7 +313,7 @@ export default function BukuForm({
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
-            placeholder="cth: petualangan, fiksi, sejarah…"
+            placeholder="Ketik tag lalu Enter…"
             className="input flex-1"
           />
           <button type="button" onClick={addTag} className="btn-secondary px-4 text-sm">
@@ -320,11 +321,11 @@ export default function BukuForm({
           </button>
         </div>
         {form.tags.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap mb-3">
             {form.tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cream text-ink-secondary text-xs font-medium border border-border"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-soft text-amber text-xs font-semibold border border-amber/30"
               >
                 {tag}
                 <button type="button" onClick={() => removeTag(tag)} className="hover:text-error">
@@ -334,6 +335,42 @@ export default function BukuForm({
             ))}
           </div>
         )}
+
+        {/* Tag suggestions from CATEGORY_TREE */}
+        <div className="rounded-xl border border-border bg-parchment p-3 space-y-3">
+          <p className="text-[10px] font-black text-ink-muted uppercase tracking-wider">Pilih dari kategori</p>
+          {CATEGORY_TREE.map((root) => (
+            <div key={root.key}>
+              <p className="text-[10px] font-semibold text-ink-secondary mb-1.5">{root.label}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {root.children.map((sub) => {
+                  const primaryTag = sub.matchTags[0];
+                  const active = form.tags.includes(primaryTag);
+                  return (
+                    <button
+                      key={sub.key}
+                      type="button"
+                      onClick={() => {
+                        if (active) {
+                          removeTag(primaryTag);
+                        } else if (!form.tags.includes(primaryTag)) {
+                          set("tags", [...form.tags, primaryTag]);
+                        }
+                      }}
+                      className={`text-[11px] px-2 py-1 rounded-lg border transition-all ${
+                        active
+                          ? "bg-amber text-white border-amber font-semibold"
+                          : "bg-surface border-border text-ink-secondary hover:border-amber/50 hover:text-ink"
+                      }`}
+                    >
+                      {sub.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Active toggle */}
