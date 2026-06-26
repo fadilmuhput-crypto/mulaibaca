@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
 import { randomUUID } from "crypto";
 
-const DUMMY_EMAIL_DOMAIN = "@child.mulaibaca.app";
+export const DUMMY_EMAIL_DOMAIN = "@child.mulaibaca.app";
 
 async function getAdminAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -99,6 +99,56 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json(member, { status: 201 });
+}
+
+// PATCH /api/keluarga/anggota — assign username (+ create dummy auth if missing) to existing member
+export async function PATCH(req: NextRequest) {
+  const auth = await getAdminAuth(req);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { memberId, username } = await req.json();
+  if (!memberId || !username) return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
+  if (!/^[a-z0-9_]{3,30}$/.test(username))
+    return NextResponse.json({ error: "Username tidak valid" }, { status: 400 });
+
+  const admin = createAdminClient();
+
+  const { data: member } = await admin
+    .from("members")
+    .select("auth_user_id, family_id, username")
+    .eq("id", memberId)
+    .maybeSingle();
+
+  if (!member || member.family_id !== auth.familyId)
+    return NextResponse.json({ error: "Member tidak ditemukan" }, { status: 404 });
+  if (member.username)
+    return NextResponse.json({ error: "Username sudah diatur" }, { status: 409 });
+
+  // Check username uniqueness
+  const { data: taken } = await admin.from("members").select("id").eq("username", username).maybeSingle();
+  if (taken) return NextResponse.json({ error: "Username sudah dipakai" }, { status: 409 });
+
+  // Create auth user if not yet linked
+  let authUserId = member.auth_user_id as string | null;
+  if (!authUserId) {
+    const dummyEmail = `${randomUUID().replace(/-/g, "")}${DUMMY_EMAIL_DOMAIN}`;
+    const { data: authData, error: authError } = await admin.auth.admin.createUser({
+      email: dummyEmail,
+      email_confirm: true,
+      password: randomUUID(),
+    });
+    if (authError || !authData.user)
+      return NextResponse.json({ error: authError?.message ?? "Gagal membuat akun" }, { status: 500 });
+    authUserId = authData.user.id;
+  }
+
+  const { error } = await admin
+    .from("members")
+    .update({ username, auth_user_id: authUserId })
+    .eq("id", memberId);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true, username });
 }
 
 // DELETE /api/keluarga/anggota?id=xxx — remove child member (dummy-email only)

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@/lib/session";
 import type { ProfilStats } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
-import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink } from "lucide-react";
+import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink, Users, LogIn } from "lucide-react";
 import Link from "next/link";
 
 const MEMBER_TYPES = [
@@ -35,6 +35,10 @@ export default function ProfilClient({
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState("");
+  const [joinSuccess, setJoinSuccess] = useState("");
   const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const usernameAlreadySet = !!session.memberUsername;
 
@@ -90,6 +94,29 @@ export default function ProfilClient({
     navigator.clipboard.writeText(session.inviteCode.toUpperCase());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function handleJoin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+    setJoinLoading(true);
+    setJoinError("");
+    setJoinSuccess("");
+    try {
+      const res = await fetch("/api/keluarga/gabung", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteCode: joinCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setJoinSuccess(`Berhasil bergabung ke keluarga ${data.familyName}!`);
+      setTimeout(() => router.refresh(), 1200);
+    } catch (err) {
+      setJoinError(err instanceof Error ? err.message : "Gagal bergabung");
+    } finally {
+      setJoinLoading(false);
+    }
   }
 
   return (
@@ -237,7 +264,13 @@ export default function ProfilClient({
 
       {/* ── Family card ── */}
       <div className="card-elevated p-6 space-y-4">
-        <h2 className="text-h3">Keluarga</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-h3">Keluarga</h2>
+          <Link href="/keluarga" className="flex items-center gap-1.5 text-xs font-semibold text-amber hover:text-amber/80 transition-colors">
+            <Users size={13} strokeWidth={2} />
+            Kelola anggota
+          </Link>
+        </div>
         {session.memberRole === "admin" ? (
           <div>
             <label htmlFor="family-name" className="input-label">Nama keluarga</label>
@@ -261,6 +294,40 @@ export default function ProfilClient({
             <p className="input-hint">Bagikan kode ini agar anggota keluarga bisa bergabung</p>
           </div>
         )}
+      </div>
+
+      {/* ── Join another family ── */}
+      <div className="card-elevated p-6 space-y-4">
+        <div>
+          <h2 className="text-h3 flex items-center gap-2">
+            <LogIn size={16} strokeWidth={2} className="text-ink-muted" />
+            Gabung ke keluarga lain
+          </h2>
+          <p className="text-xs text-ink-muted mt-1">
+            {stats.familyMemberCount > 1
+              ? "Keluargamu punya anggota lain. Jika kamu pindah, mereka akan tetap di keluarga yang sama."
+              : "Masukkan kode undangan untuk bergabung ke keluarga lain. Keluargamu yang sekarang akan dihapus otomatis."}
+          </p>
+        </div>
+        <form onSubmit={handleJoin} className="flex gap-2">
+          <input
+            type="text"
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+            placeholder="Kode undangan"
+            maxLength={10}
+            className="input flex-1 font-mono uppercase tracking-widest"
+          />
+          <button
+            type="submit"
+            disabled={joinLoading || !joinCode.trim()}
+            className="btn-primary px-4 text-sm disabled:opacity-40"
+          >
+            {joinLoading ? "…" : "Gabung"}
+          </button>
+        </form>
+        {joinError && <p className="text-error text-sm">{joinError}</p>}
+        {joinSuccess && <p className="text-forest text-sm flex items-center gap-1.5"><Check size={14} strokeWidth={2.5} />{joinSuccess}</p>}
       </div>
 
       {/* ── Reading goal ── */}

@@ -7,6 +7,7 @@ import AvatarIcon from "@/components/AvatarIcon";
 import BookCover from "@/components/BookCover";
 import { Flame, BookOpen, UserPlus } from "lucide-react";
 import MemberSwitcher from "./MemberSwitcher";
+import SetUsernameForm from "./SetUsernameForm";
 
 type MemberProgress = {
   id: string;
@@ -229,14 +230,20 @@ export default async function KeluargaPage() {
                     )}
                   </div>
 
-                  {/* Profile link */}
+                  {/* Profile link / Set username */}
                   {(() => {
                     const meta = membersMeta.find((mm) => mm.id === m.id);
-                    return meta?.username ? (
-                      <Link href={`/u/${meta.username}`} className="text-[10px] text-ink-muted hover:text-amber transition-colors mt-0.5 inline-block">
-                        @{meta.username}
-                      </Link>
-                    ) : null;
+                    if (meta?.username) {
+                      return (
+                        <Link href={`/u/${meta.username}`} className="text-[10px] text-ink-muted hover:text-amber transition-colors mt-0.5 inline-block">
+                          @{meta.username}
+                        </Link>
+                      );
+                    }
+                    if (session.memberRole === "admin") {
+                      return <SetUsernameForm memberId={m.id} />;
+                    }
+                    return null;
                   })()}
 
                   {/* Streak + pages */}
