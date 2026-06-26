@@ -28,8 +28,8 @@ export type ReviewInfo = {
 };
 
 const TABS = [
-  { key: "reading", label: "Dibaca",   icon: BookOpen },
   { key: "want",    label: "Mau Baca", icon: Bookmark },
+  { key: "reading", label: "Dibaca",   icon: BookOpen },
   { key: "done",    label: "Selesai",  icon: Trophy },
 ] as const;
 
@@ -71,7 +71,7 @@ export default function ShelfClient({
   initialShelf: ShelfItem[];
   reviews: ReviewInfo[];
 }) {
-  const [tab, setTab] = useState<"reading" | "want" | "done">("reading");
+  const [tab, setTab] = useState<"reading" | "want" | "done">("want");
   const [shelf, setShelf] = useState(initialShelf);
   const [reviews, setReviews] = useState(initialReviews);
   const [editingId, setEditingId] = useState<string | null>(null);

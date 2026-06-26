@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { CuratedBook } from "@/lib/curated-books";
 import { CATEGORY_TREE, findSubCategory, countBooksInCategory } from "@/lib/category-tree";
-import { BookOpen, Bookmark, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Bookmark, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import type { FamilyBook } from "./page";
 import type { JelajahSection, BannerConfig } from "@/lib/jelajah-sections";
@@ -826,21 +826,19 @@ function FeaturedCard({
         )}
         <div className="flex gap-2 mt-auto">
           <button
-            onClick={() => onAdd(card, "reading")}
+            onClick={() => onAdd(card, "want")}
             disabled={!!isAdding}
             className="flex items-center gap-1.5 bg-ink text-white text-xs font-semibold px-3 min-h-[34px] rounded-lg hover:bg-ink/80 transition-colors disabled:opacity-40"
           >
-            <BookOpen size={12} strokeWidth={2.5} />
-            {adding === card.id + "reading" ? "…" : "Baca Sekarang"}
+            <Bookmark size={12} strokeWidth={2.5} />
+            {isAdding ? "…" : "+ Mau Baca"}
           </button>
-          <button
-            onClick={() => onAdd(card, "want")}
-            disabled={!!isAdding}
-            className="min-h-[34px] px-3 rounded-lg border border-border text-ink-secondary hover:border-amber/50 hover:text-amber transition-colors"
-            aria-label="Simpan ke ingin baca"
+          <Link
+            href={bookUrl(card)}
+            className="min-h-[34px] px-3 rounded-lg border border-border text-xs text-ink-secondary hover:border-amber/50 hover:text-amber transition-colors flex items-center"
           >
-            <Bookmark size={13} strokeWidth={2} />
-          </button>
+            Detail
+          </Link>
         </div>
       </div>
     </div>
@@ -857,51 +855,30 @@ function ShelfBookCard({
   onAdd: (card: BookCard, status: "reading" | "want") => void;
 }) {
   const isAdding = adding?.startsWith(card.id);
-  const [showActions, setShowActions] = useState(false);
 
   return (
     <div className="flex flex-col">
-      <div className="relative" onClick={() => setShowActions((v) => !v)}>
-        <BookCover
-          src={card.cover_url}
-          title={card.title}
-          className="w-full h-[120px] rounded-xl cursor-pointer"
-        />
+      <div className="relative">
+        <Link href={bookUrl(card)}>
+          <BookCover src={card.cover_url} title={card.title} className="w-full h-[120px] rounded-xl" />
+        </Link>
         {card.isLokal && (
           <span className="absolute top-1.5 left-1.5 text-[8px] font-bold bg-ink/70 text-white px-1.5 py-0.5 rounded-full leading-none">
             🇮🇩
           </span>
         )}
-        {showActions && (
-          <div className="absolute inset-0 bg-ink/70 rounded-xl flex flex-col items-center justify-center gap-2 p-2">
-            <button
-              onClick={(e) => { e.stopPropagation(); onAdd(card, "reading"); }}
-              disabled={!!isAdding}
-              className="w-full py-1.5 rounded-lg bg-amber text-white text-[11px] font-bold disabled:opacity-50"
-            >
-              {adding === card.id + "reading" ? "…" : "Baca"}
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); onAdd(card, "want"); }}
-              disabled={!!isAdding}
-              className="w-full py-1.5 rounded-lg bg-white/10 border border-white/30 text-white text-[11px] font-semibold disabled:opacity-50"
-            >
-              {adding === card.id + "want" ? "…" : "Simpan"}
-            </button>
-            <Link
-              href={bookUrl(card)}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full py-1.5 rounded-lg bg-white/20 text-white text-[11px] font-semibold text-center"
-            >
-              Detail →
-            </Link>
-          </div>
-        )}
       </div>
       <Link href={bookUrl(card)} className="hover:text-amber transition-colors">
         <p className="text-[11px] font-semibold text-ink line-clamp-2 leading-snug mt-1.5">{card.title}</p>
       </Link>
-      <p className="text-[10px] text-ink-muted truncate mt-0.5">{card.author}</p>
+      <p className="text-[10px] text-ink-muted truncate mt-0.5 mb-1.5">{card.author}</p>
+      <button
+        onClick={() => onAdd(card, "want")}
+        disabled={!!isAdding}
+        className="mt-auto w-full py-1.5 rounded-lg border border-border text-[11px] font-semibold text-ink-secondary hover:border-amber/50 hover:text-amber transition-colors disabled:opacity-40"
+      >
+        {isAdding ? "…" : "+ Mau Baca"}
+      </button>
     </div>
   );
 }
@@ -944,20 +921,12 @@ function SearchResultCard({
           )}
           <div className="flex gap-2 mt-2.5">
             <button
-              onClick={() => onAdd(card, "reading")}
+              onClick={() => onAdd(card, "want")}
               disabled={!!isAdding}
               className="btn-primary-sm flex items-center gap-1.5"
             >
-              <BookOpen size={12} strokeWidth={2.5} />
-              {adding === card.id + "reading" ? "…" : "Baca"}
-            </button>
-            <button
-              onClick={() => onAdd(card, "want")}
-              disabled={!!isAdding}
-              className="btn-secondary min-h-[44px] px-3 text-xs flex items-center gap-1.5"
-            >
               <Bookmark size={12} strokeWidth={2} />
-              {adding === card.id + "want" ? "…" : "Simpan"}
+              {isAdding ? "…" : "+ Mau Baca"}
             </button>
           </div>
         </div>
