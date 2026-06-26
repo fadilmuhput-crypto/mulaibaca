@@ -3,9 +3,20 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase-route";
 import AvatarIcon from "@/components/AvatarIcon";
 import BookCover from "@/components/BookCover";
-import { BookCheck, BookText, Flame, Star } from "lucide-react";
+import { BookCheck, BookText, Flame, Star, BookOpen, Bookmark } from "lucide-react";
 
 const STARS = [1, 2, 3, 4, 5];
+
+function toSlug(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
+}
+
+function bookUrl(book: { title: string; open_library_id: string | null }): string {
+  if (book.open_library_id) {
+    return `/buku/${toSlug(book.title)}-${book.open_library_id.toLowerCase()}`;
+  }
+  return `/buku/${toSlug(book.title)}`;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
@@ -34,18 +45,44 @@ export default async function PublicProfilePage({
   const memberId = member.id as string;
   const familyName = (member.families as unknown as { name: string } | null)?.name ?? "";
 
-  const [{ data: doneShelf }, { data: logs }, { data: streak }, { data: reviews }] =
-    await Promise.all([
-      supabase.from("shelf_items").select("id").eq("member_id", memberId).eq("status", "done"),
-      supabase.from("reading_logs").select("pages_read").eq("member_id", memberId),
-      supabase.from("streaks").select("longest_streak").eq("member_id", memberId).maybeSingle(),
-      supabase
-        .from("reviews")
-        .select("slug, rating, q_about, published_at, shelf_items(books(title, author, cover_url))")
-        .eq("member_id", memberId)
-        .eq("is_public", true)
-        .order("published_at", { ascending: false }),
-    ]);
+  const [
+    { data: logs },
+    { data: streak },
+    { data: reviews },
+    { data: readingShelf },
+    { data: doneShelf },
+    { data: wantShelf },
+  ] = await Promise.all([
+    supabase.from("reading_logs").select("pages_read").eq("member_id", memberId),
+    supabase.from("streaks").select("longest_streak").eq("member_id", memberId).maybeSingle(),
+    supabase
+      .from("reviews")
+      .select("slug, rating, q_about, published_at, is_anonymous, shelf_items(books(title, author, cover_url))")
+      .eq("member_id", memberId)
+      .eq("is_public", true)
+      .order("published_at", { ascending: false }),
+    supabase
+      .from("shelf_items")
+      .select("id, books(title, cover_url, open_library_id)")
+      .eq("member_id", memberId)
+      .eq("status", "reading")
+      .order("created_at", { ascending: false })
+      .limit(6),
+    supabase
+      .from("shelf_items")
+      .select("id, books(title, cover_url, open_library_id)")
+      .eq("member_id", memberId)
+      .eq("status", "done")
+      .order("updated_at", { ascending: false })
+      .limit(12),
+    supabase
+      .from("shelf_items")
+      .select("id, books(title, cover_url, open_library_id)")
+      .eq("member_id", memberId)
+      .eq("status", "want")
+      .order("created_at", { ascending: false })
+      .limit(9),
+  ]);
 
   const booksFinished = doneShelf?.length ?? 0;
   const totalPages = (logs ?? []).reduce((s, l) => s + ((l as { pages_read: number }).pages_read), 0);
@@ -54,6 +91,13 @@ export default async function PublicProfilePage({
   const memberTypeLabel: Record<string, string> = {
     ayah: "Ayah", ibu: "Ibu", anak: "Anak", dewasa: "Pembaca",
   };
+
+  type ShelfBook = { title: string; cover_url: string | null; open_library_id: string | null };
+
+  function getBook(item: unknown): ShelfBook | null {
+    const b = (item as { books: ShelfBook | null })?.books;
+    return b ?? null;
+  }
 
   return (
     <div className="min-h-screen bg-parchment">
@@ -101,6 +145,70 @@ export default async function PublicProfilePage({
           </div>
         </div>
 
+        {/* Sedang dibaca */}
+        {(readingShelf ?? []).length > 0 && (
+          <section>
+            <h2 className="text-[11px] font-black text-ink-muted uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+              <BookOpen size={12} strokeWidth={2.5} className="text-amber" />
+              Sedang dibaca
+            </h2>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+              {(readingShelf ?? []).map((item) => {
+                const book = getBook(item);
+                if (!book) return null;
+                return (
+                  <Link key={(item as { id: string }).id} href={bookUrl(book)} className="flex-shrink-0 w-[72px]">
+                    <BookCover src={book.cover_url} title={book.title} className="w-[72px] h-[100px] rounded-xl" />
+                    <p className="text-[10px] text-ink line-clamp-2 leading-snug mt-1.5">{book.title}</p>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Selesai dibaca */}
+        {(doneShelf ?? []).length > 0 && (
+          <section>
+            <h2 className="text-[11px] font-black text-ink-muted uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+              <BookCheck size={12} strokeWidth={2.5} className="text-forest" />
+              Sudah selesai ({booksFinished})
+            </h2>
+            <div className="grid grid-cols-4 gap-2">
+              {(doneShelf ?? []).map((item) => {
+                const book = getBook(item);
+                if (!book) return null;
+                return (
+                  <Link key={(item as { id: string }).id} href={bookUrl(book)}>
+                    <BookCover src={book.cover_url} title={book.title} className="w-full h-[90px] rounded-xl" />
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Mau dibaca */}
+        {(wantShelf ?? []).length > 0 && (
+          <section>
+            <h2 className="text-[11px] font-black text-ink-muted uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+              <Bookmark size={12} strokeWidth={2.5} className="text-ink-muted" />
+              Ingin dibaca
+            </h2>
+            <div className="grid grid-cols-4 gap-2">
+              {(wantShelf ?? []).map((item) => {
+                const book = getBook(item);
+                if (!book) return null;
+                return (
+                  <Link key={(item as { id: string }).id} href={bookUrl(book)}>
+                    <BookCover src={book.cover_url} title={book.title} className="w-full h-[90px] rounded-xl opacity-80" />
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Reviews */}
         {(reviews ?? []).length > 0 ? (
           <section>
@@ -112,6 +220,7 @@ export default async function PublicProfilePage({
               {(reviews ?? []).map((review: any) => {
                 const book = review.shelf_items?.books;
                 if (!review.slug) return null;
+                const displayName = review.is_anonymous ? "Anonim" : (member.name as string);
                 return (
                   <Link
                     key={review.slug}
@@ -132,6 +241,7 @@ export default async function PublicProfilePage({
                             />
                           ))}
                         </div>
+                        <p className="text-[10px] text-ink-muted mt-0.5">{displayName}</p>
                       </div>
                     </div>
                     {review.q_about && (

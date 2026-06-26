@@ -66,10 +66,10 @@ export default async function PublicReviewPage({
 
         {/* Reviewer */}
         <div className="flex items-center gap-2 mb-6 bg-surface rounded-xl border border-border px-4 py-3">
-          <span className="text-amber"><AvatarIcon avatar={member?.avatar ?? "book"} size={18} /></span>
+          <span className="text-amber"><AvatarIcon avatar={review.is_anonymous ? "book" : (member?.avatar ?? "book")} size={18} /></span>
           <div>
-            <p className="text-sm font-medium text-ink">{member?.name}</p>
-            <p className="text-xs text-ink-muted">dari {family?.name}</p>
+            <p className="text-sm font-medium text-ink">{review.is_anonymous ? "Anonim" : member?.name}</p>
+            {!review.is_anonymous && <p className="text-xs text-ink-muted">dari {family?.name}</p>}
           </div>
         </div>
 

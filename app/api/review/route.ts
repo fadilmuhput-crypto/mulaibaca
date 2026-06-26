@@ -78,6 +78,24 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data, { status: 201 });
 }
 
+export async function PATCH(req: NextRequest) {
+  const auth = await getAuth(req);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { supabase, memberId } = auth;
+
+  const { slug, is_public, is_anonymous } = await req.json();
+  if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
+
+  const { error } = await supabase
+    .from("reviews")
+    .update({ is_public, is_anonymous })
+    .eq("slug", slug)
+    .eq("member_id", memberId);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}
+
 export async function GET(req: NextRequest) {
   const auth = await getAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

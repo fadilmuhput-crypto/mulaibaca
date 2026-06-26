@@ -19,7 +19,7 @@ export default async function LogPage() {
     await Promise.all([
       supabase
         .from("shelf_items")
-        .select("id, current_page, books(id, title, author, cover_url, total_pages)")
+        .select("id, current_page, books(id, title, author, cover_url, total_pages, open_library_id)")
         .eq("member_id", session.memberId)
         .eq("status", "reading")
         .order("created_at", { ascending: false }),

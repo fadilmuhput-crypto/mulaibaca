@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import BookCover from "@/components/BookCover";
-import { BookOpen, Bookmark, Trophy, Sparkles, Check, PenLine } from "lucide-react";
+import { BookOpen, Bookmark, Trophy, Sparkles, Check, PenLine, Eye, EyeOff, User, UserX } from "lucide-react";
 
 type Book = {
   title: string;
   author: string | null;
   cover_url: string | null;
   total_pages: number | null;
+  open_library_id: string | null;
 };
 
 type ShelfItem = {
@@ -19,26 +20,66 @@ type ShelfItem = {
   books: Book | null;
 };
 
+export type ReviewInfo = {
+  shelf_item_id: string;
+  slug: string | null;
+  is_public: boolean;
+  is_anonymous: boolean;
+};
+
 const TABS = [
   { key: "reading", label: "Dibaca",   icon: BookOpen },
   { key: "want",    label: "Mau Baca", icon: Bookmark },
   { key: "done",    label: "Selesai",  icon: Trophy },
 ] as const;
 
+function toSlug(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
+}
+
+function bookUrl(book: Book): string {
+  if (book.open_library_id) {
+    return `/buku/${toSlug(book.title)}-${book.open_library_id.toLowerCase()}`;
+  }
+  return `/buku/${toSlug(book.title)}`;
+}
+
+type Visibility = "public" | "anonymous" | "private";
+
+function getVisibility(r: ReviewInfo): Visibility {
+  if (!r.is_public) return "private";
+  if (r.is_anonymous) return "anonymous";
+  return "public";
+}
+
+const VISIBILITY_LABELS: Record<Visibility, { label: string; icon: React.ReactNode }> = {
+  public:    { label: "Publik",  icon: <Eye size={10} strokeWidth={2.5} /> },
+  anonymous: { label: "Anonim", icon: <UserX size={10} strokeWidth={2.5} /> },
+  private:   { label: "Privat", icon: <EyeOff size={10} strokeWidth={2.5} /> },
+};
+
+const NEXT_VISIBILITY: Record<Visibility, Visibility> = {
+  public: "anonymous",
+  anonymous: "private",
+  private: "public",
+};
+
 export default function ShelfClient({
   initialShelf,
-  reviewedIds,
+  reviews: initialReviews,
 }: {
   initialShelf: ShelfItem[];
-  reviewedIds: string[];
+  reviews: ReviewInfo[];
 }) {
   const [tab, setTab] = useState<"reading" | "want" | "done">("reading");
   const [shelf, setShelf] = useState(initialShelf);
+  const [reviews, setReviews] = useState(initialReviews);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pageInput, setPageInput] = useState("");
   const [justFinished, setJustFinished] = useState<{ id: string; title: string } | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [togglingSlug, setTogglingSlug] = useState<string | null>(null);
 
   const filtered = shelf.filter((i) => i.status === tab);
   const readingCount = shelf.filter((i) => i.status === "reading").length;
@@ -46,10 +87,35 @@ export default function ShelfClient({
   const doneCount    = shelf.filter((i) => i.status === "done").length;
   const counts = { reading: readingCount, want: wantCount, done: doneCount };
 
-  // Total pages from finished books
   const totalPagesDone = shelf
     .filter((i) => i.status === "done")
     .reduce((s, i) => s + (i.books?.total_pages ?? 0), 0);
+
+  function getReview(shelfItemId: string): ReviewInfo | undefined {
+    return reviews.find((r) => r.shelf_item_id === shelfItemId);
+  }
+
+  async function toggleVisibility(review: ReviewInfo) {
+    if (!review.slug || togglingSlug === review.slug) return;
+    const next = NEXT_VISIBILITY[getVisibility(review)];
+    const is_public = next !== "private";
+    const is_anonymous = next === "anonymous";
+    setTogglingSlug(review.slug);
+    try {
+      const res = await fetch("/api/review", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: review.slug, is_public, is_anonymous }),
+      });
+      if (res.ok) {
+        setReviews((prev) =>
+          prev.map((r) => r.slug === review.slug ? { ...r, is_public, is_anonymous } : r)
+        );
+      }
+    } finally {
+      setTogglingSlug(null);
+    }
+  }
 
   async function updateProgress(id: string, currentPage: number) {
     setSavingId(id);
@@ -208,10 +274,10 @@ export default function ShelfClient({
             const progress = book.total_pages && item.current_page
               ? Math.min(Math.round((item.current_page / book.total_pages) * 100), 100)
               : 0;
+            const url = bookUrl(book);
 
             return (
               <div key={item.id} className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-brutal-xs)" }}>
-                {/* Progress accent top bar */}
                 <div className="h-1 bg-parchment">
                   <div
                     className="h-full transition-all rounded-r-full"
@@ -220,14 +286,16 @@ export default function ShelfClient({
                 </div>
 
                 <div className="p-3 flex gap-3">
-                  {/* Cover — bigger */}
-                  <BookCover src={book.cover_url} title={book.title} className="w-16 h-[88px] rounded-xl flex-shrink-0" />
+                  <Link href={url} className="flex-shrink-0">
+                    <BookCover src={book.cover_url} title={book.title} className="w-16 h-[88px] rounded-xl" />
+                  </Link>
 
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-ink text-sm leading-snug line-clamp-2">{book.title}</p>
+                    <Link href={url} className="hover:text-amber transition-colors">
+                      <p className="font-semibold text-ink text-sm leading-snug line-clamp-2">{book.title}</p>
+                    </Link>
                     {book.author && <p className="text-xs text-ink-muted mt-0.5 truncate">{book.author}</p>}
 
-                    {/* Progress */}
                     <div className="mt-2.5">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs text-ink-muted">
@@ -249,7 +317,6 @@ export default function ShelfClient({
                       </div>
                     </div>
 
-                    {/* Page edit form / actions */}
                     {editingId === item.id ? (
                       <form
                         onSubmit={(e) => { e.preventDefault(); updateProgress(item.id, parseInt(pageInput) || 0); }}
@@ -303,21 +370,20 @@ export default function ShelfClient({
         </div>
       )}
 
-      {/* ── MAU BACA tab — 3-col grid ── */}
+      {/* ── MAU BACA tab ── */}
       {tab === "want" && filtered.length > 0 && (
         <div>
           <div className="grid grid-cols-3 gap-3">
             {filtered.map((item) => {
               const book = item.books;
               if (!book) return null;
+              const url = bookUrl(book);
               return (
                 <div key={item.id} className="flex flex-col">
                   <div className="relative group">
-                    <BookCover
-                      src={book.cover_url}
-                      title={book.title}
-                      className="w-full h-[120px] rounded-xl"
-                    />
+                    <Link href={url}>
+                      <BookCover src={book.cover_url} title={book.title} className="w-full h-[120px] rounded-xl" />
+                    </Link>
                     <button
                       onClick={() => removeFromShelf(item.id)}
                       className="absolute top-1 right-1 w-6 h-6 bg-ink/60 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -326,7 +392,9 @@ export default function ShelfClient({
                       ×
                     </button>
                   </div>
-                  <p className="text-[11px] font-medium text-ink line-clamp-2 leading-snug mt-1.5 mb-1">{book.title}</p>
+                  <Link href={url} className="hover:text-amber transition-colors">
+                    <p className="text-[11px] font-medium text-ink line-clamp-2 leading-snug mt-1.5 mb-1">{book.title}</p>
+                  </Link>
                   <button
                     onClick={() => markReading(item.id)}
                     disabled={startingId === item.id}
@@ -344,31 +412,57 @@ export default function ShelfClient({
         </div>
       )}
 
-      {/* ── SELESAI tab — 3-col grid ── */}
+      {/* ── SELESAI tab ── */}
       {tab === "done" && filtered.length > 0 && (
         <div>
           <div className="grid grid-cols-3 gap-3">
             {filtered.map((item) => {
               const book = item.books;
               if (!book) return null;
-              const isReviewed = reviewedIds.includes(item.id);
+              const url = bookUrl(book);
+              const review = getReview(item.id);
+              const vis = review ? getVisibility(review) : null;
+              const visInfo = vis ? VISIBILITY_LABELS[vis] : null;
+
               return (
                 <div key={item.id} className="flex flex-col">
                   <div className="relative">
-                    <BookCover
-                      src={book.cover_url}
-                      title={book.title}
-                      className="w-full h-[120px] rounded-xl"
-                    />
+                    <Link href={url}>
+                      <BookCover src={book.cover_url} title={book.title} className="w-full h-[120px] rounded-xl" />
+                    </Link>
                     <div className="absolute top-1.5 right-1.5 w-6 h-6 bg-forest rounded-full flex items-center justify-center">
                       <Check size={12} strokeWidth={3} className="text-white" />
                     </div>
                   </div>
-                  <p className="text-[11px] font-medium text-ink line-clamp-2 leading-snug mt-1.5 mb-1">{book.title}</p>
-                  {isReviewed ? (
-                    <span className="text-[10px] font-semibold text-forest flex items-center gap-1">
-                      <Check size={10} strokeWidth={3} />Review ✓
-                    </span>
+                  <Link href={url} className="hover:text-amber transition-colors">
+                    <p className="text-[11px] font-medium text-ink line-clamp-2 leading-snug mt-1.5 mb-1">{book.title}</p>
+                  </Link>
+
+                  {review && review.slug ? (
+                    <div className="flex gap-1 mt-auto">
+                      <Link
+                        href={`/review/${review.slug}`}
+                        className="flex-1 py-1 rounded-lg bg-forest/10 text-[10px] font-semibold text-forest text-center hover:bg-forest/20 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Check size={9} strokeWidth={3} />
+                        Review
+                      </Link>
+                      <button
+                        onClick={() => toggleVisibility(review)}
+                        disabled={togglingSlug === review.slug}
+                        title={`Visibilitas: ${vis} — klik untuk ganti`}
+                        className={`flex items-center gap-1 px-1.5 py-1 rounded-lg border text-[10px] font-semibold transition-colors disabled:opacity-40 ${
+                          vis === "public"
+                            ? "border-forest/30 text-forest bg-forest/5 hover:bg-forest/15"
+                            : vis === "anonymous"
+                            ? "border-amber/30 text-amber bg-amber-soft hover:bg-amber/20"
+                            : "border-border text-ink-muted hover:border-ink/30"
+                        }`}
+                      >
+                        {visInfo?.icon}
+                        {visInfo?.label}
+                      </button>
+                    </div>
                   ) : (
                     <Link
                       href={`/review/tulis?shelf=${item.id}`}

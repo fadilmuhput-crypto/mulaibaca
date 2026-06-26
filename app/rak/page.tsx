@@ -19,11 +19,9 @@ export default async function RakPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("reviews")
-      .select("shelf_item_id")
+      .select("shelf_item_id, slug, is_public, is_anonymous")
       .eq("member_id", session.memberId),
   ]);
-
-  const reviewedIds = (reviews ?? []).map((r: { shelf_item_id: string }) => r.shelf_item_id);
 
   return (
     <div className="min-h-screen bg-parchment pb-20 sm:pb-0">
@@ -35,7 +33,7 @@ export default async function RakPage() {
             + Tambah
           </Link>
         </div>
-        <ShelfClient initialShelf={shelf ?? []} reviewedIds={reviewedIds} />
+        <ShelfClient initialShelf={shelf ?? []} reviews={reviews ?? []} />
       </main>
     </div>
   );

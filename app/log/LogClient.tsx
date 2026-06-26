@@ -12,7 +12,19 @@ type Book = {
   author: string | null;
   cover_url: string | null;
   total_pages: number | null;
+  open_library_id: string | null;
 };
+
+function toSlug(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
+}
+
+function bookUrl(book: Book): string {
+  if (book.open_library_id) {
+    return `/buku/${toSlug(book.title)}-${book.open_library_id.toLowerCase()}`;
+  }
+  return `/buku/${toSlug(book.title)}`;
+}
 
 type ShelfItem = {
   id: string;
@@ -298,9 +310,13 @@ export default function LogClient({
           {/* Single book — show context card */}
           {shelf.length === 1 && shelf[0].books && (
             <div className="flex gap-3 items-center bg-surface rounded-xl border border-border p-3">
-              <BookCover src={shelf[0].books.cover_url} title={shelf[0].books.title} className="w-10 h-14 rounded-lg" />
+              <Link href={bookUrl(shelf[0].books)} className="flex-shrink-0">
+                <BookCover src={shelf[0].books.cover_url} title={shelf[0].books.title} className="w-10 h-14 rounded-lg" />
+              </Link>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm text-ink truncate">{shelf[0].books.title}</p>
+                <Link href={bookUrl(shelf[0].books)} className="hover:text-amber transition-colors">
+                  <p className="font-medium text-sm text-ink truncate">{shelf[0].books.title}</p>
+                </Link>
                 {shelf[0].books.author && <p className="text-xs text-ink-muted">{shelf[0].books.author}</p>}
                 <p className="text-xs text-ink-muted mt-0.5">
                   Hal {shelf[0].current_page ?? 0}{shelf[0].books.total_pages ? ` / ${shelf[0].books.total_pages}` : ""}
