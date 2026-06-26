@@ -1,4 +1,7 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-route";
+import { parseSwitchToken, COOKIE_NAME } from "@/lib/member-switch";
 
 export type Session = {
   userId: string;
@@ -16,6 +19,9 @@ export type Session = {
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
   isCmsAdmin: boolean;
   weeklyPagesGoal: number;
+  // acting_as context
+  actingAs: string | null;     // memberId being acted as (null = self)
+  adminMemberId: string | null; // the real admin's memberId when switching
 };
 
 export async function getSession(): Promise<Session | null> {
@@ -23,15 +29,46 @@ export async function getSession(): Promise<Session | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: member } = await supabase
+  const { data: self } = await supabase
     .from("members")
     .select("*, families(name, invite_code), weekly_pages_goal, is_cms_admin, username, member_type")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
-  if (!member) return null;
+  if (!self) return null;
 
-  const family = member.families as { name: string; invite_code: string } | null;
+  const family = self.families as { name: string; invite_code: string } | null;
+  const selfId = self.id as string;
+
+  // Check acting_as cookie (only valid for admin)
+  let activeId = selfId;
+  let adminMemberId: string | null = null;
+
+  if (self.role === "admin") {
+    const cookieStore = await cookies();
+    const switchToken = cookieStore.get(COOKIE_NAME)?.value;
+    if (switchToken) {
+      const parsed = parseSwitchToken(switchToken);
+      if (parsed && parsed.adminMemberId === selfId) {
+        activeId = parsed.targetMemberId;
+        adminMemberId = selfId;
+      }
+    }
+  }
+
+  // If acting as someone else, fetch that member's data
+  let member = self;
+  if (activeId !== selfId) {
+    const admin = createAdminClient();
+    const { data: target } = await admin
+      .from("members")
+      .select("*, families(name, invite_code), weekly_pages_goal, is_cms_admin, username, member_type")
+      .eq("id", activeId)
+      .eq("family_id", self.family_id) // must be same family
+      .maybeSingle();
+    if (target) member = target;
+    else activeId = selfId; // fallback if target not found
+  }
 
   return {
     userId: user.id,
@@ -41,13 +78,15 @@ export async function getSession(): Promise<Session | null> {
     familyId: member.family_id,
     familyName: family?.name ?? "",
     inviteCode: family?.invite_code ?? "",
-    memberId: member.id,
+    memberId: activeId,
     memberName: member.name,
     memberAvatar: member.avatar,
-    memberRole: member.role as "admin" | "member",
+    memberRole: self.role as "admin" | "member", // always the real admin role
     memberUsername: (member.username as string | null) ?? null,
     memberType: (member.member_type as "ayah" | "ibu" | "anak" | "dewasa") ?? "dewasa",
-    isCmsAdmin: (member.is_cms_admin as boolean) ?? false,
+    isCmsAdmin: (self.is_cms_admin as boolean) ?? false,
     weeklyPagesGoal: (member.weekly_pages_goal as number) ?? 0,
+    actingAs: activeId !== selfId ? activeId : null,
+    adminMemberId,
   };
 }

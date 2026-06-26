@@ -86,13 +86,33 @@ export default function NavBar({ session }: { session: Session }) {
     setOpen(false);
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Also clear acting_as cookie
+    await fetch("/api/anggota-switch", { method: "DELETE" });
     router.push("/masuk");
+    router.refresh();
+  }
+
+  async function handleExitSwitch() {
+    await fetch("/api/anggota-switch", { method: "DELETE" });
     router.refresh();
   }
 
   return (
     <>
       {session.isAnonymous && <GuestBanner />}
+      {session.actingAs && (
+        <div className="bg-amber px-4 py-2 flex items-center justify-between" style={{ borderBottom: "1.5px solid var(--color-ink)" }}>
+          <p className="text-sm font-semibold text-white">
+            Mengelola sebagai <strong>{session.memberName}</strong>
+          </p>
+          <button
+            onClick={handleExitSwitch}
+            className="text-xs text-white/90 font-semibold hover:text-white underline underline-offset-2 min-h-[32px] px-1"
+          >
+            Kembali ke akunmu
+          </button>
+        </div>
+      )}
       {/* ── Top header ──────────────────────── */}
       <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <Link href="/dashboard" className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>

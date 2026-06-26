@@ -5,7 +5,8 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import AvatarIcon from "@/components/AvatarIcon";
 import BookCover from "@/components/BookCover";
-import { Flame, BookOpen } from "lucide-react";
+import { Flame, BookOpen, UserPlus } from "lucide-react";
+import MemberSwitcher from "./MemberSwitcher";
 
 type MemberProgress = {
   id: string;
@@ -36,7 +37,7 @@ export default async function KeluargaPage() {
 
   const { data: members } = await supabase
     .from("members")
-    .select("id, name, avatar, role")
+    .select("id, name, avatar, role, member_type, birth_year, auth_user_id")
     .eq("family_id", familyId)
     .order("created_at", { ascending: true });
 
@@ -98,8 +99,20 @@ export default async function KeluargaPage() {
     streakByMember[st.member_id] = { current: st.current_streak, longest: st.longest_streak };
   }
 
-  const progress: MemberProgress[] = (members ?? [])
-    .map((m: { id: string; name: string; avatar: string; role: string }) => ({
+  const now = new Date().getFullYear();
+  type MemberMeta = { id: string; name: string; avatar: string; role: string; memberType: string; birthYear: number | null; hasAuth: boolean; };
+  const membersMeta: MemberMeta[] = (members ?? []).map((m) => ({
+    id: m.id as string,
+    name: m.name as string,
+    avatar: m.avatar as string,
+    role: m.role as string,
+    memberType: (m.member_type as string) ?? "dewasa",
+    birthYear: m.birth_year as number | null,
+    hasAuth: !!(m.auth_user_id),
+  }));
+
+  const progress: MemberProgress[] = membersMeta
+    .map((m) => ({
       id: m.id,
       name: m.name,
       avatar: m.avatar,
@@ -121,10 +134,28 @@ export default async function KeluargaPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div>
-          <p className="text-overline mb-1">Progress</p>
-          <h1 className="text-h1">{session.familyName}</h1>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-overline mb-1">Progress</p>
+            <h1 className="text-h1">{session.familyName}</h1>
+          </div>
+          {session.memberRole === "admin" && (
+            <Link href="/keluarga/tambah-anak" className="btn-secondary flex items-center gap-1.5 text-sm">
+              <UserPlus size={14} strokeWidth={2} />
+              Tambah
+            </Link>
+          )}
         </div>
+
+        {/* Acting-as banner */}
+        {session.actingAs && (
+          <div className="bg-amber rounded-2xl px-4 py-3 flex items-center justify-between" style={{ border: "1.5px solid var(--color-ink)" }}>
+            <p className="text-sm font-semibold text-white">
+              Mengelola sebagai <strong>{session.memberName}</strong>
+            </p>
+            <MemberSwitcher targetId={null} label="Kembali" variant="exit" />
+          </div>
+        )}
 
         {/* Summary stats */}
         <div className="grid grid-cols-3 gap-3">
@@ -164,13 +195,29 @@ export default async function KeluargaPage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-ink text-sm">{m.name}</p>
-                    {m.id === session.memberId && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber text-white font-medium">Kamu</span>
-                    )}
-                    {m.role === "admin" && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-forest/10 text-forest font-medium">Admin</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="font-semibold text-ink text-sm">{m.name}</p>
+                      {m.id === session.memberId && !session.actingAs && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber text-white font-medium">Kamu</span>
+                      )}
+                      {m.role === "admin" && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-forest/10 text-forest font-medium">Admin</span>
+                      )}
+                      {(() => {
+                        const meta = membersMeta.find((mm) => mm.id === m.id);
+                        if (!meta) return null;
+                        const typeLabel: Record<string, string> = { ayah: "Ayah", ibu: "Ibu", anak: "Anak", dewasa: "Dewasa" };
+                        const age = meta.birthYear ? now - meta.birthYear : null;
+                        return (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-parchment border border-border text-ink-muted font-medium">
+                            {typeLabel[meta.memberType] ?? "Anggota"}{age !== null ? `, ${age} th` : ""}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    {session.memberRole === "admin" && m.id !== (session.adminMemberId ?? session.memberId) && (
+                      <MemberSwitcher targetId={m.id} label="Kelola" variant="switch" />
                     )}
                   </div>
 
