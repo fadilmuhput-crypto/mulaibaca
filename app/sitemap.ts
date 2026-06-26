@@ -2,6 +2,8 @@ import { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { BUKU_ANAK, BUKU_LOKAL } from "@/lib/curated-books";
 
+export const dynamic = "force-dynamic";
+
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
 }
