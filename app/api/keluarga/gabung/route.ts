@@ -47,7 +47,12 @@ export async function POST(req: NextRequest) {
     .select("id", { count: "exact", head: true })
     .eq("family_id", oldFamilyId);
 
-  const isAlone = (currentCount ?? 0) <= 1;
+  // Hanya bisa gabung jika sendirian di keluarga saat ini
+  if ((currentCount ?? 0) > 1) {
+    return NextResponse.json({
+      error: "Tidak bisa pindah keluarga karena keluargamu memiliki anggota lain.",
+    }, { status: 409 });
+  }
 
   // Move member to new family (role becomes "member" in new family)
   const { error: moveError } = await admin
@@ -57,10 +62,8 @@ export async function POST(req: NextRequest) {
 
   if (moveError) return NextResponse.json({ error: moveError.message }, { status: 500 });
 
-  // Delete old family if member was the only one
-  if (isAlone) {
-    await admin.from("families").delete().eq("id", oldFamilyId);
-  }
+  // Delete old family since member was the only one
+  await admin.from("families").delete().eq("id", oldFamilyId);
 
   return NextResponse.json({ ok: true, familyName: targetFamily.name });
 }

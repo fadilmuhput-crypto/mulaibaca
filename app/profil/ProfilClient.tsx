@@ -296,39 +296,39 @@ export default function ProfilClient({
         )}
       </div>
 
-      {/* ── Join another family ── */}
-      <div className="card-elevated p-6 space-y-4">
-        <div>
-          <h2 className="text-h3 flex items-center gap-2">
-            <LogIn size={16} strokeWidth={2} className="text-ink-muted" />
-            Gabung ke keluarga lain
-          </h2>
-          <p className="text-xs text-ink-muted mt-1">
-            {stats.familyMemberCount > 1
-              ? "Keluargamu punya anggota lain. Jika kamu pindah, mereka akan tetap di keluarga yang sama."
-              : "Masukkan kode undangan untuk bergabung ke keluarga lain. Keluargamu yang sekarang akan dihapus otomatis."}
-          </p>
+      {/* ── Join another family (only shown when member is alone in family) ── */}
+      {stats.familyMemberCount <= 1 && (
+        <div className="card-elevated p-6 space-y-4">
+          <div>
+            <h2 className="text-h3 flex items-center gap-2">
+              <LogIn size={16} strokeWidth={2} className="text-ink-muted" />
+              Gabung ke keluarga lain
+            </h2>
+            <p className="text-xs text-ink-muted mt-1">
+              Masukkan kode undangan untuk bergabung ke keluarga lain. Keluargamu yang sekarang akan dihapus otomatis.
+            </p>
+          </div>
+          <form onSubmit={handleJoin} className="flex gap-2">
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder="Kode undangan"
+              maxLength={10}
+              className="input flex-1 font-mono uppercase tracking-widest"
+            />
+            <button
+              type="submit"
+              disabled={joinLoading || !joinCode.trim()}
+              className="btn-primary px-4 text-sm disabled:opacity-40"
+            >
+              {joinLoading ? "…" : "Gabung"}
+            </button>
+          </form>
+          {joinError && <p className="text-error text-sm">{joinError}</p>}
+          {joinSuccess && <p className="text-forest text-sm flex items-center gap-1.5"><Check size={14} strokeWidth={2.5} />{joinSuccess}</p>}
         </div>
-        <form onSubmit={handleJoin} className="flex gap-2">
-          <input
-            type="text"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-            placeholder="Kode undangan"
-            maxLength={10}
-            className="input flex-1 font-mono uppercase tracking-widest"
-          />
-          <button
-            type="submit"
-            disabled={joinLoading || !joinCode.trim()}
-            className="btn-primary px-4 text-sm disabled:opacity-40"
-          >
-            {joinLoading ? "…" : "Gabung"}
-          </button>
-        </form>
-        {joinError && <p className="text-error text-sm">{joinError}</p>}
-        {joinSuccess && <p className="text-forest text-sm flex items-center gap-1.5"><Check size={14} strokeWidth={2.5} />{joinSuccess}</p>}
-      </div>
+      )}
 
       {/* ── Reading goal ── */}
       <div className="card-elevated p-6 space-y-4">
