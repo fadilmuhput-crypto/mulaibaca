@@ -376,10 +376,9 @@ export default function JelajahClient({
               if (anakBooks.length === 0) return null;
 
               const isChild = memberType === "anak";
-              const isParent = memberType === "ayah" || memberType === "ibu";
 
-              // Only show this section for anak or orang tua
-              if (!isChild && !isParent) return null;
+              // Only show for anak members
+              if (!isChild) return null;
 
               const currentGroup = AGE_GROUPS.find((g) => g.key === activeAgeGroup) ?? AGE_GROUPS[1];
               const filteredBooks = activeAgeGroup
