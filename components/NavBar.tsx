@@ -195,6 +195,26 @@ export default function NavBar({ session }: { session: Session }) {
                   </svg>
                   Profil &amp; Keluarga
                 </Link>
+                <Link
+                  href="/panduan"
+                  onClick={() => setOpen(false)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-ink hover:bg-parchment transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+                  </svg>
+                  Panduan
+                </Link>
+                <Link
+                  href="/faq"
+                  onClick={() => setOpen(false)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-ink hover:bg-parchment transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                  </svg>
+                  FAQ
+                </Link>
                 <button
                   onClick={() => { setOpen(false); setFeedbackOpen(true); }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-ink hover:bg-parchment transition-colors"
