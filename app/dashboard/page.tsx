@@ -7,7 +7,7 @@ import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
 import AvatarIcon from "@/components/AvatarIcon";
-import { Flame, BookOpen, PenLine, Plus, Target, Library, BookMarked, LayoutDashboard } from "lucide-react";
+import { Flame, BookOpen, PenLine, Plus, Target, Library, BookMarked, LayoutDashboard, LayoutGrid } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -253,6 +253,17 @@ export default async function DashboardPage() {
                 <div>
                   <p className="font-semibold text-sm text-ink">Perpustakaan</p>
                   <p className="text-xs text-ink-muted mt-0.5">Lengkapi data buku pengguna</p>
+                </div>
+              </Link>
+              <Link
+                href="/admin/jelajah"
+                className="bg-surface rounded-xl border border-border p-4 flex flex-col gap-2 hover:border-[#2D4D7A]/40 hover:bg-[#EBF0F8]/40 transition-all col-span-2"
+                style={{ boxShadow: "var(--shadow-brutal-xs)" }}
+              >
+                <LayoutGrid size={20} strokeWidth={1.75} className="text-[#2D4D7A]" />
+                <div>
+                  <p className="font-semibold text-sm text-ink">Halaman Jelajah</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Atur section, urutan, dan konten halaman /jelajah</p>
                 </div>
               </Link>
             </div>
