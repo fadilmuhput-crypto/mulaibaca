@@ -37,7 +37,7 @@ export default async function KeluargaPage() {
 
   const { data: members } = await supabase
     .from("members")
-    .select("id, name, avatar, role, member_type, birth_date, auth_user_id")
+    .select("id, name, avatar, role, member_type, birth_date, auth_user_id, username")
     .eq("family_id", familyId)
     .order("created_at", { ascending: true });
 
@@ -108,7 +108,7 @@ export default async function KeluargaPage() {
     return age;
   }
 
-  type MemberMeta = { id: string; name: string; avatar: string; role: string; memberType: string; age: number | null; hasAuth: boolean; };
+  type MemberMeta = { id: string; name: string; avatar: string; role: string; memberType: string; age: number | null; hasAuth: boolean; username: string | null; };
   const membersMeta: MemberMeta[] = (members ?? []).map((m) => ({
     id: m.id as string,
     name: m.name as string,
@@ -117,6 +117,7 @@ export default async function KeluargaPage() {
     memberType: (m.member_type as string) ?? "dewasa",
     age: computeAgeLocal(m.birth_date as string | null),
     hasAuth: !!(m.auth_user_id),
+    username: (m.username as string | null) ?? null,
   }));
 
   const progress: MemberProgress[] = membersMeta
@@ -227,6 +228,16 @@ export default async function KeluargaPage() {
                       <MemberSwitcher targetId={m.id} label="Kelola" variant="switch" />
                     )}
                   </div>
+
+                  {/* Profile link */}
+                  {(() => {
+                    const meta = membersMeta.find((mm) => mm.id === m.id);
+                    return meta?.username ? (
+                      <Link href={`/u/${meta.username}`} className="text-[10px] text-ink-muted hover:text-amber transition-colors mt-0.5 inline-block">
+                        @{meta.username}
+                      </Link>
+                    ) : null;
+                  })()}
 
                   {/* Streak + pages */}
                   <div className="flex items-center gap-3 mt-1">
