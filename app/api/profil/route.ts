@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteClient } from "@/lib/supabase-route";
-import { createAdminClient } from "@/lib/supabase-route";
+import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
+import { parseSwitchToken, COOKIE_NAME } from "@/lib/member-switch";
 
 async function getAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -9,12 +9,35 @@ async function getAuth(req: NextRequest) {
   const { data: member } = await supabase
     .from("members").select("id, family_id, role, username").eq("auth_user_id", user.id).maybeSingle();
   if (!member) return null;
+
+  // Check acting-as cookie — admin managing a child/family member
+  const switchToken = req.cookies.get(COOKIE_NAME)?.value;
+  let activeMemberId = member.id as string;
+  if (switchToken && member.role === "admin") {
+    const parsed = parseSwitchToken(switchToken);
+    if (parsed && parsed.adminMemberId === member.id) {
+      activeMemberId = parsed.targetMemberId;
+    }
+  }
+
+  // Get target member's username status (different from admin when acting-as)
+  let existingUsername: string | null = member.username as string | null;
+  if (activeMemberId !== member.id) {
+    const admin = createAdminClient();
+    const { data: target } = await admin
+      .from("members").select("username").eq("id", activeMemberId).maybeSingle();
+    if (target) {
+      existingUsername = target.username as string | null;
+    }
+  }
+
   return {
     userId: user.id,
-    memberId: member.id as string,
+    adminMemberId: member.id as string,
+    activeMemberId,
     familyId: member.family_id as string,
     role: member.role as string,
-    existingUsername: member.username as string | null,
+    existingUsername,
   };
 }
 
@@ -47,7 +70,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   if (Object.keys(updates).length > 0) {
-    const { error } = await admin.from("members").update(updates).eq("id", auth.memberId);
+    const { error } = await admin.from("members").update(updates).eq("id", auth.activeMemberId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
