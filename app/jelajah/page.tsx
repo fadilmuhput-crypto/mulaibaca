@@ -60,12 +60,7 @@ export default async function JelajahPage() {
     .order("sort_order", { ascending: true })
     .order("title", { ascending: true });
 
-  const anakBooks: CuratedBook[] = ((curatedRows ?? []) as CuratedBook[]).filter(
-    (b) => b.category === "anak"
-  );
-  const lokalBooks: CuratedBook[] = ((curatedRows ?? []) as CuratedBook[]).filter(
-    (b) => b.category === "lokal"
-  );
+  const allBooks = (curatedRows ?? []) as CuratedBook[];
 
-  return <JelajahClient familyBooks={familyBooks} anakBooks={anakBooks} lokalBooks={lokalBooks} />;
+  return <JelajahClient familyBooks={familyBooks} allBooks={allBooks} />;
 }

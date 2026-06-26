@@ -27,21 +27,18 @@ type BookCard = {
   total_pages: number | null;
   description: string;
   tags: string[];
+  isLokal: boolean;
 };
-
-type AudienceFilter = "semua" | "lokal" | "anak";
-
-const AUDIENCES: { key: AudienceFilter; label: string }[] = [
-  { key: "semua", label: "Semua" },
-  { key: "lokal", label: "Lokal" },
-  { key: "anak", label: "Anak" },
-];
 
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
 }
 
 function fromCurated(b: CuratedBook): BookCard {
+  // Inject "anak" tag so anak-anak category matching works via tags
+  const tags = b.category === "anak" && !b.tags.includes("anak")
+    ? [...b.tags, "anak"]
+    : b.tags;
   return {
     id: toSlug(b.title),
     title: b.title,
@@ -50,7 +47,8 @@ function fromCurated(b: CuratedBook): BookCard {
     open_library_id: b.open_library_id,
     total_pages: b.total_pages,
     description: b.description,
-    tags: b.tags,
+    tags,
+    isLokal: false, // category:"lokal" = koleksi umum, bukan "penulis Indonesia"
   };
 }
 
@@ -67,21 +65,28 @@ function fromOL(b: OLBook): BookCard {
     total_pages: b.number_of_pages_median ?? null,
     description: "",
     tags: [],
+    isLokal: false,
   };
+}
+
+// Books augmented with injected tags for category matching
+function augmentBooks(books: CuratedBook[]): CuratedBook[] {
+  return books.map((b) =>
+    b.category === "anak" && !b.tags.includes("anak")
+      ? { ...b, tags: [...b.tags, "anak"] }
+      : b
+  );
 }
 
 export default function JelajahClient({
   familyBooks,
-  anakBooks,
-  lokalBooks,
+  allBooks,
 }: {
   familyBooks: FamilyBook[];
-  anakBooks: CuratedBook[];
-  lokalBooks: CuratedBook[];
+  allBooks: CuratedBook[];
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [audienceFilter, setAudienceFilter] = useState<AudienceFilter>("semua");
   const [activeParent, setActiveParent] = useState<string | null>(null);
   const [activeSub, setActiveSub] = useState<string | null>(null);
   const [curatedResults, setCuratedResults] = useState<BookCard[] | null>(null);
@@ -93,26 +98,22 @@ export default function JelajahClient({
   const searchIdRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const allCurated = [...lokalBooks, ...anakBooks];
-
-  const baseBooks =
-    audienceFilter === "lokal" ? lokalBooks
-    : audienceFilter === "anak" ? anakBooks
-    : allCurated;
+  // Augment so anak books always have "anak" tag for category matching
+  const augmented = augmentBooks(allBooks);
 
   const displayBooks: CuratedBook[] = (() => {
     if (activeSub) {
       const sub = findSubCategory(activeSub);
-      if (sub) return baseBooks.filter((b) => b.tags.some((t) => sub.matchTags.includes(t)));
+      if (sub) return augmented.filter((b) => b.tags.some((t) => sub.matchTags.includes(t)));
     }
     if (activeParent) {
       const parent = CATEGORY_TREE.find((c) => c.key === activeParent);
-      if (parent) return baseBooks.filter((b) => b.tags.some((t) => parent.matchTags.includes(t)));
+      if (parent) return augmented.filter((b) => b.tags.some((t) => parent.matchTags.includes(t)));
     }
-    return baseBooks;
+    return augmented;
   })();
 
-  const featured = allCurated.find((b) => b.cover_url && b.description);
+  const featured = allBooks.find((b) => b.cover_url && b.description);
 
   const activeParentNode = CATEGORY_TREE.find((c) => c.key === activeParent);
   const activeSubNode = activeSub ? findSubCategory(activeSub) : null;
@@ -135,7 +136,7 @@ export default function JelajahClient({
   function filterCurated(q: string): BookCard[] {
     if (!q.trim()) return [];
     const qLow = q.toLowerCase();
-    return allCurated
+    return allBooks
       .filter(
         (b) =>
           b.title.toLowerCase().includes(qLow) ||
@@ -333,30 +334,12 @@ export default function JelajahClient({
 
             {/* ── Category browse ── */}
             <section>
-              <div className="flex items-center justify-between mb-3">
-                <SectionLabel className="mb-0">Jelajah kategori</SectionLabel>
-                {/* Audience filter */}
-                <div className="flex gap-0.5 bg-parchment rounded-xl p-1 border border-border">
-                  {AUDIENCES.map((a) => (
-                    <button
-                      key={a.key}
-                      onClick={() => setAudienceFilter(a.key)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-                        audienceFilter === a.key
-                          ? "bg-ink text-white"
-                          : "text-ink-muted hover:text-ink"
-                      }`}
-                    >
-                      {a.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <SectionLabel>Jelajah kategori</SectionLabel>
 
-              {/* Parent category pills */}
+              {/* Level 1 — parent categories */}
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                 {CATEGORY_TREE.map((cat) => {
-                  const count = countBooksInCategory(baseBooks, cat.matchTags);
+                  const count = countBooksInCategory(augmented, cat.matchTags);
                   const isActive = activeParent === cat.key;
                   return (
                     <button
@@ -370,7 +353,7 @@ export default function JelajahClient({
                     >
                       {cat.label}
                       {count > 0 && (
-                        <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-full ${
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                           isActive ? "bg-white/20 text-white" : "bg-border text-ink-muted"
                         }`}>
                           {count}
@@ -381,24 +364,24 @@ export default function JelajahClient({
                 })}
               </div>
 
-              {/* Sub-category pills */}
+              {/* Level 2 — sub-categories */}
               {activeParent && (
                 <div className="flex gap-2 overflow-x-auto no-scrollbar pt-2 pb-1 -mx-4 px-4">
                   {activeParentNode?.children.map((sub) => {
-                    const count = countBooksInCategory(baseBooks, sub.matchTags);
+                    const count = countBooksInCategory(augmented, sub.matchTags);
                     const isActive = activeSub === sub.key;
                     return (
                       <button
                         key={sub.key}
-                        onClick={() => selectSub(sub.key)}
+                        onClick={() => count > 0 && selectSub(sub.key)}
+                        disabled={count === 0}
                         className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                           isActive
                             ? "border-amber bg-amber text-white"
                             : count === 0
-                            ? "border-border/50 bg-parchment text-ink-muted/50 cursor-default"
+                            ? "border-border/40 bg-parchment text-ink-muted/40 cursor-not-allowed"
                             : "border-border bg-parchment text-ink-secondary hover:border-amber/50 hover:text-ink"
                         }`}
-                        disabled={count === 0}
                       >
                         {sub.label}
                         {count > 0 && (
@@ -413,7 +396,7 @@ export default function JelajahClient({
               )}
             </section>
 
-            {/* Featured (only when no category active) */}
+            {/* Featured — only when no category active */}
             {!activeParent && featured && (
               <section>
                 <SectionLabel>Pilihan editorial</SectionLabel>
@@ -425,7 +408,7 @@ export default function JelajahClient({
             <section>
               <div className="flex items-center justify-between mb-3">
                 <SectionLabel className="mb-0">
-                  {activeCatLabel ?? "Koleksi kami"}
+                  {activeCatLabel ?? "Semua buku"}
                   {" "}
                   <span className="font-normal text-ink-muted">({displayBooks.length})</span>
                 </SectionLabel>
@@ -501,7 +484,10 @@ function FeaturedCard({
     >
       <BookCover src={card.cover_url} title={card.title} className="w-[72px] h-[100px] rounded-xl flex-shrink-0" />
       <div className="flex-1 min-w-0 flex flex-col">
-        <span className="text-[10px] font-black text-amber uppercase tracking-[0.1em] mb-1">★ Pilihan</span>
+        <div className="flex items-center gap-1.5 mb-1">
+          <span className="text-[10px] font-black text-amber uppercase tracking-[0.1em]">★ Pilihan</span>
+          {card.isLokal && <span className="text-[9px] font-semibold text-ink-muted bg-border/60 px-1.5 py-0.5 rounded-full">🇮🇩 Lokal</span>}
+        </div>
         <p className="font-display font-bold text-ink text-base leading-snug line-clamp-2">{card.title}</p>
         <p className="text-xs text-ink-muted mt-0.5 mb-2">{card.author}</p>
         {card.description && (
@@ -550,6 +536,12 @@ function ShelfBookCard({
           title={card.title}
           className="w-full h-[120px] rounded-xl cursor-pointer"
         />
+        {/* Lokal badge */}
+        {card.isLokal && (
+          <span className="absolute top-1.5 left-1.5 text-[8px] font-bold bg-ink/70 text-white px-1.5 py-0.5 rounded-full leading-none">
+            🇮🇩
+          </span>
+        )}
         {showActions && (
           <div className="absolute inset-0 bg-ink/70 rounded-xl flex flex-col items-center justify-center gap-2 p-2">
             <button
@@ -590,14 +582,19 @@ function SearchResultCard({
       <div className="flex gap-3">
         <BookCover src={card.cover_url} title={card.title} className="w-12 h-16 rounded-lg flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-ink text-sm line-clamp-2">{card.title}</p>
+          <div className="flex items-start gap-2">
+            <p className="font-semibold text-ink text-sm line-clamp-2 flex-1">{card.title}</p>
+            {card.isLokal && (
+              <span className="flex-shrink-0 text-[9px] font-semibold text-ink-muted bg-border/60 px-1.5 py-0.5 rounded-full mt-0.5">🇮🇩 Lokal</span>
+            )}
+          </div>
           <p className="text-xs text-ink-muted mt-0.5">{card.author}</p>
           {card.description && (
             <p className="text-xs text-ink-secondary mt-1 line-clamp-2 leading-relaxed">{card.description}</p>
           )}
           {card.tags.length > 0 && (
             <div className="flex gap-1 mt-1.5 flex-wrap">
-              {card.tags.slice(0, 3).map((tag) => (
+              {card.tags.filter(t => t !== "anak").slice(0, 3).map((tag) => (
                 <span key={tag} className="badge">{tag}</span>
               ))}
             </div>

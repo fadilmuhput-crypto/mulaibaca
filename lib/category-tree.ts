@@ -17,19 +17,27 @@ export const CATEGORY_TREE: RootCategory[] = [
     label: "Fiksi",
     matchTags: [
       "fiksi", "novel", "sastra", "cerpen", "antologi",
-      "romance", "thriller", "misteri", "horror",
-      "fantasi", "petualangan", "sci-fi",
-      "distopia", "surreal",
+      "romance", "cinta",
+      "thriller", "misteri", "suspens", "kriminal", "crime",
+      "horor", "horror",
+      "fantasi", "paranormal", "petualangan",
+      "sci-fi", "fiksi ilmiah", "distopia", "surreal",
+      "fiksi sejarah", "historical fiction",
       "humor", "komedi", "alegori", "satire",
+      "cerita rakyat", "legenda", "fabel", "rakyat", "dongeng",
+      "puisi", "sajak",
       "drama", "klasik",
-      "cerita rakyat", "legenda", "fabel", "rakyat",
-      "puisi",
     ],
     children: [
       {
         key: "sastra-klasik",
         label: "Sastra & Klasik",
         matchTags: ["sastra", "klasik", "drama"],
+      },
+      {
+        key: "kontemporer",
+        label: "Kontemporer",
+        matchTags: ["kontemporer", "contemporary"],
       },
       {
         key: "romance",
@@ -39,21 +47,31 @@ export const CATEGORY_TREE: RootCategory[] = [
       {
         key: "thriller-misteri",
         label: "Thriller & Misteri",
-        matchTags: ["thriller", "misteri", "horror"],
+        matchTags: ["thriller", "misteri", "suspens", "kriminal", "crime"],
       },
       {
-        key: "fantasi-petualangan",
-        label: "Fantasi & Petualangan",
-        matchTags: ["fantasi", "petualangan", "sci-fi"],
+        key: "horor",
+        label: "Horor",
+        matchTags: ["horor", "horror"],
       },
       {
-        key: "distopia",
-        label: "Distopia & Sci-Fi",
-        matchTags: ["distopia", "surreal"],
+        key: "fantasi",
+        label: "Fantasi & Paranormal",
+        matchTags: ["fantasi", "paranormal", "petualangan"],
       },
       {
-        key: "humor-satire",
-        label: "Humor & Satire",
+        key: "fiksi-ilmiah",
+        label: "Fiksi Ilmiah",
+        matchTags: ["sci-fi", "fiksi ilmiah", "distopia", "surreal"],
+      },
+      {
+        key: "fiksi-sejarah",
+        label: "Fiksi Sejarah",
+        matchTags: ["fiksi sejarah", "historical fiction", "sejarah"],
+      },
+      {
+        key: "humor",
+        label: "Humor & Komedi",
         matchTags: ["humor", "komedi", "alegori", "satire"],
       },
       {
@@ -73,26 +91,34 @@ export const CATEGORY_TREE: RootCategory[] = [
     label: "Non-Fiksi",
     matchTags: [
       "non-fiksi",
-      "pengembangan diri", "produktivitas", "kebiasaan", "motivasi",
-      "bisnis", "karier", "keuangan", "marketing", "startup", "strategi",
+      "biografi", "memoar",
+      "pengembangan diri", "produktivitas", "kebiasaan", "motivasi", "inspirasi",
+      "bisnis", "karier", "keuangan", "marketing", "startup", "strategi", "komunikasi",
       "psikologi", "filsafat", "absurdisme",
       "sejarah", "sosial", "budaya", "politik",
       "sains", "teknologi",
       "agama", "spiritualitas", "islam",
-      "biografi", "memoar",
+      "masakan", "kuliner",
+      "perjalanan", "travel",
+      "olahraga", "sports",
+      "seni", "musik",
       "parenting", "keluarga",
-      "komunikasi", "inspirasi",
     ],
     children: [
       {
+        key: "biografi-memoar",
+        label: "Biografi & Memoar",
+        matchTags: ["biografi", "memoar"],
+      },
+      {
         key: "pengembangan-diri",
         label: "Pengembangan Diri",
-        matchTags: ["pengembangan diri", "produktivitas", "kebiasaan", "motivasi", "mindset"],
+        matchTags: ["pengembangan diri", "produktivitas", "kebiasaan", "motivasi", "mindset", "inspirasi"],
       },
       {
         key: "bisnis-karier",
         label: "Bisnis & Karier",
-        matchTags: ["bisnis", "karier", "keuangan", "marketing", "startup", "strategi"],
+        matchTags: ["bisnis", "karier", "keuangan", "marketing", "startup", "strategi", "komunikasi"],
       },
       {
         key: "psikologi-filsafat",
@@ -115,9 +141,24 @@ export const CATEGORY_TREE: RootCategory[] = [
         matchTags: ["agama", "spiritualitas", "islam"],
       },
       {
-        key: "biografi-memoar",
-        label: "Biografi & Memoar",
-        matchTags: ["biografi", "memoar"],
+        key: "masakan",
+        label: "Masak-memasak",
+        matchTags: ["masakan", "kuliner", "resep"],
+      },
+      {
+        key: "perjalanan",
+        label: "Perjalanan",
+        matchTags: ["perjalanan", "travel"],
+      },
+      {
+        key: "olahraga",
+        label: "Olahraga",
+        matchTags: ["olahraga", "sports"],
+      },
+      {
+        key: "seni-musik",
+        label: "Seni & Musik",
+        matchTags: ["seni", "musik", "art", "music"],
       },
       {
         key: "parenting-keluarga",
@@ -127,11 +168,86 @@ export const CATEGORY_TREE: RootCategory[] = [
     ],
   },
   {
-    key: "bahasa-pendidikan",
-    label: "Bahasa & Pendidikan",
+    key: "anak-anak",
+    label: "Anak-Anak",
+    matchTags: [
+      "anak", "balita", "cerita anak", "picture book", "board book",
+      "children", "children's",
+    ],
+    children: [
+      {
+        key: "balita",
+        label: "Balita & Bayi (0–3)",
+        matchTags: ["balita", "toddler", "board book", "picture book"],
+      },
+      {
+        key: "anak-awal",
+        label: "Anak Awal (4–8)",
+        matchTags: ["anak", "cerita anak", "children"],
+      },
+      {
+        key: "anak-akhir",
+        label: "Anak Akhir (9–12)",
+        matchTags: ["anak", "chapter book"],
+      },
+    ],
+  },
+  {
+    key: "remaja",
+    label: "Remaja",
+    matchTags: ["remaja", "young adult", "ya", "teen"],
+    children: [
+      {
+        key: "fiksi-remaja",
+        label: "Fiksi Remaja",
+        matchTags: ["remaja", "young adult", "ya"],
+      },
+      {
+        key: "fantasi-remaja",
+        label: "Fantasi Remaja",
+        matchTags: ["fantasi", "remaja"],
+      },
+      {
+        key: "romance-remaja",
+        label: "Romance Remaja",
+        matchTags: ["romance", "remaja"],
+      },
+    ],
+  },
+  {
+    key: "komik-grafis",
+    label: "Komik & Grafis",
+    matchTags: ["komik", "manga", "novel grafis", "graphic novel", "webtoon", "comics"],
+    children: [
+      {
+        key: "manga",
+        label: "Manga",
+        matchTags: ["manga"],
+      },
+      {
+        key: "komik-barat",
+        label: "Komik Barat",
+        matchTags: ["komik", "comics"],
+      },
+      {
+        key: "novel-grafis",
+        label: "Novel Grafis",
+        matchTags: ["novel grafis", "graphic novel"],
+      },
+      {
+        key: "webtoon",
+        label: "Webtoon",
+        matchTags: ["webtoon"],
+      },
+    ],
+  },
+  {
+    key: "referensi",
+    label: "Referensi",
     matchTags: [
       "pendidikan", "edukasi", "belajar",
       "bahasa", "bahasa inggris", "english",
+      "kamus", "referensi", "ensiklopedi",
       "moral", "nilai", "karakter",
     ],
     children: [
@@ -141,40 +257,19 @@ export const CATEGORY_TREE: RootCategory[] = [
         matchTags: ["pendidikan", "edukasi", "belajar"],
       },
       {
-        key: "bahasa-inggris",
-        label: "Bahasa Inggris",
-        matchTags: ["bahasa inggris", "english", "esl"],
+        key: "bahasa",
+        label: "Bahasa",
+        matchTags: ["bahasa", "bahasa inggris", "english"],
+      },
+      {
+        key: "kamus-referensi",
+        label: "Kamus & Referensi",
+        matchTags: ["kamus", "referensi", "ensiklopedi"],
       },
       {
         key: "nilai-karakter",
         label: "Nilai & Karakter",
         matchTags: ["moral", "nilai", "karakter"],
-      },
-    ],
-  },
-  {
-    key: "anak-remaja",
-    label: "Anak & Remaja",
-    matchTags: [
-      "anak", "remaja", "balita",
-      "cerita anak", "picture book",
-      "young adult",
-    ],
-    children: [
-      {
-        key: "balita",
-        label: "Balita (0–6 th)",
-        matchTags: ["balita", "toddler", "picture book"],
-      },
-      {
-        key: "anak",
-        label: "Anak (7–12 th)",
-        matchTags: ["anak", "cerita anak", "chapter book"],
-      },
-      {
-        key: "remaja",
-        label: "Remaja (13+ th)",
-        matchTags: ["remaja", "young adult", "ya"],
       },
     ],
   },
