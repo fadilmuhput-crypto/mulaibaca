@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase-route";
+import { getSession } from "@/lib/session";
 import AvatarIcon from "@/components/AvatarIcon";
 import { BookOpen } from "lucide-react";
 import BookCover from "@/components/BookCover";
@@ -13,6 +14,7 @@ export default async function PublicReviewPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const session = await getSession();
   const supabase = createAdminClient();
 
   const { data: review } = await supabase
@@ -39,9 +41,11 @@ export default async function PublicReviewPage({
         <Link href="/" className="text-xl font-display font-bold text-forest">
           mulaibaca
         </Link>
-        <Link href="/daftar" className="btn-primary-sm">
-          Mulai Gratis →
-        </Link>
+        {session ? (
+          <Link href="/dashboard" className="btn-primary-sm">Dashboard</Link>
+        ) : (
+          <Link href="/daftar" className="btn-primary-sm">Mulai Gratis →</Link>
+        )}
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-8">
@@ -102,17 +106,28 @@ export default async function PublicReviewPage({
         </div>
 
         {/* CTA */}
-        <div className="mt-8 bg-forest rounded-2xl p-6 text-center">
-          <p className="text-white font-display font-bold text-lg mb-1">
-            Yuk baca bareng keluarga!
-          </p>
-          <p className="text-white/70 text-sm mb-4">
-            Track progress, tulis review, jaga streak baca harian
-          </p>
-          <Link href="/daftar" className="btn-primary-lg inline-flex">
-            Buat Ruang Keluarga Gratis →
-          </Link>
-        </div>
+        {session ? (
+          <div className="mt-8 flex flex-col gap-3">
+            <Link href="/dashboard" className="btn-primary-lg w-full text-center">
+              ← Kembali ke Dashboard
+            </Link>
+            <Link href="/rak" className="btn-ghost-ink w-full text-center text-sm">
+              Lihat Rak Buku
+            </Link>
+          </div>
+        ) : (
+          <div className="mt-8 bg-forest rounded-2xl p-6 text-center">
+            <p className="text-white font-display font-bold text-lg mb-1">
+              Yuk baca bareng keluarga!
+            </p>
+            <p className="text-white/70 text-sm mb-4">
+              Track progress, tulis review, jaga streak baca harian
+            </p>
+            <Link href="/daftar" className="btn-primary-lg inline-flex">
+              Buat Ruang Keluarga Gratis →
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   );
