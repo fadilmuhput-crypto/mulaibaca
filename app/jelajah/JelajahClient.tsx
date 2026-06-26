@@ -456,12 +456,32 @@ export default function JelajahClient({
               );
             })()}
 
-            {/* ── Category browse ── */}
-            <section>
-              <SectionLabel>Jelajah kategori</SectionLabel>
+            {/* ── DB Sections (featured, grid_v, grid_h, banner) — hanya saat tidak ada filter ── */}
+            {!activeParent && sections.map((sec) => (
+              <SectionRenderer key={sec.id} section={sec} adding={adding} onAdd={addBook} />
+            ))}
 
-              {/* Level 1 — parent categories */}
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+            {/* Book grid with category filter */}
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <SectionLabel className="mb-0">
+                  {activeCatLabel ?? "Semua buku"}
+                  {" "}
+                  <span className="font-normal text-ink-muted">({displayBooks.length})</span>
+                </SectionLabel>
+                {(activeParent || activeSub) && (
+                  <button
+                    onClick={() => { setActiveParent(null); setActiveSub(null); }}
+                    className="text-[11px] text-ink-muted hover:text-ink flex items-center gap-0.5 transition-colors"
+                  >
+                    <X size={11} strokeWidth={2.5} />
+                    Hapus filter
+                  </button>
+                )}
+              </div>
+
+              {/* Category filter */}
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
                 {CATEGORY_TREE.map((cat) => {
                   const count = countBooksInCategory(augmented, cat.matchTags);
                   const isActive = activeParent === cat.key;
@@ -490,7 +510,7 @@ export default function JelajahClient({
 
               {/* Level 2 — sub-categories */}
               {activeParent && (
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pt-2 pb-1 -mx-4 px-4">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1 pb-2 -mx-4 px-4">
                   {activeParentNode?.children.map((sub) => {
                     const count = countBooksInCategory(augmented, sub.matchTags);
                     const isActive = activeSub === sub.key;
@@ -518,31 +538,6 @@ export default function JelajahClient({
                   })}
                 </div>
               )}
-            </section>
-
-            {/* ── DB Sections (featured, grid_v, grid_h, banner) — hanya saat tidak ada filter ── */}
-            {!activeParent && sections.map((sec) => (
-              <SectionRenderer key={sec.id} section={sec} adding={adding} onAdd={addBook} />
-            ))}
-
-            {/* Book grid */}
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <SectionLabel className="mb-0">
-                  {activeCatLabel ?? "Semua buku"}
-                  {" "}
-                  <span className="font-normal text-ink-muted">({displayBooks.length})</span>
-                </SectionLabel>
-                {(activeParent || activeSub) && (
-                  <button
-                    onClick={() => { setActiveParent(null); setActiveSub(null); }}
-                    className="text-[11px] text-ink-muted hover:text-ink flex items-center gap-0.5 transition-colors"
-                  >
-                    <X size={11} strokeWidth={2.5} />
-                    Hapus filter
-                  </button>
-                )}
-              </div>
 
               {displayBooks.length > 0 ? (
                 <div className="grid grid-cols-3 gap-x-3 gap-y-5">
