@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   const supabase = createRouteClient(req);
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { category, message } = await req.json();
+  const { name, email, category, subject, message } = await req.json();
   if (!message?.trim()) return NextResponse.json({ error: "Pesan tidak boleh kosong" }, { status: 400 });
 
   let memberId: string | null = null;
@@ -17,7 +17,10 @@ export async function POST(req: NextRequest) {
   const admin = createAdminClient();
   const { error } = await admin.from("feedback").insert({
     member_id: memberId,
+    name: name || null,
+    email: email || null,
     category: category || null,
+    subject: subject || null,
     message: message.trim(),
   });
 
