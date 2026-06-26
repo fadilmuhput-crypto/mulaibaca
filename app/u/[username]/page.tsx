@@ -73,7 +73,7 @@ export default async function PublicProfilePage({
       .select("id, books(title, cover_url, open_library_id)")
       .eq("member_id", memberId)
       .eq("status", "done")
-      .order("updated_at", { ascending: false })
+      .order("finished_at", { ascending: false })
       .limit(12),
     supabase
       .from("shelf_items")

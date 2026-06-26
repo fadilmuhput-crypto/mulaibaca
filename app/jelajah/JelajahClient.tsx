@@ -312,17 +312,11 @@ export default function JelajahClient({
 
             {olLoading && (
               <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-surface rounded-2xl border border-border p-3 flex gap-3 animate-pulse">
-                    <div className="w-12 h-16 rounded-lg bg-border flex-shrink-0" />
-                    <div className="flex-1 space-y-2 pt-1">
-                      <div className="h-4 bg-border rounded w-3/4" />
-                      <div className="h-3 bg-border rounded w-1/2" />
-                    </div>
-                  </div>
-                ))}
+                <div className="w-full h-1 bg-border/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber rounded-full" style={{ width: "45%" }} />
+                </div>
                 {(curatedResults ?? []).length === 0 && (
-                  <p className="text-center text-xs text-ink-muted pt-1">Mencari di katalog OpenLibrary…</p>
+                  <p className="text-center text-xs text-ink-muted pt-1">Mencari…</p>
                 )}
               </div>
             )}
