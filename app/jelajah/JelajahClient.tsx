@@ -87,19 +87,46 @@ function augmentBooks(books: CuratedBook[]): CuratedBook[] {
   );
 }
 
+// ── Age group helper ─────────────────────────────────────────────────────────
+
+type AgeGroup = "balita" | "anak-awal" | "anak-akhir" | null;
+
+function getAgeGroup(birthYear: number | null): AgeGroup {
+  if (!birthYear) return null;
+  const age = new Date().getFullYear() - birthYear;
+  if (age <= 3) return "balita";
+  if (age <= 8) return "anak-awal";
+  if (age <= 12) return "anak-akhir";
+  return null;
+}
+
+const AGE_GROUPS: { key: AgeGroup; label: string; desc: string; matchTags: string[] }[] = [
+  { key: "balita",     label: "Balita (0–3)",    desc: "Buku bergambar & board book", matchTags: ["balita", "toddler", "board book", "picture book"] },
+  { key: "anak-awal", label: "Anak Awal (4–8)", desc: "Cerita rakyat & early reader", matchTags: ["anak", "cerita anak", "children"] },
+  { key: "anak-akhir",label: "Anak Akhir (9–12)",desc: "Novel & chapter book",         matchTags: ["anak", "chapter book"] },
+];
+
 export default function JelajahClient({
   familyBooks,
   allBooks,
   sections,
+  memberType,
+  memberBirthYear,
+  memberName,
 }: {
   familyBooks: FamilyBook[];
   allBooks: CuratedBook[];
   sections: JelajahSection[];
+  memberType: "ayah" | "ibu" | "anak" | "dewasa";
+  memberBirthYear: number | null;
+  memberName: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [activeParent, setActiveParent] = useState<string | null>(null);
   const [activeSub, setActiveSub] = useState<string | null>(null);
+  const detectedAge = getAgeGroup(memberBirthYear);
+  const [activeAgeGroup, setActiveAgeGroup] = useState<AgeGroup>(detectedAge);
   const [curatedResults, setCuratedResults] = useState<BookCard[] | null>(null);
   const [olResults, setOlResults] = useState<BookCard[] | null>(null);
   const [olLoading, setOlLoading] = useState(false);
@@ -340,6 +367,93 @@ export default function JelajahClient({
                 </div>
               </section>
             )}
+
+            {/* ── Buku Anak section ── */}
+            {(() => {
+              const anakBooks = augmented.filter((b) => b.category === "anak");
+              if (anakBooks.length === 0) return null;
+
+              const isChild = memberType === "anak";
+              const isParent = memberType === "ayah" || memberType === "ibu";
+
+              // Only show this section for anak or orang tua
+              if (!isChild && !isParent) return null;
+
+              const currentGroup = AGE_GROUPS.find((g) => g.key === activeAgeGroup) ?? AGE_GROUPS[1];
+              const filteredBooks = activeAgeGroup
+                ? anakBooks.filter((b) => b.tags.some((t) => currentGroup.matchTags.includes(t)))
+                : anakBooks;
+
+              return (
+                <section>
+                  {isChild ? (
+                    <div className="mb-3">
+                      <SectionLabel className="mb-0.5">
+                        {detectedAge ? `Untukmu, ${memberName.split(" ")[0]}!` : "Buku Anak"}
+                      </SectionLabel>
+                      {detectedAge && (
+                        <p className="text-xs text-ink-muted">
+                          {currentGroup.desc}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <SectionLabel>Buku untuk si kecil</SectionLabel>
+                  )}
+
+                  {/* Age group tabs */}
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+                    {AGE_GROUPS.map((g) => {
+                      const count = anakBooks.filter((b) => b.tags.some((t) => g.matchTags.includes(t))).length;
+                      const isActive = activeAgeGroup === g.key;
+                      return (
+                        <button
+                          key={g.key}
+                          onClick={() => setActiveAgeGroup(isActive ? null : g.key)}
+                          className={`flex-shrink-0 flex flex-col items-start px-3 py-2 rounded-xl border-2 text-left transition-all ${
+                            isActive
+                              ? "border-amber bg-amber text-white"
+                              : "border-border bg-surface text-ink-secondary hover:border-amber/40"
+                          }`}
+                        >
+                          <span className="text-xs font-semibold leading-tight">{g.label}</span>
+                          <span className={`text-[10px] mt-0.5 ${isActive ? "text-white/80" : "text-ink-muted"}`}>
+                            {count} buku
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Book row */}
+                  <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 mt-1">
+                    {filteredBooks.map((b) => {
+                      const card = fromCurated(b);
+                      return (
+                        <div key={b.title} className="flex-shrink-0 w-[100px]">
+                          <div className="relative group">
+                            <Link href={bookUrl(card)}>
+                              <BookCover src={b.cover_url} title={b.title} className="w-full h-[130px] rounded-xl" />
+                            </Link>
+                          </div>
+                          <Link href={bookUrl(card)} className="hover:text-amber transition-colors">
+                            <p className="text-[11px] font-medium text-ink line-clamp-2 leading-snug mt-1.5">{b.title}</p>
+                          </Link>
+                          <p className="text-[10px] text-ink-muted truncate">{b.author}</p>
+                          <button
+                            onClick={() => addBook(card, "want")}
+                            disabled={adding === card.id + "want"}
+                            className="mt-1.5 w-full py-1 rounded-lg border border-border text-[10px] font-semibold text-ink-secondary hover:border-amber/50 hover:text-amber transition-colors disabled:opacity-40"
+                          >
+                            {adding === card.id + "want" ? "…" : "+ Mau Baca"}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })()}
 
             {/* ── Category browse ── */}
             <section>

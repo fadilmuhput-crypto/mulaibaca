@@ -19,6 +19,7 @@ export type Session = {
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
   isCmsAdmin: boolean;
   weeklyPagesGoal: number;
+  memberBirthYear: number | null;
   // acting_as context
   actingAs: string | null;     // memberId being acted as (null = self)
   adminMemberId: string | null; // the real admin's memberId when switching
@@ -86,6 +87,7 @@ export async function getSession(): Promise<Session | null> {
     memberType: (member.member_type as "ayah" | "ibu" | "anak" | "dewasa") ?? "dewasa",
     isCmsAdmin: (self.is_cms_admin as boolean) ?? false,
     weeklyPagesGoal: (member.weekly_pages_goal as number) ?? 0,
+    memberBirthYear: (member.birth_year as number | null) ?? null,
     actingAs: activeId !== selfId ? activeId : null,
     adminMemberId,
   };

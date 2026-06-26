@@ -82,5 +82,14 @@ export default async function JelajahPage() {
     return { ...s, books } as JelajahSection;
   });
 
-  return <JelajahClient familyBooks={familyBooks} allBooks={allBooks} sections={sections} />;
+  return (
+    <JelajahClient
+      familyBooks={familyBooks}
+      allBooks={allBooks}
+      sections={sections}
+      memberType={session.memberType}
+      memberBirthYear={session.memberBirthYear}
+      memberName={session.memberName}
+    />
+  );
 }
