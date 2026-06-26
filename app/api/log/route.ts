@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient } from "@/lib/supabase-route";
+import { getEffectiveAuth } from "@/lib/effective-auth";
 
-async function getAuth(req: NextRequest) {
+async function getSelfAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
   const { data: member } = await supabase
-    .from("members").select("id, family_id").eq("auth_user_id", user.id).maybeSingle();
+    .from("members").select("id").eq("auth_user_id", user.id).maybeSingle();
   if (!member) return null;
-  return { supabase, memberId: member.id as string, familyId: member.family_id as string };
+  return { supabase, memberId: member.id as string };
 }
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuth(req);
+  const auth = await getSelfAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { supabase, memberId } = auth;
 
@@ -29,9 +30,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuth(req);
+  const auth = await getEffectiveAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { supabase, memberId } = auth;
+  const { dataClient: supabase, memberId } = auth;
 
   const { shelfItemId, pagesRead, durationMinutes, note, logDate } = await req.json();
 

@@ -88,7 +88,7 @@ export default async function JelajahPage() {
       allBooks={allBooks}
       sections={sections}
       memberType={session.memberType}
-      memberBirthYear={session.memberBirthYear}
+      memberAge={session.memberAge}
       memberName={session.memberName}
     />
   );

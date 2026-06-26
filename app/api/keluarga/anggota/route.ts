@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient();
   const { data: members, error } = await admin
     .from("members")
-    .select("id, name, avatar, role, member_type, birth_year, auth_user_id")
+    .select("id, name, avatar, role, member_type, birth_date, auth_user_id")
     .eq("family_id", auth.familyId)
     .order("created_at");
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const auth = await getAdminAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, avatar, birthYear, memberType } = await req.json();
+  const { name, avatar, birthDate, memberType } = await req.json();
   if (!name?.trim()) return NextResponse.json({ error: "Nama wajib diisi" }, { status: 400 });
 
   const admin = createAdminClient();
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       name: name.trim(),
       avatar: avatar ?? "book",
       member_type: memberType ?? "anak",
-      birth_year: birthYear ?? null,
+      birth_date: birthDate ?? null,
       pin_hash: "",
       role: "member",
       auth_user_id: null,

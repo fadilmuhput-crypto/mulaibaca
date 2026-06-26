@@ -202,23 +202,33 @@ export default async function DashboardPage() {
         </section>
 
         {/* Family members */}
-        {familyMembers && familyMembers.length > 1 && (
+        {familyMembers && familyMembers.length >= 1 && (
           <section>
             <div className="section-header">
               <h2 className="section-title">Anggota keluarga</h2>
-              <Link href="/keluarga" className="section-link">Lihat progress →</Link>
+              <Link href="/keluarga" className="section-link">
+                {session.memberRole === "admin" ? "Kelola →" : "Lihat progress →"}
+              </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
               {familyMembers.map((m: { id: string; name: string; avatar: string }) => (
-                <Link key={m.id} href="/keluarga" className="flex flex-col items-center gap-1 flex-shrink-0">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
-                    m.id === session.memberId ? "border-amber bg-amber-soft text-amber" : "border-border bg-surface text-ink-secondary"
+                <Link key={m.id} href="/keluarga" className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${
+                    m.id === session.memberId ? "border-amber bg-amber-soft text-amber" : "border-border bg-surface text-ink-secondary hover:border-amber/50"
                   }`}>
                     <AvatarIcon avatar={m.avatar} size={22} />
                   </div>
-                  <span className="text-xs text-ink-secondary max-w-[48px] truncate text-center">{m.name}</span>
+                  <span className="text-xs text-ink-secondary max-w-[48px] truncate text-center leading-tight">{m.name}</span>
                 </Link>
               ))}
+              {session.memberRole === "admin" && (
+                <Link href="/keluarga/tambah-anak" className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed border-border bg-surface text-ink-muted hover:border-amber/50 hover:text-amber transition-colors">
+                    <span className="text-xl leading-none">+</span>
+                  </div>
+                  <span className="text-xs text-ink-muted max-w-[48px] text-center leading-tight">Tambah</span>
+                </Link>
+              )}
             </div>
           </section>
         )}

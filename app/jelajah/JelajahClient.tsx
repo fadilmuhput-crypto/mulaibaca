@@ -91,9 +91,8 @@ function augmentBooks(books: CuratedBook[]): CuratedBook[] {
 
 type AgeGroup = "balita" | "anak-awal" | "anak-akhir" | null;
 
-function getAgeGroup(birthYear: number | null): AgeGroup {
-  if (!birthYear) return null;
-  const age = new Date().getFullYear() - birthYear;
+function getAgeGroup(age: number | null): AgeGroup {
+  if (age === null) return null;
   if (age <= 3) return "balita";
   if (age <= 8) return "anak-awal";
   if (age <= 12) return "anak-akhir";
@@ -111,21 +110,21 @@ export default function JelajahClient({
   allBooks,
   sections,
   memberType,
-  memberBirthYear,
+  memberAge,
   memberName,
 }: {
   familyBooks: FamilyBook[];
   allBooks: CuratedBook[];
   sections: JelajahSection[];
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
-  memberBirthYear: number | null;
+  memberAge: number | null;
   memberName: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [activeParent, setActiveParent] = useState<string | null>(null);
   const [activeSub, setActiveSub] = useState<string | null>(null);
-  const detectedAge = getAgeGroup(memberBirthYear);
+  const detectedAge = getAgeGroup(memberAge);
   const [activeAgeGroup, setActiveAgeGroup] = useState<AgeGroup>(detectedAge);
   const [curatedResults, setCuratedResults] = useState<BookCard[] | null>(null);
   const [olResults, setOlResults] = useState<BookCard[] | null>(null);

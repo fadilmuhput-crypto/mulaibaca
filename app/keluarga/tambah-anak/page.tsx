@@ -6,8 +6,41 @@ import Link from "next/link";
 import { ChevronLeft, Loader2 } from "lucide-react";
 
 const AVATARS = ["book", "star", "heart", "sun", "moon", "tree", "flower", "rocket", "cat", "dog", "fish", "bear"];
+const AVATAR_EMOJI: Record<string, string> = {
+  book: "📖", star: "⭐", heart: "❤️", sun: "☀️", moon: "🌙", tree: "🌳",
+  flower: "🌸", rocket: "🚀", cat: "🐱", dog: "🐶", fish: "🐟", bear: "🐻",
+};
+
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 18 }, (_, i) => CURRENT_YEAR - i);
+const MONTHS = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+];
+
+function getDaysInMonth(month: number, year: number) {
+  return new Date(year, month, 0).getDate();
+}
+
+function computeAge(day: string, month: string, year: string): number | null {
+  if (!day || !month || !year) return null;
+  const today = new Date();
+  const dob = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  let age = today.getFullYear() - dob.getFullYear();
+  const notYet =
+    today.getMonth() < dob.getMonth() ||
+    (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate());
+  if (notYet) age--;
+  return age;
+}
+
+function ageGroupLabel(age: number | null): string {
+  if (age === null) return "";
+  if (age <= 3) return "Balita (0–3) · buku bergambar";
+  if (age <= 8) return "Anak Awal (4–8) · cerita rakyat & early reader";
+  if (age <= 12) return "Anak Akhir (9–12) · chapter book & novel";
+  return "Remaja (13+)";
+}
 
 const MEMBER_TYPES = [
   { value: "anak", label: "Anak" },
@@ -21,9 +54,21 @@ export default function TambahAnakPage() {
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("book");
   const [memberType, setMemberType] = useState("anak");
-  const [birthYear, setBirthYear] = useState<string>("");
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const daysInMonth = month && year ? getDaysInMonth(parseInt(month), parseInt(year)) : 31;
+  const days = Array.from({ length: daysInMonth }, (_, i) => String(i + 1));
+  const age = computeAge(day, month, year);
+  const ageLabel = ageGroupLabel(age);
+
+  // Build ISO date string for API
+  const birthDate = day && month && year
+    ? `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+    : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +83,7 @@ export default function TambahAnakPage() {
           name: name.trim(),
           avatar,
           memberType,
-          birthYear: birthYear ? parseInt(birthYear) : null,
+          birthDate,
         }),
       });
       const data = await res.json();
@@ -98,24 +143,64 @@ export default function TambahAnakPage() {
             </div>
           </div>
 
-          {/* Birth year */}
+          {/* Date of birth */}
           <div>
             <label className="input-label">
-              Tahun lahir <span className="text-ink-muted font-normal">(opsional)</span>
+              Tanggal lahir <span className="text-ink-muted font-normal">(opsional)</span>
             </label>
-            <select
-              value={birthYear}
-              onChange={(e) => setBirthYear(e.target.value)}
-              className="input bg-surface"
-            >
-              <option value="">— Pilih tahun —</option>
-              {YEARS.map((y) => (
-                <option key={y} value={y}>{y} ({CURRENT_YEAR - y} tahun)</option>
-              ))}
-            </select>
-            <p className="text-xs text-ink-muted mt-1">
-              Digunakan untuk rekomendasi buku yang sesuai usia
-            </p>
+            <div className="grid grid-cols-3 gap-2 mt-1">
+              <select
+                value={day}
+                onChange={(e) => setDay(e.target.value)}
+                className="input bg-surface text-sm"
+              >
+                <option value="">Tgl</option>
+                {days.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+              <select
+                value={month}
+                onChange={(e) => {
+                  setMonth(e.target.value);
+                  // Reset day if it's now out of range
+                  if (day && year) {
+                    const max = getDaysInMonth(parseInt(e.target.value), parseInt(year));
+                    if (parseInt(day) > max) setDay(String(max));
+                  }
+                }}
+                className="input bg-surface text-sm"
+              >
+                <option value="">Bulan</option>
+                {MONTHS.map((m, i) => (
+                  <option key={i + 1} value={String(i + 1)}>{m}</option>
+                ))}
+              </select>
+              <select
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                className="input bg-surface text-sm"
+              >
+                <option value="">Tahun</option>
+                {YEARS.map((y) => (
+                  <option key={y} value={String(y)}>{y}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Age preview */}
+            {age !== null && (
+              <div className="mt-2 flex items-center gap-2 bg-amber-soft rounded-xl px-3 py-2">
+                <span className="text-sm font-semibold text-amber">{age} tahun</span>
+                <span className="text-xs text-ink-muted">·</span>
+                <span className="text-xs text-ink-secondary">{ageLabel}</span>
+              </div>
+            )}
+            {!age && (
+              <p className="text-xs text-ink-muted mt-1.5">
+                Digunakan untuk rekomendasi buku yang sesuai usia
+              </p>
+            )}
           </div>
 
           {/* Avatar */}
@@ -133,7 +218,7 @@ export default function TambahAnakPage() {
                       : "border-border bg-surface hover:border-amber/40"
                   }`}
                 >
-                  {a === "book" ? "📖" : a === "star" ? "⭐" : a === "heart" ? "❤️" : a === "sun" ? "☀️" : a === "moon" ? "🌙" : a === "tree" ? "🌳" : a === "flower" ? "🌸" : a === "rocket" ? "🚀" : a === "cat" ? "🐱" : a === "dog" ? "🐶" : a === "fish" ? "🐟" : "🐻"}
+                  {AVATAR_EMOJI[a]}
                 </button>
               ))}
             </div>

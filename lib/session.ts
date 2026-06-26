@@ -1,4 +1,16 @@
 import { cookies } from "next/headers";
+
+function computeAge(birthDate: string | null): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const dob = new Date(birthDate);
+  let age = today.getFullYear() - dob.getFullYear();
+  const notYetBirthday =
+    today.getMonth() < dob.getMonth() ||
+    (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate());
+  if (notYetBirthday) age--;
+  return age;
+}
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-route";
 import { parseSwitchToken, COOKIE_NAME } from "@/lib/member-switch";
@@ -19,7 +31,8 @@ export type Session = {
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
   isCmsAdmin: boolean;
   weeklyPagesGoal: number;
-  memberBirthYear: number | null;
+  memberBirthDate: string | null; // ISO date "YYYY-MM-DD"
+  memberAge: number | null;       // computed from birth_date
   // acting_as context
   actingAs: string | null;     // memberId being acted as (null = self)
   adminMemberId: string | null; // the real admin's memberId when switching
@@ -87,7 +100,8 @@ export async function getSession(): Promise<Session | null> {
     memberType: (member.member_type as "ayah" | "ibu" | "anak" | "dewasa") ?? "dewasa",
     isCmsAdmin: (self.is_cms_admin as boolean) ?? false,
     weeklyPagesGoal: (member.weekly_pages_goal as number) ?? 0,
-    memberBirthYear: (member.birth_year as number | null) ?? null,
+    memberBirthDate: (member.birth_date as string | null) ?? null,
+    memberAge: computeAge(member.birth_date as string | null),
     actingAs: activeId !== selfId ? activeId : null,
     adminMemberId,
   };

@@ -37,7 +37,7 @@ export default async function KeluargaPage() {
 
   const { data: members } = await supabase
     .from("members")
-    .select("id, name, avatar, role, member_type, birth_year, auth_user_id")
+    .select("id, name, avatar, role, member_type, birth_date, auth_user_id")
     .eq("family_id", familyId)
     .order("created_at", { ascending: true });
 
@@ -99,15 +99,23 @@ export default async function KeluargaPage() {
     streakByMember[st.member_id] = { current: st.current_streak, longest: st.longest_streak };
   }
 
-  const now = new Date().getFullYear();
-  type MemberMeta = { id: string; name: string; avatar: string; role: string; memberType: string; birthYear: number | null; hasAuth: boolean; };
+  function computeAgeLocal(birthDate: string | null): number | null {
+    if (!birthDate) return null;
+    const today = new Date();
+    const dob = new Date(birthDate);
+    let age = today.getFullYear() - dob.getFullYear();
+    if (today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) age--;
+    return age;
+  }
+
+  type MemberMeta = { id: string; name: string; avatar: string; role: string; memberType: string; age: number | null; hasAuth: boolean; };
   const membersMeta: MemberMeta[] = (members ?? []).map((m) => ({
     id: m.id as string,
     name: m.name as string,
     avatar: m.avatar as string,
     role: m.role as string,
     memberType: (m.member_type as string) ?? "dewasa",
-    birthYear: m.birth_year as number | null,
+    age: computeAgeLocal(m.birth_date as string | null),
     hasAuth: !!(m.auth_user_id),
   }));
 
@@ -208,10 +216,9 @@ export default async function KeluargaPage() {
                         const meta = membersMeta.find((mm) => mm.id === m.id);
                         if (!meta) return null;
                         const typeLabel: Record<string, string> = { ayah: "Ayah", ibu: "Ibu", anak: "Anak", dewasa: "Dewasa" };
-                        const age = meta.birthYear ? now - meta.birthYear : null;
                         return (
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-parchment border border-border text-ink-muted font-medium">
-                            {typeLabel[meta.memberType] ?? "Anggota"}{age !== null ? `, ${age} th` : ""}
+                            {typeLabel[meta.memberType] ?? "Anggota"}{meta.age !== null ? `, ${meta.age} th` : ""}
                           </span>
                         );
                       })()}
