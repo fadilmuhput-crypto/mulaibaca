@@ -383,46 +383,50 @@ export default function ProfilClient({
       <div className="card-elevated p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-h3">Keluarga</h2>
-          <Link href="/keluarga" className="flex items-center gap-1.5 text-xs font-semibold text-amber hover:text-amber/80 transition-colors">
-            <Users size={13} strokeWidth={2} />
-            Kelola anggota
-          </Link>
+          {session.memberRole === "admin" && (
+            <Link href="/keluarga" className="flex items-center gap-1.5 text-xs font-semibold text-amber hover:text-amber/80 transition-colors">
+              <Users size={13} strokeWidth={2} />
+              Kelola anggota
+            </Link>
+          )}
         </div>
         {session.memberRole === "admin" ? (
-          <div>
-            <label htmlFor="family-name" className="input-label">Nama keluarga</label>
-            <input id="family-name" type="text" value={familyName} onChange={(e) => setFamilyName(e.target.value)} className="input mt-1" />
-          </div>
-        ) : (
-          <div>
-            <p className="text-overline mb-1">Nama keluarga</p>
-            <p className="text-ink font-medium">{session.familyName}</p>
-          </div>
-        )}
-        {session.inviteCode && (
-          <div>
-            <p className="text-overline mb-2">Kode undangan</p>
-            <div className="flex items-center gap-3 bg-parchment rounded-xl border border-border px-4 py-3">
-              <span className="font-mono text-xl font-bold text-ink tracking-[0.2em] uppercase flex-1">{session.inviteCode}</span>
-              <button onClick={copyCode} className="btn-ghost-ink min-h-[36px] px-3 text-sm">
-                {copied ? <span className="flex items-center gap-1"><Check size={12} strokeWidth={2.5} />Disalin</span> : "Salin"}
-              </button>
+          <>
+            <div>
+              <label htmlFor="family-name" className="input-label">Nama keluarga</label>
+              <input id="family-name" type="text" value={familyName} onChange={(e) => setFamilyName(e.target.value)} className="input mt-1" />
             </div>
-            <p className="input-hint">Bagikan kode ini agar anggota keluarga bisa bergabung</p>
+            {session.inviteCode && (
+              <div>
+                <p className="text-overline mb-2">Kode undangan</p>
+                <div className="flex items-center gap-3 bg-parchment rounded-xl border border-border px-4 py-3">
+                  <span className="font-mono text-xl font-bold text-ink tracking-[0.2em] uppercase flex-1">{session.inviteCode}</span>
+                  <button onClick={copyCode} className="btn-ghost-ink min-h-[36px] px-3 text-sm">
+                    {copied ? <span className="flex items-center gap-1"><Check size={12} strokeWidth={2.5} />Disalin</span> : "Salin"}
+                  </button>
+                </div>
+                <p className="input-hint">Bagikan kode ini agar anggota keluarga bisa bergabung</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="space-y-1">
+            <p className="text-overline">Nama keluarga</p>
+            <p className="text-ink font-medium">{session.familyName}</p>
           </div>
         )}
       </div>
 
-      {/* ── Join another family (only shown when member is alone in family) ── */}
-      {stats.familyMemberCount <= 1 && (
+      {/* ── Join another family — only shown when solo (never connected to other accounts) ── */}
+      {stats.familyMemberCount === 1 && (
         <div className="card-elevated p-6 space-y-4">
           <div>
             <h2 className="text-h3 flex items-center gap-2">
               <LogIn size={16} strokeWidth={2} className="text-ink-muted" />
-              Gabung ke keluarga lain
+              Gabung ke keluarga
             </h2>
             <p className="text-xs text-ink-muted mt-1">
-              Masukkan kode undangan untuk bergabung ke keluarga lain. Keluargamu yang sekarang akan dihapus otomatis.
+              Masukkan kode undangan dari anggota keluargamu untuk bergabung bersama mereka.
             </p>
           </div>
           <form onSubmit={handleJoin} className="flex gap-2">
