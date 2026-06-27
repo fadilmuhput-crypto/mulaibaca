@@ -423,7 +423,7 @@ export default function ShelfClient({
       {/* ── SELESAI tab ── */}
       {tab === "done" && filtered.length > 0 && (
         <div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {filtered.map((item) => {
               const book = item.books;
               if (!book) return null;
@@ -436,41 +436,43 @@ export default function ShelfClient({
                 <div key={item.id} className="flex flex-col">
                   <div className="relative">
                     <Link href={url}>
-                      <BookCover src={book.cover_url} title={book.title} className="w-full h-[120px] rounded-xl" />
+                      <BookCover src={book.cover_url} title={book.title} className="w-full h-[140px] sm:h-[120px] rounded-xl" />
                     </Link>
+                    {/* Selesai badge */}
                     <div className="absolute top-1.5 right-1.5 w-6 h-6 bg-forest rounded-full flex items-center justify-center">
                       <Check size={12} strokeWidth={3} className="text-white" />
                     </div>
+                    {/* Visibility badge — only shown when review exists */}
+                    {review?.slug && visInfo && (
+                      <button
+                        onClick={() => toggleVisibility(review)}
+                        disabled={togglingSlug === review.slug}
+                        title={`Visibilitas: ${vis} — klik untuk ganti`}
+                        className={`absolute bottom-1.5 left-1.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold transition-opacity disabled:opacity-40 ${
+                          vis === "public"
+                            ? "bg-forest text-white"
+                            : vis === "anonymous"
+                            ? "bg-amber text-white"
+                            : "bg-ink/60 text-white"
+                        }`}
+                      >
+                        {visInfo.icon}
+                        {visInfo.label}
+                      </button>
+                    )}
                   </div>
                   <Link href={url} className="hover:text-amber transition-colors">
                     <p className="text-[11px] font-medium text-ink line-clamp-2 leading-snug mt-1.5 mb-1">{book.title}</p>
                   </Link>
 
-                  {review && review.slug ? (
-                    <div className="flex gap-1 mt-auto">
-                      <Link
-                        href={`/review/${review.slug}`}
-                        className="flex-1 min-h-[36px] rounded-lg bg-forest/10 text-[10px] font-semibold text-forest text-center hover:bg-forest/20 transition-colors flex items-center justify-center gap-1"
-                      >
-                        <Check size={9} strokeWidth={3} />
-                        Review
-                      </Link>
-                      <button
-                        onClick={() => toggleVisibility(review)}
-                        disabled={togglingSlug === review.slug}
-                        title={`Visibilitas: ${vis} — klik untuk ganti`}
-                        className={`flex items-center gap-1 min-h-[36px] px-2 rounded-lg border text-[10px] font-semibold transition-colors disabled:opacity-40 ${
-                          vis === "public"
-                            ? "border-forest/30 text-forest bg-forest/5 hover:bg-forest/15"
-                            : vis === "anonymous"
-                            ? "border-amber/30 text-amber bg-amber-soft hover:bg-amber/20"
-                            : "border-border text-ink-muted hover:border-ink/30"
-                        }`}
-                      >
-                        {visInfo?.icon}
-                        {visInfo?.label}
-                      </button>
-                    </div>
+                  {review?.slug ? (
+                    <Link
+                      href={`/review/${review.slug}`}
+                      className="mt-auto w-full min-h-[36px] rounded-lg bg-forest/10 text-[11px] font-semibold text-forest text-center hover:bg-forest/20 transition-colors flex items-center justify-center gap-1"
+                    >
+                      <Check size={10} strokeWidth={3} />
+                      Lihat Review
+                    </Link>
                   ) : (
                     <Link
                       href={`/review/tulis?shelf=${item.id}`}
