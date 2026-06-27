@@ -283,7 +283,7 @@ export default function ProfilClient({
               className="inline-flex items-center gap-1 text-xs text-amber mt-1 hover:text-amber-hover"
             >
               <ExternalLink size={11} strokeWidth={2} />
-              mulaibaca.my.id/u/{session.memberUsername}
+              mulaibaca.id/u/{session.memberUsername}
             </Link>
           )}
         </div>

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "Mulaibaca — Platform Membaca Keluarga",
   description:
     "Bangun kebiasaan membaca bersama keluarga. Track progres harian, tulis review buku, dan jadilah bagian dari gerakan literasi Indonesia.",
-  metadataBase: new URL("https://www.mulaibaca.my.id"),
+  metadataBase: new URL("https://mulaibaca.id"),
   openGraph: {
     type: "website",
     title: "Mulaibaca — Platform Membaca Keluarga",

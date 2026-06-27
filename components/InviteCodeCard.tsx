@@ -18,7 +18,7 @@ export default function InviteCodeCard({
   }
 
   async function handleShare() {
-    const text = `Yuk gabung ke ${familyName} di mulaibaca! Gunakan kode undangan: ${inviteCode.toUpperCase()} di https://mulaibaca.my.id/bergabung`;
+    const text = `Yuk gabung ke ${familyName} di mulaibaca! Gunakan kode undangan: ${inviteCode.toUpperCase()} di https://mulaibaca.id/bergabung`;
     if (navigator.share) {
       await navigator.share({ title: "Gabung mulaibaca", text });
     } else {
@@ -59,7 +59,7 @@ export default function InviteCodeCard({
       </button>
 
       <p className="text-xs text-white/50 text-center mt-3">
-        Mereka daftar di mulaibaca.my.id/bergabung
+        Mereka daftar di mulaibaca.id/bergabung
       </p>
     </section>
   );

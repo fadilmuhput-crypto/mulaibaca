@@ -149,6 +149,7 @@ export default function ShelfClient({
 
   async function markDone(id: string) {
     const item = shelf.find((i) => i.id === id);
+    const book = item?.books;
     const res = await fetch(`/api/shelf/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -157,8 +158,20 @@ export default function ShelfClient({
     if (res.ok) {
       const updated = await res.json();
       setShelf((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
-      setJustFinished({ id, title: item?.books?.title ?? "Buku" });
+      setJustFinished({ id, title: book?.title ?? "Buku" });
       setTab("done");
+
+      // Auto-log remaining pages so streak is captured
+      const totalPages = book?.total_pages ?? 0;
+      const currentPage = item?.current_page ?? 0;
+      const remaining = totalPages > currentPage ? totalPages - currentPage : 0;
+      if (remaining > 0) {
+        fetch("/api/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ shelfItemId: id, pagesRead: remaining, endPage: totalPages }),
+        });
+      }
     }
   }
 

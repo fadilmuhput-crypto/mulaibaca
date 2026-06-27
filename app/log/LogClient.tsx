@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Check, Flame, Target, AlertTriangle, Minus, Plus } from "lucide-react";
+import { BookOpen, Check, Flame, Target, AlertTriangle, X } from "lucide-react";
 import BookCover from "@/components/BookCover";
 
 type Book = {
@@ -78,7 +78,10 @@ export default function LogClient({
   const [selected, setSelected] = useState<ShelfItem | null>(
     shelf.length === 1 ? shelf[0] : null
   );
-  const [pages, setPages] = useState("");
+  const [fromPage, setFromPage] = useState(
+    shelf.length === 1 ? String(shelf[0].current_page ?? 0) : ""
+  );
+  const [toPage, setToPage] = useState("");
   const [duration, setDuration] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -95,17 +98,22 @@ export default function LogClient({
   const dailyMet = dailyGoal > 0 && todayPages >= dailyGoal;
   const streakAtRisk = streak.current_streak > 0 && todayLogs.length === 0;
 
-  function adjustPages(delta: number) {
-    const cur = parseInt(pages) || 0;
-    const next = Math.max(1, cur + delta);
-    setPages(String(next));
+  const fromNum = parseInt(fromPage) || 0;
+  const toNum = parseInt(toPage) || 0;
+  const pagesRead = toNum > fromNum ? toNum - fromNum : 0;
+  const isValid = selected && toNum > fromNum;
+
+  function selectBook(item: ShelfItem) {
+    setSelected(item);
+    setFromPage(String(item.current_page ?? 0));
+    setToPage("");
+    setError("");
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selected || !pages) return;
-    const pagesNum = parseInt(pages);
-    if (isNaN(pagesNum) || pagesNum < 1) { setError("Jumlah halaman tidak valid"); return; }
+    if (!isValid) return;
+    if (pagesRead < 1) { setError("Halaman akhir harus lebih besar dari halaman awal"); return; }
     setLoading(true);
     setError("");
     try {
@@ -113,8 +121,9 @@ export default function LogClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          shelfItemId: selected.id,
-          pagesRead: pagesNum,
+          shelfItemId: selected!.id,
+          pagesRead,
+          endPage: toNum,
           durationMinutes: duration ? parseInt(duration) : null,
           note: note.trim() || null,
         }),
@@ -123,12 +132,13 @@ export default function LogClient({
       if (!res.ok) throw new Error(data.error);
 
       if (data.streak) setStreak(data.streak);
-      setLastPages(pagesNum);
+      setLastPages(pagesRead);
       setCelebrated(true);
-      setPages("");
+      setFromPage(String(toNum));
+      setToPage("");
       setDuration("");
       setNote("");
-      setSelected(shelf.length === 1 ? shelf[0] : null);
+      if (shelf.length > 1) setSelected(null);
       router.refresh();
       setTimeout(() => setCelebrated(false), 3000);
     } catch (err) {
@@ -142,10 +152,7 @@ export default function LogClient({
     <div className="space-y-5">
 
       {/* ── STREAK HERO ── */}
-      <section
-        className="rounded-2xl p-5 bg-ink brutal-border brutal-shadow-sm"
-      >
-        {/* Streak + stats row */}
+      <section className="rounded-2xl p-5 bg-ink brutal-border brutal-shadow-sm">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-amber flex items-center justify-center brutal-shadow-xs">
@@ -172,26 +179,15 @@ export default function LogClient({
             const pages = pagesPerDay[date] ?? 0;
             const isToday = date === today;
             const hasRead = pages > 0;
-
             return (
               <div key={date} className="flex flex-col items-center gap-1.5">
-                <div
-                  className={`w-full aspect-square rounded-lg flex items-center justify-center transition-all ${
-                    hasRead
-                      ? isToday
-                        ? "bg-amber"
-                        : "bg-white/20"
-                      : isToday
-                      ? "bg-white/10 border border-dashed border-white/30"
-                      : "bg-white/5"
-                  }`}
-                >
+                <div className={`w-full aspect-square rounded-lg flex items-center justify-center transition-all ${
+                  hasRead
+                    ? isToday ? "bg-amber" : "bg-white/20"
+                    : isToday ? "bg-white/10 border border-dashed border-white/30" : "bg-white/5"
+                }`}>
                   {hasRead ? (
-                    <Check
-                      size={14}
-                      strokeWidth={3}
-                      className={isToday ? "text-white" : "text-white/60"}
-                    />
+                    <Check size={14} strokeWidth={3} className={isToday ? "text-white" : "text-white/60"} />
                   ) : isToday ? (
                     <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
                   ) : null}
@@ -217,9 +213,7 @@ export default function LogClient({
 
       {/* ── CELEBRATION ── */}
       {celebrated && (
-        <div
-          className="rounded-2xl p-4 text-center bg-forest brutal-border brutal-shadow-sm"
-        >
+        <div className="rounded-2xl p-4 text-center bg-forest brutal-border brutal-shadow-sm">
           <div className="text-3xl font-display font-black text-white mb-0.5">
             +{lastPages} halaman!
           </div>
@@ -270,38 +264,61 @@ export default function LogClient({
         <section className="space-y-3">
           <h2 className="text-h3">Catat sesi baca</h2>
 
-          {/* Book selector — skip if only 1 book */}
+          {/* ── BOOK SELECTOR ── */}
           {shelf.length > 1 && (
-            <div className="space-y-2">
-              {shelf.map((item) => {
-                const book = item.books;
-                if (!book) return null;
-                const isSelected = selected?.id === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setSelected(isSelected ? null : item)}
-                    className={`w-full flex gap-3 items-center p-3 rounded-xl border-[1.5px] transition-all text-left ${
-                      isSelected ? "border-amber bg-amber-soft" : "border-border bg-surface hover:border-amber/50"
-                    }`}
-                  >
-                    <BookCover src={book.cover_url} title={book.title} className="w-10 h-14 rounded-lg" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-ink truncate">{book.title}</p>
-                      {book.author && <p className="text-xs text-ink-muted truncate">{book.author}</p>}
-                      <p className="text-xs text-ink-muted mt-0.5">
-                        Hal {item.current_page ?? 0}{book.total_pages ? ` / ${book.total_pages}` : ""}
-                      </p>
-                    </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                      isSelected ? "border-amber bg-amber" : "border-border"
-                    }`}>
-                      {isSelected && <Check size={10} strokeWidth={3} className="text-white" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            selected ? (
+              /* Compact selected-book strip */
+              <div className="flex gap-3 items-center p-3 bg-amber-soft rounded-xl border-[1.5px] border-amber">
+                <BookCover
+                  src={selected.books?.cover_url ?? null}
+                  title={selected.books?.title ?? ""}
+                  className="w-10 h-14 rounded-lg flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-ink truncate">{selected.books?.title}</p>
+                  {selected.books?.author && (
+                    <p className="text-xs text-ink-muted truncate">{selected.books.author}</p>
+                  )}
+                  <p className="text-xs text-ink-muted mt-0.5">
+                    Hal {selected.current_page ?? 0}
+                    {selected.books?.total_pages ? ` / ${selected.books.total_pages}` : ""}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setSelected(null); setFromPage(""); setToPage(""); }}
+                  className="flex items-center gap-1 text-xs text-ink-muted hover:text-ink transition-colors min-h-[36px] px-2 flex-shrink-0"
+                >
+                  <X size={13} strokeWidth={2} />
+                  Ganti
+                </button>
+              </div>
+            ) : (
+              /* Full book list */
+              <div className="space-y-2">
+                {shelf.map((item) => {
+                  const book = item.books;
+                  if (!book) return null;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => selectBook(item)}
+                      className="w-full flex gap-3 items-center p-3 rounded-xl border-[1.5px] border-border bg-surface hover:border-amber/50 transition-all text-left"
+                    >
+                      <BookCover src={book.cover_url} title={book.title} className="w-10 h-14 rounded-lg" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-ink truncate">{book.title}</p>
+                        {book.author && <p className="text-xs text-ink-muted truncate">{book.author}</p>}
+                        <p className="text-xs text-ink-muted mt-0.5">
+                          Hal {item.current_page ?? 0}{book.total_pages ? ` / ${book.total_pages}` : ""}
+                        </p>
+                      </div>
+                      <div className="w-5 h-5 rounded-full border-2 border-border flex-shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            )
           )}
 
           {/* Single book — show context card */}
@@ -322,92 +339,93 @@ export default function LogClient({
             </div>
           )}
 
-          {/* Input form */}
+          {/* Input form — shown when a book is selected (or single book) */}
           {selected && (
             <form onSubmit={handleSubmit} className="bg-surface rounded-2xl brutal-border brutal-shadow-xs p-4 space-y-4">
 
-              {/* Pages — prominent with +/- */}
+              {/* Page range input */}
               <div>
                 <label className="input-label mb-3 block">
-                  Berapa halaman yang kamu baca? <span className="text-error">*</span>
+                  Sampai halaman berapa? <span className="text-error">*</span>
                 </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => adjustPages(-5)}
-                    className="w-11 h-11 rounded-xl brutal-border flex items-center justify-center text-ink-secondary hover:border-amber hover:text-amber transition-colors flex-shrink-0"
-                  >
-                    <Minus size={16} strokeWidth={2.5} />
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    min={1}
-                    value={pages}
-                    onChange={(e) => setPages(e.target.value.replace(/[^0-9]/g, ""))}
-                    placeholder="0"
-                    className="flex-1 min-w-0 text-center text-2xl sm:text-3xl font-display font-black text-ink bg-parchment brutal-border rounded-xl py-3 focus:outline-none focus:border-ink focus:shadow-[1px_1px_0_var(--color-ink)]"
-                    autoFocus={shelf.length === 1}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => adjustPages(5)}
-                    className="w-11 h-11 rounded-xl brutal-border flex items-center justify-center text-ink-secondary hover:border-amber hover:text-amber transition-colors flex-shrink-0"
-                  >
-                    <Plus size={16} strokeWidth={2.5} />
-                  </button>
+                <div className="flex items-center gap-3">
+                  {/* From page */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-ink-muted mb-1 text-center">Dari hal</p>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={fromPage}
+                      onChange={(e) => setFromPage(e.target.value.replace(/[^0-9]/g, ""))}
+                      className="w-full text-center text-xl font-display font-black text-ink-muted bg-parchment brutal-border rounded-xl py-3 focus:outline-none focus:border-ink"
+                    />
+                  </div>
+
+                  {/* Pages read badge */}
+                  <div className="flex flex-col items-center flex-shrink-0 px-1">
+                    <div className={`text-lg font-display font-black transition-colors ${pagesRead > 0 ? "text-amber" : "text-border"}`}>
+                      +{pagesRead}
+                    </div>
+                    <div className="text-[9px] text-ink-muted">hal</div>
+                  </div>
+
+                  {/* To page */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-ink-muted mb-1 text-center">Sampai hal</p>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={toPage}
+                      onChange={(e) => setToPage(e.target.value.replace(/[^0-9]/g, ""))}
+                      placeholder={selected.books?.total_pages ? String(selected.books.total_pages) : "—"}
+                      className="w-full text-center text-xl font-display font-black text-ink bg-parchment brutal-border rounded-xl py-3 focus:outline-none focus:border-ink focus:shadow-[1px_1px_0_var(--color-ink)]"
+                      autoFocus
+                    />
+                  </div>
                 </div>
-                {/* Quick amounts */}
-                <div className="flex gap-2 mt-3">
-                  {[10, 20, 30, 50].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setPages(String(n))}
-                      className={`flex-1 min-h-[36px] rounded-lg text-xs font-semibold transition-all ${
-                        pages === String(n)
-                          ? "bg-amber text-white brutal-border"
-                          : "border border-border text-ink-secondary hover:border-amber/50 hover:text-amber"
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
+
+                {/* Validation hint */}
+                {toPage && toNum <= fromNum && (
+                  <p className="text-xs text-error mt-2 text-center">Halaman akhir harus lebih besar dari halaman awal</p>
+                )}
               </div>
 
-              {/* Duration + note in a compact row */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="input-label mb-1 block">Durasi (menit)</label>
-                  <input
-                    type="text" inputMode="numeric" pattern="[0-9]*"
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value.replace(/[^0-9]/g, ""))}
-                    placeholder="cth: 30"
-                    className="input text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="input-label mb-1 block">Catatan</label>
-                  <input
-                    type="text" value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="Kesan hari ini…"
-                    className="input text-sm"
-                  />
-                </div>
+              {/* Duration */}
+              <div>
+                <label className="input-label mb-1 block">Durasi membaca <span className="text-ink-muted font-normal">(opsional)</span></label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="Berapa menit?"
+                  className="input text-sm"
+                />
+              </div>
+
+              {/* Notes — proper textarea */}
+              <div>
+                <label className="input-label mb-1 block">Catatan <span className="text-ink-muted font-normal">(opsional)</span></label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Kutipan favorit, poin penting, atau kesan hari ini…"
+                  rows={3}
+                  className="input text-sm resize-none"
+                />
               </div>
 
               {error && <p className="text-error text-xs text-center bg-error-soft rounded-xl px-3 py-2">{error}</p>}
 
               <button
                 type="submit"
-                disabled={loading || !pages}
+                disabled={loading || !isValid}
                 className="btn-primary-full-lg"
               >
-                {loading ? "Menyimpan…" : "Catat Bacaan"}
+                {loading ? "Menyimpan…" : `Catat ${pagesRead > 0 ? `+${pagesRead} halaman` : "Bacaan"}`}
               </button>
             </form>
           )}
@@ -427,11 +445,13 @@ export default function LogClient({
             {todayLogs.map((log) => {
               const book = log.shelf_items?.books;
               return (
-                <div key={log.id} className="flex gap-3 items-center bg-surface rounded-xl brutal-border p-3">
-                  <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-8 h-11 rounded-lg" />
+                <div key={log.id} className="flex gap-3 items-start bg-surface rounded-xl brutal-border p-3">
+                  <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-8 h-11 rounded-lg flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-ink truncate">{book?.title ?? "Buku"}</p>
-                    {log.note && <p className="text-xs text-ink-muted truncate">{log.note}</p>}
+                    {log.note && (
+                      <p className="text-xs text-ink-secondary mt-1 leading-relaxed">{log.note}</p>
+                    )}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-bold text-amber">+{log.pages_read} hal</p>

@@ -343,7 +343,7 @@ export default function LandingPage() {
       <footer style={{ borderTop: `2px solid ${INK}`, padding: "2.5rem 0" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "6px", padding: "0 1.25rem", textAlign: "center" as const }}>
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.125rem", color: INK, letterSpacing: "-0.025em" }}>mulaibaca</span>
-          <p style={{ fontSize: "0.75rem", color: "#7A8E83" }}>Platform membaca keluarga Indonesia · mulaibaca.my.id</p>
+          <p style={{ fontSize: "0.75rem", color: "#7A8E83" }}>Platform membaca keluarga Indonesia · mulaibaca.id</p>
           <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>© 2026 Mulaibaca</p>
         </div>
       </footer>

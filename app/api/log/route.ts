@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { dataClient: supabase, memberId } = auth;
 
-  const { shelfItemId, pagesRead, durationMinutes, note, logDate } = await req.json();
+  const { shelfItemId, pagesRead, durationMinutes, note, logDate, endPage } = await req.json();
 
   if (!shelfItemId || pagesRead == null) {
     return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
@@ -83,9 +83,10 @@ export async function POST(req: NextRequest) {
   const { data: shelf } = await supabase
     .from("shelf_items").select("current_page").eq("id", shelfItemId).single();
   if (shelf) {
+    const newPage = endPage != null ? endPage : (shelf.current_page ?? 0) + pagesRead;
     await supabase
       .from("shelf_items")
-      .update({ current_page: (shelf.current_page ?? 0) + pagesRead })
+      .update({ current_page: newPage })
       .eq("id", shelfItemId);
   }
 
