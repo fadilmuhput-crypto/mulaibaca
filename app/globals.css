@@ -318,4 +318,31 @@
 .section-link   { font-size: 0.8rem; font-weight: 600; color: var(--color-amber); text-decoration: none; }
 .section-link:hover { color: var(--color-amber-hover); }
 
+/* ━━━ BRUTAL BORDER/SHADOW UTILITIES (no bg/radius override) ━━━ */
+.brutal-border    { border: 1.5px solid var(--color-ink); }
+.brutal-shadow-xs { box-shadow: var(--shadow-brutal-xs); }
+.brutal-shadow-sm { box-shadow: var(--shadow-brutal-sm); }
+.brutal-shadow    { box-shadow: var(--shadow-brutal); }
+.brutal-shadow-lg { box-shadow: var(--shadow-brutal-lg); }
+
+/* ━━━ NAV ACTIVE STATE ━━━ */
+.nav-active { border: 1.5px solid var(--color-ink) !important; box-shadow: 1px 1px 0 var(--color-ink); }
+
+/* ━━━ SCROLL FADE RIGHT (shows more content indicator) ━━━ */
+.scroll-fade-wrap { position: relative; }
+.scroll-fade-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  background: linear-gradient(to right, transparent, var(--color-parchment));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ━━━ SAFE AREA (iOS notch / gesture bar) ━━━ */
+.pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+
 } /* end @layer components */

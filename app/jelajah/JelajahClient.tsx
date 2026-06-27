@@ -352,7 +352,7 @@ export default function JelajahClient({
             {familyBooks.length > 0 && (
               <section>
                 <SectionLabel>Sedang dibaca keluarga</SectionLabel>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
                   {familyBooks.map((fb, i) => (
                     <div key={i} className="flex-shrink-0 w-24">
                       <BookCover src={fb.coverUrl} title={fb.title} className="w-full h-[88px] rounded-xl mb-1.5" />
@@ -397,7 +397,7 @@ export default function JelajahClient({
                   )}
 
                   {/* Age group tabs */}
-                  <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-fade-wrap">
                     {AGE_GROUPS.map((g) => {
                       const count = anakBooks.filter((b) => b.tags.some((t) => g.matchTags.includes(t))).length;
                       const isActive = activeAgeGroup === g.key;
@@ -475,7 +475,7 @@ export default function JelajahClient({
               </div>
 
               {/* Category filter */}
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-fade-wrap">
                 {CATEGORY_TREE.map((cat) => {
                   const count = countBooksInCategory(augmented, cat.matchTags);
                   const isActive = activeParent === cat.key;
@@ -504,7 +504,7 @@ export default function JelajahClient({
 
               {/* Level 2 — sub-categories */}
               {activeParent && (
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1 pb-2 -mx-4 px-4">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1 pb-2 -mx-4 px-4 scroll-fade-wrap">
                   {activeParentNode?.children.map((sub) => {
                     const count = countBooksInCategory(augmented, sub.matchTags);
                     const isActive = activeSub === sub.key;
@@ -698,7 +698,7 @@ function GridHSection({
       {section.subtitle && <p className="text-xs text-ink-muted -mt-2 mb-3">{section.subtitle}</p>}
       {!expanded ? (
         <>
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
             {books.map((b) => (
               <div key={b.id} className="flex-shrink-0 w-24">
                 <BookCover src={b.cover_url} title={b.title} className="w-full h-[88px] rounded-xl mb-1.5" />

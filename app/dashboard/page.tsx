@@ -73,7 +73,7 @@ export default async function DashboardPage() {
             <h1 className="text-h1">Halo, {session.memberName}!</h1>
             <p className="text-ink-secondary text-sm mt-0.5">{session.familyName}</p>
           </div>
-          <div className="text-center bg-surface rounded-xl px-4 py-2" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}>
+          <div className="text-center bg-surface rounded-xl px-4 py-2 brutal-border brutal-shadow-sm">
             <div className="flex justify-center text-amber mb-0.5"><Flame size={22} strokeWidth={1.75} /></div>
             <div className="font-display text-2xl font-black text-ink leading-none">{currentStreak}</div>
             <div className="text-xs text-ink-muted mt-0.5 font-semibold">hari</div>
@@ -84,16 +84,14 @@ export default async function DashboardPage() {
         <section className="grid grid-cols-2 gap-3">
           <Link
             href="/jelajah"
-            className="bg-forest text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card"
-            style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}
+            className="bg-forest text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card brutal-border brutal-shadow-sm"
           >
             <Plus size={22} strokeWidth={2} />
             <span className="font-semibold text-sm">Tambah Buku</span>
           </Link>
           <Link
             href="/log"
-            className="bg-amber text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card"
-            style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}
+            className="bg-amber text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card brutal-border brutal-shadow-sm"
           >
             <PenLine size={22} strokeWidth={1.75} />
             <span className="font-semibold text-sm">Catat Bacaan</span>
@@ -108,7 +106,7 @@ export default async function DashboardPage() {
               const pct = Math.min(Math.round((weeklyPagesRead / goal) * 100), 100);
               const met = weeklyPagesRead >= goal;
               return (
-                <Link href="/profil" className="block bg-surface rounded-2xl p-4" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-xs)" }}>
+                <Link href="/profil" className="block bg-surface rounded-2xl p-4 brutal-border brutal-shadow-xs">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Target size={16} strokeWidth={1.75} className={met ? "text-forest" : "text-amber"} />
@@ -245,8 +243,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-2 gap-3">
               <Link
                 href="/admin/buku"
-                className="bg-surface rounded-xl border border-border p-4 flex flex-col gap-2 hover:border-forest/40 hover:bg-forest/5 transition-all"
-                style={{ boxShadow: "var(--shadow-brutal-xs)" }}
+                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-forest/40 hover:bg-forest/5 transition-all"
               >
                 <BookMarked size={20} strokeWidth={1.75} className="text-forest" />
                 <div>
@@ -256,8 +253,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/admin/perpustakaan"
-                className="bg-surface rounded-xl border border-border p-4 flex flex-col gap-2 hover:border-amber/40 hover:bg-amber-soft/40 transition-all"
-                style={{ boxShadow: "var(--shadow-brutal-xs)" }}
+                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-amber/40 hover:bg-amber-soft/40 transition-all"
               >
                 <Library size={20} strokeWidth={1.75} className="text-amber" />
                 <div>
@@ -267,8 +263,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/admin/jelajah"
-                className="bg-surface rounded-xl border border-border p-4 flex flex-col gap-2 hover:border-[#2D4D7A]/40 hover:bg-[#EBF0F8]/40 transition-all col-span-2"
-                style={{ boxShadow: "var(--shadow-brutal-xs)" }}
+                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-[#2D4D7A]/40 hover:bg-[#EBF0F8]/40 transition-all col-span-2"
               >
                 <LayoutGrid size={20} strokeWidth={1.75} className="text-[#2D4D7A]" />
                 <div>

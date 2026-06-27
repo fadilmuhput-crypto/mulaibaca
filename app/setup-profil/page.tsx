@@ -44,22 +44,24 @@ export default function SetupProfilPage() {
 
   if (!mode) {
     return (
-      <div className="min-h-screen bg-parchment flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
-          <p className="mt-2 text-ink-secondary text-sm mb-8">Satu langkah lagi untuk mulai</p>
+      <div className="min-h-dvh bg-parchment flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <Link href="/" className="font-display font-black text-h1 text-forest">mulaibaca</Link>
+            <p className="mt-2 text-ink-secondary text-sm">Satu langkah lagi untuk mulai</p>
+          </div>
           <div className="space-y-3">
             <button
               onClick={() => setMode("new")}
-              className="w-full py-4 rounded-2xl bg-forest text-white font-medium hover:bg-forest-dark transition-colors flex items-center justify-center gap-2"
+              className="btn-primary-full-lg flex items-center justify-center gap-2"
             >
               <Home size={18} strokeWidth={2} /> Buat ruang keluarga baru
             </button>
             <button
               onClick={() => setMode("join")}
-              className="w-full py-4 rounded-2xl border-2 border-border bg-surface text-ink font-medium hover:border-amber/50 transition-all flex items-center justify-center gap-2"
+              className="btn-secondary-full flex items-center justify-center gap-2"
             >
-              <LinkIcon size={18} strokeWidth={2} /> Bergabung ke keluarga (punya kode undangan)
+              <LinkIcon size={18} strokeWidth={2} /> Punya kode undangan? Bergabung
             </button>
           </div>
         </div>
@@ -68,29 +70,29 @@ export default function SetupProfilPage() {
   }
 
   return (
-    <div className="min-h-screen bg-parchment flex items-center justify-center px-4 py-8">
+    <div className="min-h-dvh bg-parchment flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
+          <Link href="/" className="font-display font-black text-h1 text-forest">mulaibaca</Link>
         </div>
-        <div className="bg-surface rounded-2xl border border-border p-8 shadow-sm">
-          <h1 className="text-xl font-display font-semibold text-ink mb-1">
+        <div className="card-elevated p-8">
+          <h1 className="text-h2 mb-6">
             {mode === "new" ? "Buat ruang keluarga" : "Bergabung ke keluarga"}
           </h1>
-          <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="text-sm font-medium text-ink-secondary mb-2 block">Avatar</label>
-              <div className="grid grid-cols-6 gap-2">
+              <label className="input-label">Avatar</label>
+              <div className="grid grid-cols-6 gap-2 mt-2">
                 {AVATAR_OPTIONS.map(({ key, label, Icon }) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setAvatar(key)}
                     title={label}
-                    className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all ${
+                    className={`w-full aspect-square rounded-lg flex items-center justify-center transition-all ${
                       avatar === key
-                        ? "border-amber bg-amber-soft text-amber scale-110"
-                        : "border-border bg-parchment text-ink-secondary hover:border-amber/40 hover:text-amber"
+                        ? "bg-amber-soft text-amber brutal-border scale-105"
+                        : "border border-border bg-parchment text-ink-secondary hover:border-amber/50 hover:text-amber"
                     }`}
                     aria-label={label}
                     aria-pressed={avatar === key}
@@ -100,24 +102,63 @@ export default function SetupProfilPage() {
                 ))}
               </div>
             </div>
-            <input type="text" placeholder="Nama kamu" value={memberName}
-              onChange={(e) => setMemberName(e.target.value)} autoFocus
-              className="w-full px-4 py-3 rounded-xl border border-border bg-panchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber" />
+
+            <div>
+              <label htmlFor="memberName" className="input-label">Nama kamu <span className="text-error">*</span></label>
+              <input
+                id="memberName"
+                type="text"
+                placeholder="cth: Ayah Budi"
+                value={memberName}
+                onChange={(e) => setMemberName(e.target.value)}
+                autoFocus
+                className="input mt-1"
+              />
+            </div>
+
             {mode === "new" ? (
-              <input type="text" placeholder="Nama keluarga" value={familyName}
-                onChange={(e) => setFamilyName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber" />
+              <div>
+                <label htmlFor="familyName" className="input-label">Nama keluarga <span className="text-error">*</span></label>
+                <input
+                  id="familyName"
+                  type="text"
+                  placeholder="cth: Keluarga Budi"
+                  value={familyName}
+                  onChange={(e) => setFamilyName(e.target.value)}
+                  className="input mt-1"
+                />
+              </div>
             ) : (
-              <input type="text" placeholder="Kode undangan" value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value.toLowerCase())} maxLength={8}
-                className="w-full px-4 py-3 rounded-xl border border-border bg-parchment text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber font-mono text-center tracking-widest uppercase" />
+              <div>
+                <label htmlFor="inviteCode" className="input-label">Kode undangan <span className="text-error">*</span></label>
+                <input
+                  id="inviteCode"
+                  type="text"
+                  placeholder="Masukkan kode"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toLowerCase())}
+                  maxLength={8}
+                  className="input mt-1 font-mono text-center tracking-[0.3em] uppercase"
+                />
+              </div>
             )}
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            <button type="submit" disabled={loading || !memberName.trim()}
-              className="w-full py-3 rounded-xl bg-amber text-white font-medium hover:bg-amber-hover transition-colors disabled:opacity-40">
-              {loading ? "Menyimpan…" : "Selesai"}
+
+            {error && <p className="input-error-msg text-center bg-error-soft rounded-xl px-3 py-2">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading || !memberName.trim()}
+              className="btn-primary-full-lg"
+            >
+              {loading ? "Menyimpan…" : "Selesai →"}
             </button>
-            <button type="button" onClick={() => setMode(null)} className="w-full py-2 text-sm text-ink-muted hover:text-ink">Kembali</button>
+            <button
+              type="button"
+              onClick={() => setMode(null)}
+              className="btn-ghost-ink w-full text-sm"
+            >
+              ← Kembali
+            </button>
           </form>
         </div>
       </div>

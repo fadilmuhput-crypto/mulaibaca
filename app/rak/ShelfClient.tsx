@@ -227,7 +227,7 @@ export default function ShelfClient({
 
       {/* Just finished banner */}
       {justFinished && tab === "done" && (
-        <div className="bg-forest rounded-2xl p-4 mb-4 flex items-start gap-3" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}>
+        <div className="bg-forest rounded-2xl p-4 mb-4 flex items-start gap-3 brutal-border brutal-shadow-sm">
           <Sparkles size={20} strokeWidth={1.75} className="text-white/80 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white">
@@ -277,7 +277,7 @@ export default function ShelfClient({
             const url = bookUrl(book);
 
             return (
-              <div key={item.id} className="bg-surface rounded-2xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-brutal-xs)" }}>
+              <div key={item.id} className="bg-surface rounded-2xl brutal-border brutal-shadow-xs overflow-hidden">
                 <div className="h-1 bg-parchment">
                   <div
                     className="h-full transition-all rounded-r-full"
@@ -373,7 +373,7 @@ export default function ShelfClient({
       {/* ── MAU BACA tab ── */}
       {tab === "want" && filtered.length > 0 && (
         <div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {filtered.map((item) => {
               const book = item.books;
               if (!book) return null;
@@ -386,8 +386,9 @@ export default function ShelfClient({
                     </Link>
                     <button
                       onClick={() => removeFromShelf(item.id)}
-                      className="absolute top-1 right-1 w-6 h-6 bg-ink/60 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Hapus"
+                      className="absolute top-1 right-1 w-7 h-7 bg-ink/60 text-white rounded-full text-xs flex items-center justify-center opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                      title="Hapus dari rak"
+                      aria-label="Hapus dari rak"
                     >
                       ×
                     </button>
@@ -442,7 +443,7 @@ export default function ShelfClient({
                     <div className="flex gap-1 mt-auto">
                       <Link
                         href={`/review/${review.slug}`}
-                        className="flex-1 py-1 rounded-lg bg-forest/10 text-[10px] font-semibold text-forest text-center hover:bg-forest/20 transition-colors flex items-center justify-center gap-1"
+                        className="flex-1 min-h-[36px] rounded-lg bg-forest/10 text-[10px] font-semibold text-forest text-center hover:bg-forest/20 transition-colors flex items-center justify-center gap-1"
                       >
                         <Check size={9} strokeWidth={3} />
                         Review
@@ -451,7 +452,7 @@ export default function ShelfClient({
                         onClick={() => toggleVisibility(review)}
                         disabled={togglingSlug === review.slug}
                         title={`Visibilitas: ${vis} — klik untuk ganti`}
-                        className={`flex items-center gap-1 px-1.5 py-1 rounded-lg border text-[10px] font-semibold transition-colors disabled:opacity-40 ${
+                        className={`flex items-center gap-1 min-h-[36px] px-2 rounded-lg border text-[10px] font-semibold transition-colors disabled:opacity-40 ${
                           vis === "public"
                             ? "border-forest/30 text-forest bg-forest/5 hover:bg-forest/15"
                             : vis === "anonymous"

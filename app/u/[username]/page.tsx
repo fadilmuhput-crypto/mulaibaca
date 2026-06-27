@@ -126,19 +126,19 @@ export default async function PublicProfilePage({
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-surface rounded-xl p-3 text-center border border-border">
+          <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
             <BookCheck size={15} strokeWidth={1.75} className="text-forest mx-auto mb-1" />
             <div className="font-display text-xl font-black text-ink">{booksFinished}</div>
             <div className="text-[10px] text-ink-muted font-medium">Selesai</div>
           </div>
-          <div className="bg-surface rounded-xl p-3 text-center border border-border">
+          <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
             <BookText size={15} strokeWidth={1.75} className="text-amber mx-auto mb-1" />
             <div className="font-display text-xl font-black text-ink">
               {totalPages >= 1000 ? `${(totalPages / 1000).toFixed(1)}k` : totalPages}
             </div>
             <div className="text-[10px] text-ink-muted font-medium">Halaman</div>
           </div>
-          <div className="bg-surface rounded-xl p-3 text-center border border-border">
+          <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
             <Flame size={15} strokeWidth={1.75} className="text-amber mx-auto mb-1" />
             <div className="font-display text-xl font-black text-ink">{longestStreak}</div>
             <div className="text-[10px] text-ink-muted font-medium">Streak</div>
@@ -148,7 +148,7 @@ export default async function PublicProfilePage({
         {/* Sedang dibaca */}
         {(readingShelf ?? []).length > 0 && (
           <section>
-            <h2 className="text-[11px] font-black text-ink-muted uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+            <h2 className="text-overline mb-3 flex items-center gap-1.5">
               <BookOpen size={12} strokeWidth={2.5} className="text-amber" />
               Sedang dibaca
             </h2>
@@ -170,7 +170,7 @@ export default async function PublicProfilePage({
         {/* Selesai dibaca */}
         {(doneShelf ?? []).length > 0 && (
           <section>
-            <h2 className="text-[11px] font-black text-ink-muted uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+            <h2 className="text-overline mb-3 flex items-center gap-1.5">
               <BookCheck size={12} strokeWidth={2.5} className="text-forest" />
               Sudah selesai ({booksFinished})
             </h2>
@@ -191,7 +191,7 @@ export default async function PublicProfilePage({
         {/* Mau dibaca */}
         {(wantShelf ?? []).length > 0 && (
           <section>
-            <h2 className="text-[11px] font-black text-ink-muted uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+            <h2 className="text-overline mb-3 flex items-center gap-1.5">
               <Bookmark size={12} strokeWidth={2.5} className="text-ink-muted" />
               Ingin dibaca
             </h2>
@@ -212,7 +212,7 @@ export default async function PublicProfilePage({
         {/* Reviews */}
         {(reviews ?? []).length > 0 ? (
           <section>
-            <h2 className="text-[11px] font-black text-ink-muted uppercase tracking-[0.12em] mb-3">
+            <h2 className="text-overline mb-3">
               Review buku ({reviews?.length})
             </h2>
             <div className="grid grid-cols-2 gap-3">
@@ -254,12 +254,15 @@ export default async function PublicProfilePage({
           </section>
         ) : (
           <div className="text-center py-8">
+            <div className="flex justify-center mb-3 text-ink-muted">
+              <Star size={32} strokeWidth={1.25} />
+            </div>
             <p className="text-sm text-ink-muted">Belum ada review publik.</p>
           </div>
         )}
 
         {/* CTA */}
-        <div className="bg-forest rounded-2xl p-6 text-center" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}>
+        <div className="bg-forest rounded-2xl p-6 text-center brutal-border brutal-shadow-sm">
           <p className="text-white font-display font-bold text-lg mb-1">Yuk baca bareng keluarga!</p>
           <p className="text-white/70 text-sm mb-4">Track progress, tulis review, jaga streak baca harian</p>
           <Link href="/daftar" className="bg-white text-forest text-sm font-bold px-6 py-2.5 rounded-lg inline-flex hover:bg-parchment transition-colors">

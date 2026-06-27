@@ -79,7 +79,12 @@ function MasukForm() {
                 />
               </div>
               <div>
-                <label htmlFor="password" className="input-label">Password</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="password" className="input-label mb-0">Password</label>
+                  <Link href="/lupa-password" className="text-xs text-amber hover:text-amber-hover font-medium">
+                    Lupa password?
+                  </Link>
+                </div>
                 <input
                   id="password"
                   type="password"

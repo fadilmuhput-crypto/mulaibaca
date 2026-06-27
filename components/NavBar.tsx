@@ -101,7 +101,7 @@ export default function NavBar({ session }: { session: Session }) {
     <>
       {session.isAnonymous && <GuestBanner />}
       {session.actingAs && (
-        <div className="bg-amber px-4 py-2 flex items-center justify-between" style={{ borderBottom: "1.5px solid var(--color-ink)" }}>
+        <div className="bg-amber px-4 py-2 flex items-center justify-between border-b-2 border-ink">
           <p className="text-sm font-semibold text-white">
             Mengelola sebagai <strong>{session.memberName}</strong>
           </p>
@@ -129,10 +129,9 @@ export default function NavBar({ session }: { session: Session }) {
                 href={href}
                 className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors rounded-sm ${
                   active
-                    ? "bg-amber text-white"
+                    ? "bg-amber text-white nav-active"
                     : "text-ink-secondary hover:text-ink hover:bg-cream"
                 }`}
-              style={active ? { border: "1.5px solid #0C0C0A", boxShadow: "1px 1px 0 #0C0C0A" } : {}}
               >
                 <Icon active={active} />
                 {label}
@@ -163,8 +162,7 @@ export default function NavBar({ session }: { session: Session }) {
 
           {open && (
             <div
-              className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-2xl border border-border overflow-hidden z-30"
-              style={{ boxShadow: "var(--shadow-dropdown)" }}
+              className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-2xl border border-border overflow-hidden z-30 brutal-shadow"
             >
               {/* User info */}
               <div className="px-4 py-3 border-b border-border bg-parchment/60">
@@ -234,7 +232,7 @@ export default function NavBar({ session }: { session: Session }) {
 
       {/* ── Bottom nav (mobile) ──────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-20 sm:hidden">
-        <div className="flex">
+        <div className="flex pb-safe">
           {NAV.map(({ href, label, Icon }) => {
             const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
             return (

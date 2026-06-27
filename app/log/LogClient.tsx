@@ -143,13 +143,12 @@ export default function LogClient({
 
       {/* ── STREAK HERO ── */}
       <section
-        className="rounded-2xl p-5"
-        style={{ background: "var(--color-ink)", border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}
+        className="rounded-2xl p-5 bg-ink brutal-border brutal-shadow-sm"
       >
         {/* Streak + stats row */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-amber flex items-center justify-center" style={{ boxShadow: "var(--shadow-brutal-xs)" }}>
+            <div className="w-12 h-12 rounded-xl bg-amber flex items-center justify-center brutal-shadow-xs">
               <Flame size={26} strokeWidth={1.75} className="text-white" />
             </div>
             <div>
@@ -219,8 +218,7 @@ export default function LogClient({
       {/* ── CELEBRATION ── */}
       {celebrated && (
         <div
-          className="rounded-2xl p-4 text-center"
-          style={{ background: "var(--color-forest)", border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-sm)" }}
+          className="rounded-2xl p-4 text-center bg-forest brutal-border brutal-shadow-sm"
         >
           <div className="text-3xl font-display font-black text-white mb-0.5">
             +{lastPages} halaman!
@@ -237,8 +235,7 @@ export default function LogClient({
       {dailyGoal > 0 && !celebrated && (
         <Link
           href="/profil"
-          className="flex items-center gap-3 bg-surface rounded-2xl border border-border px-4 py-3"
-          style={{ boxShadow: "var(--shadow-brutal-xs)" }}
+          className="flex items-center gap-3 bg-surface rounded-2xl brutal-border brutal-shadow-xs px-4 py-3"
         >
           <Target size={18} strokeWidth={1.75} className={dailyMet ? "text-forest flex-shrink-0" : "text-amber flex-shrink-0"} />
           <div className="flex-1 min-w-0">
@@ -327,7 +324,7 @@ export default function LogClient({
 
           {/* Input form */}
           {selected && (
-            <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border p-4 space-y-4" style={{ boxShadow: "var(--shadow-brutal-xs)" }}>
+            <form onSubmit={handleSubmit} className="bg-surface rounded-2xl brutal-border brutal-shadow-xs p-4 space-y-4">
 
               {/* Pages — prominent with +/- */}
               <div>
