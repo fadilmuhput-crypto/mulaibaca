@@ -207,6 +207,37 @@ export default async function BookDetailPage({
     }
   }
 
+  // Try Supabase database (manual / locally-added books)
+  if (!book) {
+    const supabase = createAdminClient();
+    const approxTitle = id.replace(/-/g, " ");
+    const { data: dbBooks } = await supabase
+      .from("books")
+      .select("title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description")
+      .ilike("title", `%${approxTitle}%`)
+      .limit(20);
+
+    const matched = (dbBooks ?? []).find(
+      (b: { title: string }) => toSlug(b.title) === id
+    );
+    if (matched) {
+      book = {
+        title: matched.title as string,
+        author: matched.author as string | null,
+        cover_url: matched.cover_url as string | null,
+        open_library_id: matched.open_library_id as string | null,
+        total_pages: matched.total_pages as number | null,
+        description: matched.description as string | null,
+        subjects: [],
+        year: null,
+        isbn: matched.isbn as string | null,
+        publisher: matched.publisher as string | null,
+        published_year: matched.published_year as number | null,
+        language: (matched.language as string) ?? "id",
+      };
+    }
+  }
+
   if (!book) notFound();
 
   const [reviews] = await Promise.all([

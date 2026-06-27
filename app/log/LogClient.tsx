@@ -268,7 +268,7 @@ export default function LogClient({
         </div>
       ) : (
         <section className="space-y-3">
-          <h2 className="font-display font-bold text-ink text-lg">Catat sesi baca</h2>
+          <h2 className="text-h3">Catat sesi baca</h2>
 
           {/* Book selector — skip if only 1 book */}
           {shelf.length > 1 && (
@@ -281,7 +281,7 @@ export default function LogClient({
                   <button
                     key={item.id}
                     onClick={() => setSelected(isSelected ? null : item)}
-                    className={`w-full flex gap-3 items-center p-3 rounded-xl border-2 transition-all text-left ${
+                    className={`w-full flex gap-3 items-center p-3 rounded-xl border-[1.5px] transition-all text-left ${
                       isSelected ? "border-amber bg-amber-soft" : "border-border bg-surface hover:border-amber/50"
                     }`}
                   >
@@ -306,7 +306,7 @@ export default function LogClient({
 
           {/* Single book — show context card */}
           {shelf.length === 1 && shelf[0].books && (
-            <div className="flex gap-3 items-center bg-surface rounded-xl border border-border p-3">
+            <div className="flex gap-3 items-center bg-surface rounded-xl brutal-border p-3">
               <Link href={bookUrl(shelf[0].books)} className="flex-shrink-0">
                 <BookCover src={shelf[0].books.cover_url} title={shelf[0].books.title} className="w-10 h-14 rounded-lg" />
               </Link>
@@ -328,45 +328,47 @@ export default function LogClient({
 
               {/* Pages — prominent with +/- */}
               <div>
-                <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider block mb-2">
-                  Berapa halaman yang kamu baca? *
+                <label className="input-label mb-3 block">
+                  Berapa halaman yang kamu baca? <span className="text-error">*</span>
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => adjustPages(-5)}
-                    className="w-11 h-11 rounded-xl border border-border flex items-center justify-center text-ink-secondary hover:border-amber/60 hover:text-amber transition-colors"
+                    className="w-11 h-11 rounded-xl brutal-border flex items-center justify-center text-ink-secondary hover:border-amber hover:text-amber transition-colors flex-shrink-0"
                   >
                     <Minus size={16} strokeWidth={2.5} />
                   </button>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     min={1}
                     value={pages}
-                    onChange={(e) => setPages(e.target.value)}
+                    onChange={(e) => setPages(e.target.value.replace(/[^0-9]/g, ""))}
                     placeholder="0"
-                    className="flex-1 text-center text-3xl font-display font-black text-ink bg-parchment border border-border rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber"
+                    className="flex-1 min-w-0 text-center text-2xl sm:text-3xl font-display font-black text-ink bg-parchment brutal-border rounded-xl py-3 focus:outline-none focus:border-ink focus:shadow-[1px_1px_0_var(--color-ink)]"
                     autoFocus={shelf.length === 1}
                   />
                   <button
                     type="button"
                     onClick={() => adjustPages(5)}
-                    className="w-11 h-11 rounded-xl border border-border flex items-center justify-center text-ink-secondary hover:border-amber/60 hover:text-amber transition-colors"
+                    className="w-11 h-11 rounded-xl brutal-border flex items-center justify-center text-ink-secondary hover:border-amber hover:text-amber transition-colors flex-shrink-0"
                   >
                     <Plus size={16} strokeWidth={2.5} />
                   </button>
                 </div>
                 {/* Quick amounts */}
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-3">
                   {[10, 20, 30, 50].map((n) => (
                     <button
                       key={n}
                       type="button"
                       onClick={() => setPages(String(n))}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                      className={`flex-1 min-h-[36px] rounded-lg text-xs font-semibold transition-all ${
                         pages === String(n)
-                          ? "bg-amber text-white border-amber"
-                          : "border-border text-ink-secondary hover:border-amber/50"
+                          ? "bg-amber text-white brutal-border"
+                          : "border border-border text-ink-secondary hover:border-amber/50 hover:text-amber"
                       }`}
                     >
                       {n}
@@ -378,16 +380,17 @@ export default function LogClient({
               {/* Duration + note in a compact row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-ink-muted mb-1 block">Durasi (menit)</label>
+                  <label className="input-label mb-1 block">Durasi (menit)</label>
                   <input
-                    type="number" min={1} value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
+                    type="text" inputMode="numeric" pattern="[0-9]*"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value.replace(/[^0-9]/g, ""))}
                     placeholder="cth: 30"
                     className="input text-sm"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-ink-muted mb-1 block">Catatan</label>
+                  <label className="input-label mb-1 block">Catatan</label>
                   <input
                     type="text" value={note}
                     onChange={(e) => setNote(e.target.value)}
@@ -424,7 +427,7 @@ export default function LogClient({
             {todayLogs.map((log) => {
               const book = log.shelf_items?.books;
               return (
-                <div key={log.id} className="flex gap-3 items-center bg-surface rounded-xl border border-border p-3">
+                <div key={log.id} className="flex gap-3 items-center bg-surface rounded-xl brutal-border p-3">
                   <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-8 h-11 rounded-lg" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-ink truncate">{book?.title ?? "Buku"}</p>

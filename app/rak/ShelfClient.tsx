@@ -174,21 +174,21 @@ export default function ShelfClient({
       {(readingCount + doneCount) > 0 && (
         <div className="flex gap-2 mb-5 overflow-x-auto no-scrollbar pb-0.5">
           {readingCount > 0 && (
-            <div className="flex items-center gap-1.5 bg-surface border border-border rounded-xl px-3 py-2 flex-shrink-0">
+            <div className="flex items-center gap-1.5 bg-surface brutal-border rounded-xl px-3 py-2 flex-shrink-0">
               <BookOpen size={13} strokeWidth={2} className="text-amber" />
               <span className="text-xs font-semibold text-ink">{readingCount}</span>
               <span className="text-xs text-ink-muted">sedang dibaca</span>
             </div>
           )}
           {doneCount > 0 && (
-            <div className="flex items-center gap-1.5 bg-surface border border-border rounded-xl px-3 py-2 flex-shrink-0">
+            <div className="flex items-center gap-1.5 bg-surface brutal-border rounded-xl px-3 py-2 flex-shrink-0">
               <Trophy size={13} strokeWidth={2} className="text-forest" />
               <span className="text-xs font-semibold text-ink">{doneCount}</span>
               <span className="text-xs text-ink-muted">selesai</span>
             </div>
           )}
           {totalPagesDone > 0 && (
-            <div className="flex items-center gap-1.5 bg-surface border border-border rounded-xl px-3 py-2 flex-shrink-0">
+            <div className="flex items-center gap-1.5 bg-surface brutal-border rounded-xl px-3 py-2 flex-shrink-0">
               <span className="text-xs font-semibold text-ink">{totalPagesDone.toLocaleString("id-ID")}</span>
               <span className="text-xs text-ink-muted">halaman selesai</span>
             </div>
@@ -205,10 +205,10 @@ export default function ShelfClient({
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-sm font-semibold transition-all ${
                 tab === t.key
-                  ? "bg-ink text-surface"
-                  : "bg-surface border border-border text-ink-secondary hover:border-amber/50"
+                  ? "bg-ink text-surface brutal-border brutal-shadow-xs"
+                  : "bg-surface brutal-border text-ink-secondary hover:border-amber/50"
               }`}
             >
               <Icon size={14} strokeWidth={2} />
@@ -323,11 +323,15 @@ export default function ShelfClient({
                         className="flex gap-2 items-center mt-2"
                       >
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           value={pageInput}
-                          onChange={(e) => setPageInput(e.target.value)}
-                          className="w-20 px-2 py-1.5 text-xs border border-amber rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-amber/30 bg-parchment"
-                          autoFocus min={0} max={book.total_pages ?? 9999}
+                          onChange={(e) => setPageInput(e.target.value.replace(/[^0-9]/g, ""))}
+                          className="w-20 px-2 py-1.5 text-xs border-[1.5px] border-amber rounded-lg text-center focus:outline-none focus:border-ink bg-parchment"
+                          autoFocus
+                          min={0}
+                          max={book.total_pages ?? 9999}
                         />
                         <span className="text-xs text-ink-muted">/ {book.total_pages ?? "?"}</span>
                         <button type="submit" disabled={savingId === item.id} className="text-xs font-semibold text-amber min-h-[36px] px-2 disabled:opacity-50">
@@ -339,22 +343,25 @@ export default function ShelfClient({
                       <div className="flex items-center gap-2 mt-2">
                         <Link
                           href="/log"
-                          className="flex items-center gap-1 text-xs font-semibold text-white bg-amber rounded-lg px-3 min-h-[32px] hover:bg-amber-hover transition-colors"
+                          className="flex items-center gap-1 text-xs font-semibold text-white bg-amber brutal-border rounded-lg px-3 min-h-[36px] hover:bg-amber-hover transition-colors"
                         >
                           <PenLine size={11} strokeWidth={2.5} />
                           Catat
                         </Link>
                         <button
                           onClick={() => { setEditingId(item.id); setPageInput(String(item.current_page ?? 0)); }}
-                          className="text-xs text-ink-muted hover:text-ink border border-border rounded-lg px-3 min-h-[32px] hover:border-amber/50 transition-colors"
+                          className="text-xs text-ink-secondary brutal-border rounded-lg px-3 min-h-[36px] hover:border-amber/70 hover:text-ink transition-colors"
                         >
                           Hal {item.current_page ?? 0}
                         </button>
                         <button
                           onClick={() => markDone(item.id)}
-                          className="text-xs text-forest hover:bg-forest/10 rounded-lg px-3 min-h-[32px] transition-colors ml-auto"
+                          title="Tandai selesai"
+                          aria-label="Tandai selesai"
+                          className="flex items-center gap-1 text-xs text-forest font-semibold brutal-border rounded-lg px-3 min-h-[36px] hover:bg-forest/10 transition-colors ml-auto"
                         >
                           <Check size={13} strokeWidth={2.5} />
+                          Selesai
                         </button>
                       </div>
                     )}
@@ -399,7 +406,7 @@ export default function ShelfClient({
                   <button
                     onClick={() => markReading(item.id)}
                     disabled={startingId === item.id}
-                    className="mt-auto w-full py-1.5 rounded-lg border border-border text-[11px] font-semibold text-forest hover:bg-forest/8 hover:border-forest/30 transition-colors disabled:opacity-40"
+                    className="mt-auto w-full min-h-[36px] py-1 rounded-lg brutal-border text-[11px] font-semibold text-forest hover:bg-forest/8 hover:border-forest/50 transition-colors disabled:opacity-40"
                   >
                     {startingId === item.id ? "…" : "Mulai Baca"}
                   </button>
@@ -467,7 +474,7 @@ export default function ShelfClient({
                   ) : (
                     <Link
                       href={`/review/tulis?shelf=${item.id}`}
-                      className="mt-auto w-full py-1.5 rounded-lg border border-border text-[11px] font-semibold text-amber hover:bg-amber-soft hover:border-amber/30 transition-colors text-center"
+                      className="mt-auto w-full min-h-[36px] flex items-center justify-center rounded-lg brutal-border text-[11px] font-semibold text-amber hover:bg-amber-soft hover:border-amber/50 transition-colors text-center"
                     >
                       Tulis Review
                     </Link>
