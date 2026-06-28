@@ -1,44 +1,26 @@
 import Link from "next/link";
+import Image from "next/image";
+import { createAdminClient } from "@/lib/supabase-route";
 
-const SECTIONS = [
-  {
-    title: "Apa itu Mulaibaca?",
-    content: "Mulaibaca adalah ruang baca digital untuk keluarga. Kamu bisa mencatat buku yang sedang dibaca, mau dibaca, dan sudah selesai dibaca — bareng anggota keluarga lain."
-  },
-  {
-    title: "Memulai",
-    items: [
-      { label: "Buat akun", desc: "Daftar dengan email di halaman daftar, lalu ikuti petunjuknya." },
-      { label: "Jelajahi buku", desc: "Temukan buku dari koleksi kurasi atau cari直接从 OpenLibrary di halaman Jelajah." },
-      { label: "Tambahkan ke Rak", desc: "Tekan tombol \"Mau Baca\" atau \"Sedang Baca\" untuk menambahkan buku ke rak pribadimu." },
-    ]
-  },
-  {
-    title: "Mengelola Keluarga",
-    items: [
-      { label: "Undang anggota", desc: "Di halaman Keluarga, kamu dapat menambahkan anggota keluarga lewat kode undangan atau link." },
-      { label: "Kelola peran", desc: "Setiap anggota bisa punya peran: Ayah, Ibu, Anak, atau Dewasa. Kamu bisa mengubahnya di halaman Profil dan Keluarga." },
-      { label: "Buku keluarga", desc: "Lihat apa yang sedang dibaca anggota keluarga lain dari halaman Jelajah." },
-    ]
-  },
-  {
-    title: "Mencatat Bacaan",
-    items: [
-      { label: "Rak Buku", desc: "Semua buku yang kamu tandai muncul di Rak. Bisa difilter berdasarkan status: sedang dibaca, mau dibaca, atau selesai." },
-      { label: "Catat progres", desc: "Klik buku di Rak untuk mengubah status atau memberikan review." },
-      { label: "Target mingguan", desc: "Kamu bisa mengatur target halaman per minggu dan melihat statistik bacaan." },
-    ]
-  },
-  {
-    title: "Mengelola Profil & Akun",
-    items: [
-      { label: "Profil", desc: "Di halaman Profil kamu bisa mengubah nama, avatar, username, role, dan target bacaan mingguan." },
-      { label: "Update email/password", desc: "Di pengaturan akun, kamu bisa memperbarui email dan password." },
-    ]
-  },
-];
+export const revalidate = 60;
 
-export default function PanduanPage() {
+type Guide = {
+  id: string;
+  title: string;
+  content: string | null;
+  image_url: string | null;
+};
+
+export default async function PanduanPage() {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("help_guides")
+    .select("id, title, content, image_url")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+
+  const guides = (data ?? []) as Guide[];
+
   return (
     <div className="min-h-dvh bg-parchment">
       <header className="bg-surface border-b border-border px-4 py-4">
@@ -54,24 +36,42 @@ export default function PanduanPage() {
           <p className="text-sm text-ink-muted mt-1">Semua yang perlu kamu tahu tentang Mulaibaca</p>
         </div>
 
-        {SECTIONS.map((sec) => (
-          <section key={sec.title}>
-            <h2 className="text-h2 mb-3">{sec.title}</h2>
-            {"content" in sec && sec.content && (
-              <p className="text-body text-ink-secondary leading-relaxed">{sec.content}</p>
-            )}
-            {"items" in sec && sec.items && (
-              <div className="space-y-4">
-                {sec.items.map((item) => (
-                  <div key={item.label} className="bg-surface rounded-xl border border-border p-4">
-                    <p className="font-semibold text-ink text-sm">{item.label}</p>
-                    <p className="text-sm text-ink-secondary mt-1 leading-relaxed">{item.desc}</p>
+        {guides.length > 0 ? (
+          <div className="space-y-6">
+            {guides.map((guide, idx) => (
+              <section key={guide.id}>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="w-6 h-6 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </span>
+                  <h2 className="text-h2">{guide.title}</h2>
+                </div>
+
+                {guide.image_url && (
+                  <div className="rounded-2xl overflow-hidden border border-border mb-4">
+                    <Image
+                      src={guide.image_url}
+                      alt={guide.title}
+                      width={600}
+                      height={300}
+                      className="w-full h-auto object-cover"
+                    />
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-        ))}
+                )}
+
+                {guide.content && (
+                  <div className="bg-surface rounded-xl border border-border p-4">
+                    <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap">{guide.content}</p>
+                  </div>
+                )}
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border-2 border-dashed border-border py-12 text-center">
+            <p className="text-sm text-ink-muted">Panduan akan segera hadir.</p>
+          </div>
+        )}
 
         <div className="bg-amber-soft rounded-2xl border border-amber/30 p-5 text-center space-y-3">
           <p className="font-semibold text-ink">Masih punya pertanyaan?</p>

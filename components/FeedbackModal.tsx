@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, MessageSquarePlus, Check } from "lucide-react";
+import { X, MessageSquarePlus, Check, Lightbulb, Bug, BookOpen, Mail } from "lucide-react";
 
 const CATEGORIES = [
-  { key: "saran",    label: "💡 Saran" },
-  { key: "bug",      label: "🐛 Bug" },
-  { key: "konten",   label: "📚 Konten" },
-  { key: "lainnya",  label: "✉️ Lainnya" },
+  { key: "saran",   label: "Saran",   icon: Lightbulb },
+  { key: "bug",     label: "Bug",     icon: Bug },
+  { key: "konten",  label: "Konten",  icon: BookOpen },
+  { key: "lainnya", label: "Lainnya", icon: Mail },
 ];
 
 export default function FeedbackModal({ onClose }: { onClose: () => void }) {
@@ -39,14 +39,12 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    /* Backdrop */
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
 
-      {/* Sheet */}
       <div
         className="relative w-full max-w-lg bg-surface rounded-t-3xl sm:rounded-2xl p-6 space-y-4"
         style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal)" }}
@@ -78,28 +76,31 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Category */}
             <div>
               <p className="input-label mb-2">Kategori</p>
               <div className="flex gap-2 flex-wrap">
-                {CATEGORIES.map((c) => (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() => setCategory(category === c.key ? "" : c.key)}
-                    className={`px-3 py-1.5 rounded-xl border text-sm transition-all ${
-                      category === c.key
-                        ? "border-amber bg-amber-soft text-amber font-semibold"
-                        : "border-border text-ink-secondary hover:border-amber/40"
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
+                {CATEGORIES.map((c) => {
+                  const Icon = c.icon;
+                  const active = category === c.key;
+                  return (
+                    <button
+                      key={c.key}
+                      type="button"
+                      onClick={() => setCategory(active ? "" : c.key)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm transition-all ${
+                        active
+                          ? "border-amber bg-amber-soft text-amber font-semibold"
+                          : "border-border text-ink-secondary hover:border-amber/40"
+                      }`}
+                    >
+                      <Icon size={14} strokeWidth={1.75} />
+                      {c.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Message */}
             <div>
               <label htmlFor="feedback-msg" className="input-label">Pesan *</label>
               <textarea

@@ -2,21 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Loader2, ChevronDown, ChevronRight, HelpCircle, BookOpen, MessageSquare } from "lucide-react";
-
-const SAMPLE_FAQ = [
-  { q: "Apa itu Mulaibaca?", a: "Mulaibaca adalah aplikasi pencatat bacaan untuk keluarga. Kamu bisa melacak buku yang sedang dibaca, mau dibaca, dan sudah selesai — semua dalam satu ruang keluarga." },
-  { q: "Bagaimana cara menambahkan anggota keluarga?", a: "Buka halaman Keluarga, lalu klik tombol 'Tambah Anggota'. Kamu bisa mengundang lewat link undangan atau kode undangan." },
-  { q: "Bagaimana cara menambahkan buku ke rak?", a: "Cari buku di halaman Jelajah, lalu tekan tombol 'Mau Baca' atau 'Sedang Baca'. Buku akan otomatis masuk ke Rak Bukumu." },
-  { q: "Apakah Mulaibaca gratis?", a: "Ya, Mulaibaca gratis digunakan. Tidak ada biaya berlangganan untuk fitur dasar seperti mencatat buku, membuat keluarga, dan melihat statistik bacaan." },
-];
+import {
+  Check, Loader2, ChevronDown, ChevronRight,
+  HelpCircle, BookOpen, MessageSquare,
+  AlertTriangle, Lightbulb, Bug, Mail, Info,
+} from "lucide-react";
 
 const CATEGORIES = [
-  { key: "komplain", label: "⚠️ Komplain" },
-  { key: "inquiry", label: "❓ Pertanyaan" },
-  { key: "saran", label: "💡 Saran" },
-  { key: "bug", label: "🐛 Lapor Bug" },
-  { key: "lainnya", label: "✉️ Lainnya" },
+  { key: "komplain",  label: "Komplain",   icon: AlertTriangle },
+  { key: "inquiry",   label: "Pertanyaan", icon: HelpCircle },
+  { key: "saran",     label: "Saran",      icon: Lightbulb },
+  { key: "bug",       label: "Lapor Bug",  icon: Bug },
+  { key: "lainnya",   label: "Lainnya",    icon: Mail },
 ];
 
 function FaqItem({ q, a }: { q: string; a: string }) {
@@ -42,6 +39,13 @@ function FaqItem({ q, a }: { q: string; a: string }) {
     </div>
   );
 }
+
+const SAMPLE_FAQ = [
+  { q: "Apa itu Mulaibaca?", a: "Mulaibaca adalah aplikasi pencatat bacaan untuk keluarga. Kamu bisa melacak buku yang sedang dibaca, mau dibaca, dan sudah selesai — semua dalam satu ruang keluarga." },
+  { q: "Bagaimana cara menambahkan anggota keluarga?", a: "Buka halaman Keluarga, lalu klik tombol 'Tambah Anggota'. Kamu bisa mengundang lewat link undangan atau kode undangan." },
+  { q: "Bagaimana cara menambahkan buku ke rak?", a: "Cari buku di halaman Jelajah, lalu tekan tombol 'Mau Baca' atau 'Sedang Baca'. Buku akan otomatis masuk ke Rak Bukumu." },
+  { q: "Apakah Mulaibaca gratis?", a: "Ya, Mulaibaca gratis digunakan. Tidak ada biaya berlangganan untuk fitur dasar seperti mencatat buku, membuat keluarga, dan melihat statistik bacaan." },
+];
 
 export default function BantuanPage() {
   const [name, setName] = useState("");
@@ -85,7 +89,10 @@ export default function BantuanPage() {
           <p className="text-sm text-ink-muted mb-6">Tim kami akan merespon secepatnya.</p>
           <div className="flex gap-3 justify-center">
             <Link href="/" className="btn-primary">Ke Beranda</Link>
-            <button onClick={() => { setDone(false); setMessage(""); setSubject(""); setCategory(""); setName(""); setEmail(""); }} className="btn-secondary">
+            <button
+              onClick={() => { setDone(false); setMessage(""); setSubject(""); setCategory(""); setName(""); setEmail(""); }}
+              className="btn-secondary"
+            >
               Kirim lagi
             </button>
           </div>
@@ -131,7 +138,7 @@ export default function BantuanPage() {
           </Link>
         </div>
 
-        {/* FAQ section */}
+        {/* FAQ preview */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-h2">FAQ</h2>
@@ -164,22 +171,27 @@ export default function BantuanPage() {
             </div>
 
             <div>
-              <label className="input-label">Kategori *</label>
-              <div className="flex gap-2 flex-wrap mt-1">
-                {CATEGORIES.map((c) => (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() => setCategory(category === c.key ? "" : c.key)}
-                    className={`px-3 py-1.5 rounded-xl border text-sm transition-all ${
-                      category === c.key
-                        ? "border-amber bg-amber-soft text-amber font-semibold"
-                        : "border-border text-ink-secondary hover:border-amber/40"
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
+              <label className="input-label">Kategori</label>
+              <div className="flex gap-2 flex-wrap mt-2">
+                {CATEGORIES.map((c) => {
+                  const Icon = c.icon;
+                  const active = category === c.key;
+                  return (
+                    <button
+                      key={c.key}
+                      type="button"
+                      onClick={() => setCategory(active ? "" : c.key)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm transition-all ${
+                        active
+                          ? "border-amber bg-amber-soft text-amber font-semibold"
+                          : "border-border text-ink-secondary hover:border-amber/40"
+                      }`}
+                    >
+                      <Icon size={14} strokeWidth={1.75} />
+                      {c.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -194,13 +206,18 @@ export default function BantuanPage() {
             </div>
 
             {error && (
-              <p role="alert" className="text-error text-sm bg-error-soft rounded-xl px-4 py-3">{error}</p>
+              <div className="flex items-start gap-2 text-error text-sm bg-error-soft rounded-xl px-4 py-3">
+                <Info size={15} strokeWidth={2} className="flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
             )}
 
             <button type="submit" disabled={sending || !message.trim()} className="btn-primary-full-lg flex items-center justify-center gap-2">
               {sending ? (
                 <><Loader2 size={16} className="animate-spin" /> Mengirim…</>
-              ) : "Kirim Pesan →"}
+              ) : (
+                <><MessageSquare size={16} strokeWidth={1.75} /> Kirim Pesan</>
+              )}
             </button>
           </form>
         </section>
