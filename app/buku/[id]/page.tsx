@@ -211,20 +211,10 @@ export default async function BookDetailPage({
   if (!book) {
     const supabase = createAdminClient();
     const approxTitle = id.replace(/-/g, " ");
-    // Use word-by-word pattern so punctuation in titles (e.g. "Mikir!") doesn't break matching
-    const words = approxTitle.split(" ").filter((w) => w.length > 1).slice(0, 6);
-    const ilikePattern = words.map((w) => `%${w}`).join("") + "%";
-    const { data: dbBooks } = await supabase
-      .from("books")
-      .select("title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description")
-      .ilike("title", ilikePattern)
-      .limit(20);
+    const words = approxTitle.split(" ").filter((w) => w.length > 1);
 
-    const matched = (dbBooks ?? []).find(
-      (b: { title: string }) => toSlug(b.title) === id
-    );
-    if (matched) {
-      book = {
+    function mapBook(matched: Record<string, unknown>): BookData {
+      return {
         title: matched.title as string,
         author: matched.author as string | null,
         cover_url: matched.cover_url as string | null,
@@ -238,6 +228,24 @@ export default async function BookDetailPage({
         published_year: matched.published_year as number | null,
         language: (matched.language as string) ?? "id",
       };
+    }
+
+    const FIELDS = "title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description";
+
+    // Strategy 1: word-by-word pattern — handles punctuation in titles (e.g. "Mikir!")
+    const chainPattern = words.slice(0, 6).map((w) => `%${w}`).join("") + "%";
+    const { data: byChain } = await supabase.from("books").select(FIELDS).ilike("title", chainPattern).limit(30);
+    const matchedChain = (byChain ?? []).find((b: { title: string }) => toSlug(b.title) === id);
+    if (matchedChain) { book = mapBook(matchedChain as Record<string, unknown>); }
+
+    // Strategy 2 fallback: longest word anchor — catches edge cases where word order differs
+    if (!book) {
+      const anchor = words.reduce((a, b) => (b.length > a.length ? b : a), words[0] ?? "");
+      if (anchor.length > 2) {
+        const { data: byAnchor } = await supabase.from("books").select(FIELDS).ilike("title", `%${anchor}%`).limit(50);
+        const matchedAnchor = (byAnchor ?? []).find((b: { title: string }) => toSlug(b.title) === id);
+        if (matchedAnchor) { book = mapBook(matchedAnchor as Record<string, unknown>); }
+      }
     }
   }
 
