@@ -211,10 +211,13 @@ export default async function BookDetailPage({
   if (!book) {
     const supabase = createAdminClient();
     const approxTitle = id.replace(/-/g, " ");
+    // Use word-by-word pattern so punctuation in titles (e.g. "Mikir!") doesn't break matching
+    const words = approxTitle.split(" ").filter((w) => w.length > 1).slice(0, 6);
+    const ilikePattern = words.map((w) => `%${w}`).join("") + "%";
     const { data: dbBooks } = await supabase
       .from("books")
       .select("title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description")
-      .ilike("title", `%${approxTitle}%`)
+      .ilike("title", ilikePattern)
       .limit(20);
 
     const matched = (dbBooks ?? []).find(
