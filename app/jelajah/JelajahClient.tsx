@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { CuratedBook } from "@/lib/curated-books";
 import { CATEGORY_TREE, findSubCategory, countBooksInCategory } from "@/lib/category-tree";
-import { Bookmark, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Bookmark, Search, ChevronLeft, ChevronRight, X, Clock } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import type { FamilyBook } from "./page";
 import type { JelajahSection, BannerConfig } from "@/lib/jelajah-sections";
@@ -137,6 +137,64 @@ export default function JelajahClient({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchIdRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+
+  const HISTORY_KEY = "mulaibaca_search_history";
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(HISTORY_KEY);
+      if (stored) setSearchHistory(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, []);
+
+  function saveToHistory(term: string) {
+    const trimmed = term.trim();
+    if (!trimmed || trimmed.length < 2) return;
+    setSearchHistory((prev) => {
+      const next = [trimmed, ...prev.filter((h) => h.toLowerCase() !== trimmed.toLowerCase())].slice(0, 10);
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }
+
+  function removeFromHistory(term: string) {
+    setSearchHistory((prev) => {
+      const next = prev.filter((h) => h !== term);
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }
+
+  function clearHistory() {
+    setSearchHistory([]);
+    try { localStorage.removeItem(HISTORY_KEY); } catch { /* ignore */ }
+  }
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) return [];
+    const titleMatches: string[] = [];
+    const authorMatches: string[] = [];
+    const seenTitles = new Set<string>();
+    const seenAuthors = new Set<string>();
+    for (const b of allBooks) {
+      if (b.title.toLowerCase().includes(q) && !seenTitles.has(b.title)) {
+        titleMatches.push(b.title);
+        seenTitles.add(b.title);
+        if (titleMatches.length >= 5) break;
+      }
+    }
+    for (const b of allBooks) {
+      if (b.author.toLowerCase().includes(q) && !seenAuthors.has(b.author)) {
+        authorMatches.push(b.author);
+        seenAuthors.add(b.author);
+        if (authorMatches.length >= 3) break;
+      }
+    }
+    return [...titleMatches, ...authorMatches].slice(0, 7);
+  }, [query, allBooks]);
 
   // Augment so anak books always have "anak" tag for category matching
   const augmented = augmentBooks(allBooks);
@@ -229,7 +287,14 @@ export default function JelajahClient({
     setOlResults(null);
     setOlLoading(false);
     setOlError("");
+    setShowDropdown(false);
     inputRef.current?.blur();
+  }
+
+  function selectQuery(term: string) {
+    setQuery(term);
+    setShowDropdown(false);
+    inputRef.current?.focus();
   }
 
   async function addBook(card: BookCard, status: "reading" | "want") {
@@ -269,35 +334,117 @@ export default function JelajahClient({
 
       {/* ── Sticky header ── */}
       <header className="bg-surface border-b-2 border-ink sticky top-0 z-10">
-        <div className="flex items-center gap-3 px-4 py-3 max-w-lg mx-auto">
-          <Link
-            href="/rak"
-            className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-ink-secondary hover:bg-parchment transition-colors flex-shrink-0"
-            aria-label="Kembali ke rak"
-          >
-            <ChevronLeft size={20} strokeWidth={2} />
-          </Link>
-          <div className="relative flex-1">
-            <Search size={15} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-            <input
-              ref={inputRef}
-              type="search"
-              placeholder="Cari judul, pengarang, atau genre…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="input input-icon-lr w-full"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-ink-muted hover:text-ink"
-                aria-label="Hapus pencarian"
-              >
-                <X size={14} strokeWidth={2.5} />
-              </button>
-            )}
+        <div className="relative max-w-lg mx-auto">
+          <div className="flex items-center gap-3 px-4 py-3">
+            <Link
+              href="/rak"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-ink-secondary hover:bg-parchment transition-colors flex-shrink-0"
+              aria-label="Kembali ke rak"
+            >
+              <ChevronLeft size={20} strokeWidth={2} />
+            </Link>
+            <div className="relative flex-1">
+              <Search size={15} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Cari judul, pengarang, atau genre…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && query.trim()) {
+                    saveToHistory(query.trim());
+                    setShowDropdown(false);
+                  }
+                  if (e.key === "Escape") clearSearch();
+                }}
+                className="input input-icon-lr w-full"
+                autoComplete="off"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-ink-muted hover:text-ink"
+                  aria-label="Hapus pencarian"
+                >
+                  <X size={14} strokeWidth={2.5} />
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* ── Dropdown: history + suggestions — relative to max-w-lg container ── */}
+          {showDropdown && (
+            <div
+              className="absolute top-full left-3 right-3 bg-surface rounded-2xl border border-border z-50 overflow-hidden"
+              style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+            >
+              {/* Search history — shown when input is empty */}
+              {!query.trim() && searchHistory.length > 0 && (
+                <div className="p-2">
+                  <div className="flex items-center justify-between px-2 py-1.5 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-ink-muted">Pencarian sebelumnya</span>
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={clearHistory}
+                      className="text-[10px] text-ink-muted hover:text-error transition-colors"
+                    >
+                      Hapus semua
+                    </button>
+                  </div>
+                  {searchHistory.map((term) => (
+                    <div
+                      key={term}
+                      className="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-parchment transition-colors group cursor-pointer"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => selectQuery(term)}
+                    >
+                      <Clock size={13} strokeWidth={2} className="text-ink-muted flex-shrink-0" />
+                      <span className="text-sm text-ink flex-1 truncate">{term}</span>
+                      <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={(e) => { e.stopPropagation(); removeFromHistory(term); }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 flex items-center justify-center text-ink-muted hover:text-error rounded"
+                        aria-label={`Hapus "${term}"`}
+                      >
+                        <X size={11} strokeWidth={2.5} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Suggestions — shown while typing */}
+              {query.trim().length >= 2 && suggestions.length > 0 && (
+                <div className="p-2">
+                  {suggestions.map((s) => (
+                    <div
+                      key={s}
+                      className="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-parchment transition-colors cursor-pointer"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        selectQuery(s);
+                        saveToHistory(s);
+                      }}
+                    >
+                      <Search size={13} strokeWidth={2} className="text-ink-muted flex-shrink-0" />
+                      <span className="text-sm text-ink truncate">{s}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty history state */}
+              {!query.trim() && searchHistory.length === 0 && (
+                <div className="px-4 py-5 text-center">
+                  <p className="text-xs text-ink-muted">Belum ada riwayat pencarian</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
