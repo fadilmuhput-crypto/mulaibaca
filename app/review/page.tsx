@@ -41,7 +41,9 @@ export default async function ReviewPage() {
         <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-h1">Review Buku</h1>
-            <Link href="/review" className="text-xs text-amber font-medium">Semua review publik →</Link>
+            {(reviews ?? []).length > 0 && (
+              <Link href="/review" className="text-xs text-amber font-medium">Semua review publik →</Link>
+            )}
           </div>
 
           {/* Books waiting for review */}
