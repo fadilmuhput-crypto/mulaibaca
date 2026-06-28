@@ -172,7 +172,7 @@ export default async function DashboardPage() {
                 return (
                   <Link
                     key={item.id}
-                    href="/rak"
+                    href="/rak?tab=reading"
                     className="card-interactive flex gap-3 p-3"
                   >
                     <BookCover src={book.cover_url} title={book.title} />

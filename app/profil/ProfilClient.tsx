@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@/lib/session";
-import type { ProfilStats, ActingAsInfo } from "./page";
+import type { ProfilStats, ActingAsInfo, FamilyMember } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
-import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink, Users, LogIn, Mail } from "lucide-react";
+import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink, Users, LogIn, Mail, Target, Trophy } from "lucide-react";
 import Link from "next/link";
 
 const MEMBER_TYPES = [
@@ -19,16 +19,21 @@ export default function ProfilClient({
   session,
   stats,
   actingAsInfo,
+  familyMembers,
+  familyWeeklyChallenge: initialWeeklyChallenge,
 }: {
   session: Session;
   stats: ProfilStats;
   actingAsInfo: ActingAsInfo;
+  familyMembers: FamilyMember[];
+  familyWeeklyChallenge: number;
 }) {
   const router = useRouter();
   const [name, setName] = useState(session.memberName);
   const [avatar, setAvatar] = useState(session.memberAvatar);
   const [familyName, setFamilyName] = useState(session.familyName);
   const [weeklyGoal, setWeeklyGoal] = useState(session.weeklyPagesGoal);
+  const [weeklyChallenge, setWeeklyChallenge] = useState(initialWeeklyChallenge);
   const [memberType, setMemberType] = useState(session.memberType);
   const [birthDate, setBirthDate] = useState(session.memberBirthDate ?? "");
   const [username, setUsername] = useState(session.memberUsername ?? "");
@@ -42,7 +47,6 @@ export default function ProfilClient({
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
   const [joinSuccess, setJoinSuccess] = useState("");
-  // Setup akun state (for dummy accounts)
   const [setupEmail, setSetupEmail] = useState("");
   const [setupPassword, setSetupPassword] = useState("");
   const [setupLoading, setSetupLoading] = useState(false);
@@ -56,6 +60,7 @@ export default function ProfilClient({
     avatar !== session.memberAvatar ||
     familyName !== session.familyName ||
     weeklyGoal !== session.weeklyPagesGoal ||
+    weeklyChallenge !== initialWeeklyChallenge ||
     memberType !== session.memberType ||
     birthDate !== (session.memberBirthDate ?? "") ||
     (!usernameAlreadySet && username.trim() && usernameStatus === "available");
@@ -83,7 +88,11 @@ export default function ProfilClient({
   async function handleSave() {
     setSaving(true); setSaved(false); setError("");
     try {
-      const body: Record<string, unknown> = { name, avatar, birthDate, familyName, weeklyPagesGoal: weeklyGoal, memberType };
+      const body: Record<string, unknown> = {
+        name, avatar, birthDate, familyName,
+        weeklyPagesGoal: weeklyGoal, memberType,
+        familyWeeklyChallenge: weeklyChallenge,
+      };
       if (!usernameAlreadySet && username.trim() && usernameStatus === "available") {
         body.username = username.trim();
       }
@@ -176,8 +185,9 @@ export default function ProfilClient({
         </div>
       </div>
 
-      {/* ── Profile card ── */}
+      {/* ── Merged profile card (avatar, identitas, target) ── */}
       <div className="card-elevated p-6 space-y-5">
+        {/* Header */}
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-amber-soft border-2 border-amber/30 flex items-center justify-center text-amber">
             <AvatarIcon avatar={avatar} size={24} />
@@ -308,22 +318,65 @@ export default function ProfilClient({
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Date of birth */}
-      <div>
-        <label htmlFor="birth-date" className="input-label">Tanggal lahir</label>
-        <input
-          id="birth-date"
-          type="date"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
-          className="input mt-1"
-          max={new Date().toISOString().split("T")[0]}
-        />
-        {session.memberAge !== null && (
-          <p className="input-hint">{session.memberAge} tahun</p>
-        )}
+        {/* Date of birth */}
+        <div>
+          <label htmlFor="birth-date" className="input-label">Tanggal lahir</label>
+          <input
+            id="birth-date"
+            type="date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
+            className="input mt-1"
+            max={new Date().toISOString().split("T")[0]}
+          />
+          {session.memberAge !== null && (
+            <p className="input-hint">{session.memberAge} tahun</p>
+          )}
+        </div>
+
+        <div className="divider" />
+
+        {/* Reading goal */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Target size={15} strokeWidth={2} className="text-amber" />
+            <h3 className="font-semibold text-ink text-sm">Target membaca mingguan</h3>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {[25, 50, 100, 150].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setWeeklyGoal(preset)}
+                className={`min-h-[40px] px-4 rounded-xl text-sm font-medium border-2 transition-all ${
+                  weeklyGoal === preset
+                    ? "border-amber bg-amber text-white"
+                    : "border-border bg-parchment text-ink-secondary hover:border-amber/50"
+                }`}
+              >
+                {preset} hal
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="number" min={0} max={999}
+              value={weeklyGoal || ""}
+              onChange={(e) => setWeeklyGoal(Math.max(0, parseInt(e.target.value) || 0))}
+              placeholder="Atau ketik sendiri"
+              className="input flex-1"
+            />
+            {weeklyGoal > 0 && (
+              <button type="button" onClick={() => setWeeklyGoal(0)} className="btn-ghost-ink px-3 text-sm">Hapus</button>
+            )}
+          </div>
+          {weeklyGoal > 0 && (
+            <p className="text-xs text-forest bg-forest/8 rounded-lg px-3 py-2">
+              Target kamu: <span className="font-semibold">{weeklyGoal} halaman per minggu</span> — sekitar {Math.round(weeklyGoal / 7)} halaman per hari
+            </p>
+          )}
+        </div>
       </div>
 
       {/* ── Setup akun (for dummy accounts managed by admin) ── */}
@@ -390,6 +443,33 @@ export default function ProfilClient({
             </Link>
           )}
         </div>
+
+        {/* Member avatars */}
+        {familyMembers.length > 0 && (
+          <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+            {familyMembers.map((m) => (
+              <div key={m.id} className="flex flex-col items-center gap-1 flex-shrink-0">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
+                  m.id === session.memberId
+                    ? "border-amber bg-amber-soft text-amber"
+                    : "border-border bg-surface text-ink-secondary"
+                }`}>
+                  <AvatarIcon avatar={m.avatar} size={18} />
+                </div>
+                <span className="text-[10px] text-ink-muted max-w-[40px] truncate text-center leading-tight">{m.name}</span>
+              </div>
+            ))}
+            {session.memberRole === "admin" && (
+              <Link href="/keluarga/tambah-anak" className="flex flex-col items-center gap-1 flex-shrink-0">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-dashed border-border bg-surface text-ink-muted hover:border-amber/50 hover:text-amber transition-colors">
+                  <span className="text-lg leading-none">+</span>
+                </div>
+                <span className="text-[10px] text-ink-muted">Tambah</span>
+              </Link>
+            )}
+          </div>
+        )}
+
         {session.memberRole === "admin" ? (
           <>
             <div>
@@ -408,6 +488,48 @@ export default function ProfilClient({
                 <p className="input-hint">Bagikan kode ini agar anggota keluarga bisa bergabung</p>
               </div>
             )}
+
+            {/* Family weekly challenge */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Trophy size={14} strokeWidth={2} className="text-amber" />
+                <label className="input-label">Challenge keluarga per minggu</label>
+              </div>
+              <p className="text-xs text-ink-muted -mt-1">Target halaman bersama seluruh anggota keluarga</p>
+              <div className="flex gap-2 flex-wrap">
+                {[100, 200, 300, 500].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setWeeklyChallenge(preset)}
+                    className={`min-h-[36px] px-3 rounded-xl text-xs font-medium border-2 transition-all ${
+                      weeklyChallenge === preset
+                        ? "border-amber bg-amber text-white"
+                        : "border-border bg-parchment text-ink-secondary hover:border-amber/50"
+                    }`}
+                  >
+                    {preset} hal
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number" min={0} max={9999}
+                  value={weeklyChallenge || ""}
+                  onChange={(e) => setWeeklyChallenge(Math.max(0, parseInt(e.target.value) || 0))}
+                  placeholder="Atau ketik sendiri"
+                  className="input flex-1"
+                />
+                {weeklyChallenge > 0 && (
+                  <button type="button" onClick={() => setWeeklyChallenge(0)} className="btn-ghost-ink px-3 text-sm">Hapus</button>
+                )}
+              </div>
+              {weeklyChallenge > 0 && (
+                <p className="text-xs text-amber bg-amber-soft rounded-lg px-3 py-2">
+                  Challenge: <span className="font-semibold">{weeklyChallenge} halaman/minggu</span> bersama keluarga
+                </p>
+              )}
+            </div>
           </>
         ) : (
           <div className="space-y-1">
@@ -417,7 +539,7 @@ export default function ProfilClient({
         )}
       </div>
 
-      {/* ── Join another family — only shown when solo (never connected to other accounts) ── */}
+      {/* ── Join another family ── */}
       {stats.familyMemberCount === 1 && (
         <div className="card-elevated p-6 space-y-4">
           <div>
@@ -450,47 +572,6 @@ export default function ProfilClient({
           {joinSuccess && <p className="text-forest text-sm flex items-center gap-1.5"><Check size={14} strokeWidth={2.5} />{joinSuccess}</p>}
         </div>
       )}
-
-      {/* ── Reading goal ── */}
-      <div className="card-elevated p-6 space-y-4">
-        <div>
-          <h2 className="text-h3">Target membaca</h2>
-          <p className="text-xs text-ink-muted mt-0.5">Halaman yang ingin kamu baca setiap minggu</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {[25, 50, 100, 150].map((preset) => (
-            <button
-              key={preset}
-              type="button"
-              onClick={() => setWeeklyGoal(preset)}
-              className={`min-h-[44px] px-4 rounded-xl text-sm font-medium border-2 transition-all ${
-                weeklyGoal === preset
-                  ? "border-amber bg-amber text-white"
-                  : "border-border bg-parchment text-ink-secondary hover:border-amber/50"
-              }`}
-            >
-              {preset} hal
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="number" min={0} max={999}
-            value={weeklyGoal || ""}
-            onChange={(e) => setWeeklyGoal(Math.max(0, parseInt(e.target.value) || 0))}
-            placeholder="Atau ketik sendiri"
-            className="input flex-1"
-          />
-          {weeklyGoal > 0 && (
-            <button type="button" onClick={() => setWeeklyGoal(0)} className="btn-ghost-ink px-3 text-sm">Hapus</button>
-          )}
-        </div>
-        {weeklyGoal > 0 && (
-          <p className="text-xs text-forest bg-forest/8 rounded-lg px-3 py-2">
-            Target kamu: <span className="font-semibold">{weeklyGoal} halaman per minggu</span> — sekitar {Math.round(weeklyGoal / 7)} halaman per hari
-          </p>
-        )}
-      </div>
 
       {error && <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">{error}</p>}
       {saved && (

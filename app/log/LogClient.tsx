@@ -435,12 +435,17 @@ export default function LogClient({
       {/* ── TODAY'S LOGS ── */}
       {todayLogs.length > 0 && (
         <section>
-          <h2 className="font-semibold text-ink mb-3">
-            Log hari ini
-            <span className="ml-2 text-amber font-display font-black text-base">
-              +{todayPages} hal
-            </span>
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-ink">
+              Log hari ini
+              <span className="ml-2 text-amber font-display font-black text-base">
+                +{todayPages} hal
+              </span>
+            </h2>
+            <a href="/catatan" className="text-xs text-amber font-semibold hover:text-amber/80 transition-colors">
+              Semua catatan →
+            </a>
+          </div>
           <div className="space-y-2">
             {todayLogs.map((log) => {
               const book = log.shelf_items?.books;

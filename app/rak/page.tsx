@@ -5,11 +5,18 @@ import { createClient } from "@/lib/supabase-server";
 import NavBar from "@/components/NavBar";
 import ShelfClient from "./ShelfClient";
 
-export default async function RakPage() {
+export default async function RakPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/masuk");
 
   const supabase = await createClient();
+  const params = await searchParams;
+  const initialTab =
+    params.tab === "reading" ? "reading" : params.tab === "done" ? "done" : "want";
 
   const [{ data: shelf }, { data: reviews }] = await Promise.all([
     supabase
@@ -33,7 +40,7 @@ export default async function RakPage() {
             + Tambah
           </Link>
         </div>
-        <ShelfClient initialShelf={shelf ?? []} reviews={reviews ?? []} />
+        <ShelfClient initialShelf={shelf ?? []} reviews={reviews ?? []} initialTab={initialTab} />
       </main>
     </div>
   );

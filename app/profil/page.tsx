@@ -14,6 +14,12 @@ export type ProfilStats = {
   familyMemberCount: number;
 };
 
+export type FamilyMember = {
+  id: string;
+  name: string;
+  avatar: string;
+};
+
 export type ActingAsInfo = {
   email: string;
   emailVerified: boolean;
@@ -27,7 +33,7 @@ export default async function ProfilPage() {
   const supabase = await createClient();
   const adminClient = createAdminClient();
 
-  const [{ data: doneShelf }, { data: logs }, { data: streak }, { count: memberCount }] = await Promise.all([
+  const [{ data: doneShelf }, { data: logs }, { data: streak }, { count: memberCount }, { data: familyMembersRaw }, { data: familyData }] = await Promise.all([
     supabase
       .from("shelf_items")
       .select("id")
@@ -46,6 +52,16 @@ export default async function ProfilPage() {
       .from("members")
       .select("id", { count: "exact", head: true })
       .eq("family_id", session.familyId),
+    adminClient
+      .from("members")
+      .select("id, name, avatar")
+      .eq("family_id", session.familyId)
+      .order("created_at", { ascending: true }),
+    adminClient
+      .from("families")
+      .select("weekly_challenge_pages")
+      .eq("id", session.familyId)
+      .maybeSingle(),
   ]);
 
   // Fetch acting-as member's auth email
@@ -77,12 +93,21 @@ export default async function ProfilPage() {
     familyMemberCount: memberCount ?? 1,
   };
 
+  const familyMembers: FamilyMember[] = (familyMembersRaw ?? []) as FamilyMember[];
+  const familyWeeklyChallenge = (familyData?.weekly_challenge_pages as number) ?? 0;
+
   return (
     <div className="min-h-screen bg-parchment pb-20 sm:pb-0">
       <NavBar session={session} />
       <main className="max-w-lg mx-auto px-4 py-6">
         <h1 className="text-h1 mb-6">Profil</h1>
-        <ProfilClient session={session} stats={stats} actingAsInfo={actingAsInfo} />
+        <ProfilClient
+          session={session}
+          stats={stats}
+          actingAsInfo={actingAsInfo}
+          familyMembers={familyMembers}
+          familyWeeklyChallenge={familyWeeklyChallenge}
+        />
       </main>
     </div>
   );

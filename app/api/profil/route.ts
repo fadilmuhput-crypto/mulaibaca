@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
   const auth = await getAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, avatar, birthDate, familyName, weeklyPagesGoal, username, memberType } = await req.json();
+  const { name, avatar, birthDate, familyName, weeklyPagesGoal, username, memberType, familyWeeklyChallenge } = await req.json();
   const admin = createAdminClient();
 
   const updates: Record<string, string | number | null> = {};
@@ -75,9 +75,14 @@ export async function PATCH(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  if (familyName?.trim() && auth.role === "admin") {
-    const { error } = await admin.from("families").update({ name: familyName.trim() }).eq("id", auth.familyId);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (auth.role === "admin") {
+    const familyUpdates: Record<string, unknown> = {};
+    if (familyName?.trim()) familyUpdates.name = familyName.trim();
+    if (familyWeeklyChallenge !== undefined) familyUpdates.weekly_challenge_pages = Math.max(0, Math.floor(Number(familyWeeklyChallenge)));
+    if (Object.keys(familyUpdates).length > 0) {
+      const { error } = await admin.from("families").update(familyUpdates).eq("id", auth.familyId);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ success: true });

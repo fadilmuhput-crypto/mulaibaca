@@ -58,20 +58,17 @@ const VISIBILITY_LABELS: Record<Visibility, { label: string; icon: React.ReactNo
   private:   { label: "Privat", icon: <EyeOff size={10} strokeWidth={2.5} /> },
 };
 
-const NEXT_VISIBILITY: Record<Visibility, Visibility> = {
-  public: "anonymous",
-  anonymous: "private",
-  private: "public",
-};
 
 export default function ShelfClient({
   initialShelf,
   reviews: initialReviews,
+  initialTab = "want",
 }: {
   initialShelf: ShelfItem[];
   reviews: ReviewInfo[];
+  initialTab?: "reading" | "want" | "done";
 }) {
-  const [tab, setTab] = useState<"reading" | "want" | "done">("want");
+  const [tab, setTab] = useState<"reading" | "want" | "done">(initialTab);
   const [shelf, setShelf] = useState(initialShelf);
   const [reviews, setReviews] = useState(initialReviews);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -79,7 +76,6 @@ export default function ShelfClient({
   const [justFinished, setJustFinished] = useState<{ id: string; title: string } | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [togglingSlug, setTogglingSlug] = useState<string | null>(null);
 
   const filtered = shelf.filter((i) => i.status === tab);
   const readingCount = shelf.filter((i) => i.status === "reading").length;
@@ -93,28 +89,6 @@ export default function ShelfClient({
 
   function getReview(shelfItemId: string): ReviewInfo | undefined {
     return reviews.find((r) => r.shelf_item_id === shelfItemId);
-  }
-
-  async function toggleVisibility(review: ReviewInfo) {
-    if (!review.slug || togglingSlug === review.slug) return;
-    const next = NEXT_VISIBILITY[getVisibility(review)];
-    const is_public = next !== "private";
-    const is_anonymous = next === "anonymous";
-    setTogglingSlug(review.slug);
-    try {
-      const res = await fetch("/api/review", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: review.slug, is_public, is_anonymous }),
-      });
-      if (res.ok) {
-        setReviews((prev) =>
-          prev.map((r) => r.slug === review.slug ? { ...r, is_public, is_anonymous } : r)
-        );
-      }
-    } finally {
-      setTogglingSlug(null);
-    }
   }
 
   async function updateProgress(id: string, currentPage: number) {
@@ -455,13 +429,12 @@ export default function ShelfClient({
                     <div className="absolute top-1.5 right-1.5 w-6 h-6 bg-forest rounded-full flex items-center justify-center">
                       <Check size={12} strokeWidth={3} className="text-white" />
                     </div>
-                    {/* Visibility badge — only shown when review exists */}
+                    {/* Visibility badge — shown on cover, links to review page */}
                     {review?.slug && visInfo && (
-                      <button
-                        onClick={() => toggleVisibility(review)}
-                        disabled={togglingSlug === review.slug}
-                        title={`Visibilitas: ${vis} — klik untuk ganti`}
-                        className={`absolute bottom-1.5 left-1.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold transition-opacity disabled:opacity-40 ${
+                      <Link
+                        href={`/review/${review.slug}`}
+                        title={`Visibilitas: ${vis}`}
+                        className={`absolute bottom-1.5 left-1.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${
                           vis === "public"
                             ? "bg-forest text-white"
                             : vis === "anonymous"
@@ -471,7 +444,7 @@ export default function ShelfClient({
                       >
                         {visInfo.icon}
                         {visInfo.label}
-                      </button>
+                      </Link>
                     )}
                   </div>
                   <Link href={url} className="hover:text-amber transition-colors">
