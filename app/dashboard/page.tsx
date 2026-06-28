@@ -7,7 +7,7 @@ import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
 import AvatarIcon from "@/components/AvatarIcon";
-import { Flame, BookOpen, PenLine, Plus, Target, Library, BookMarked, LayoutDashboard, LayoutGrid, Check } from "lucide-react";
+import { Flame, BookOpen, PenLine, Plus, Target, Library, BookMarked, LayoutDashboard, LayoutGrid, Check, Users } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -67,7 +67,9 @@ export default async function DashboardPage() {
   const memberCount = familyMembers?.length ?? 1;
   const hasFirstBook = (weeklyShelf ?? []).length > 0;
   const hasFirstLog = (logCount ?? 0) > 0;
-  const showFamily = hasFirstLog || memberCount > 1;
+  const hasFamilyMember = memberCount > 1;
+  const showFamily = hasFirstLog || hasFamilyMember;
+  const allOnboardingDone = hasFirstBook && hasFirstLog && hasFamilyMember;
 
   return (
     <div className="min-h-screen bg-parchment pb-20 sm:pb-0">
@@ -106,12 +108,12 @@ export default async function DashboardPage() {
         </section>
 
         {/* Onboarding checklist — hide when all steps done */}
-        {(!hasFirstBook || !hasFirstLog) && (
+        {!allOnboardingDone && (
           <section className="bg-surface rounded-2xl brutal-border p-4 space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-black uppercase tracking-widest text-ink-muted">Mulai dari sini</span>
               <span className="text-xs font-bold text-amber bg-amber-soft px-2 py-0.5 rounded-full">
-                {[hasFirstBook, hasFirstLog].filter(Boolean).length}/2 selesai
+                {[hasFirstBook, hasFirstLog, hasFamilyMember].filter(Boolean).length}/3 selesai
               </span>
             </div>
 
@@ -140,7 +142,7 @@ export default async function DashboardPage() {
 
             {/* Step 2 */}
             <Link
-              href={!hasFirstBook ? "/onboarding/buku" : hasFirstLog ? "/log" : "/log"}
+              href="/log"
               className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
                 hasFirstLog ? "opacity-60" : hasFirstBook ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
               }`}
@@ -159,6 +161,29 @@ export default async function DashboardPage() {
                 <p className="text-xs text-ink-muted">Berapa halaman sudah dibaca hari ini?</p>
               </div>
               {hasFirstBook && !hasFirstLog && <span className="text-amber text-xs font-bold flex-shrink-0">Catat →</span>}
+            </Link>
+
+            {/* Step 3 */}
+            <Link
+              href="/keluarga"
+              className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
+                hasFamilyMember ? "opacity-60" : hasFirstLog ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
+              }`}
+            >
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+                hasFamilyMember ? "bg-forest border-forest text-white" : "border-border text-ink-muted"
+              }`}>
+                {hasFamilyMember
+                  ? <Check size={13} strokeWidth={3} />
+                  : <Users size={12} strokeWidth={2} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold ${hasFamilyMember ? "line-through text-ink-muted" : "text-ink"}`}>
+                  Undang anggota keluarga
+                </p>
+                <p className="text-xs text-ink-muted">Baca bareng dan pantau progress bersama</p>
+              </div>
+              {hasFirstLog && !hasFamilyMember && <span className="text-amber text-xs font-bold flex-shrink-0">Undang →</span>}
             </Link>
           </section>
         )}
