@@ -89,24 +89,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick actions — prominent, always above fold */}
-        <section className="grid grid-cols-2 gap-3">
-          <Link
-            href="/jelajah"
-            className="bg-forest text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card brutal-border brutal-shadow-sm"
-          >
-            <Plus size={22} strokeWidth={2} />
-            <span className="font-semibold text-sm">Tambah Buku</span>
-          </Link>
-          <Link
-            href="/log"
-            className="bg-amber text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card brutal-border brutal-shadow-sm"
-          >
-            <PenLine size={22} strokeWidth={1.75} />
-            <span className="font-semibold text-sm">Catat Bacaan</span>
-          </Link>
-        </section>
-
         {/* Onboarding checklist — hide when all steps done */}
         {!allOnboardingDone && (
           <section className="bg-surface rounded-2xl brutal-border p-4 space-y-3">
@@ -188,6 +170,24 @@ export default async function DashboardPage() {
           </section>
         )}
 
+        {/* Quick actions */}
+        <section className="grid grid-cols-2 gap-3">
+          <Link
+            href="/jelajah"
+            className="bg-forest text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card brutal-border brutal-shadow-sm"
+          >
+            <Plus size={22} strokeWidth={2} />
+            <span className="font-semibold text-sm">Tambah Buku</span>
+          </Link>
+          <Link
+            href="/log"
+            className="bg-amber text-white rounded-xl p-4 flex flex-col gap-2 quick-action-card brutal-border brutal-shadow-sm"
+          >
+            <PenLine size={22} strokeWidth={1.75} />
+            <span className="font-semibold text-sm">Catat Bacaan</span>
+          </Link>
+        </section>
+
         {/* Weekly goal progress */}
         {session.weeklyPagesGoal > 0 ? (
           <section>
@@ -217,7 +217,7 @@ export default async function DashboardPage() {
               );
             })()}
           </section>
-        ) : (
+        ) : hasFirstLog ? (
           <Link
             href="/profil"
             className="flex items-center justify-between bg-amber-soft rounded-2xl px-4 py-3 border border-amber/20"
@@ -228,7 +228,7 @@ export default async function DashboardPage() {
             </div>
             <span className="text-amber text-sm font-semibold">→</span>
           </Link>
-        )}
+        ) : null}
 
         {/* Currently reading */}
         <section>
