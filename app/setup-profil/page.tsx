@@ -33,7 +33,7 @@ export default function SetupProfilPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      router.push("/dashboard");
+      router.push("/onboarding/buku");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");

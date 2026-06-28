@@ -57,7 +57,7 @@ export default function DaftarPage() {
       if (!res.ok) throw new Error(data.error);
 
       setStep(2);
-      router.push("/dashboard");
+      router.push("/onboarding/buku");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
