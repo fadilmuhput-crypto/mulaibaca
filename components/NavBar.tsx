@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { Session } from "@/lib/session";
@@ -115,8 +116,11 @@ export default function NavBar({ session }: { session: Session }) {
       )}
       {/* ── Top header ──────────────────────── */}
       <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-20">
-        <Link href="/dashboard" className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
-          mulaibaca
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Mulaibaca" width={28} height={28} className="rounded-full" />
+          <span className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
+            mulaibaca
+          </span>
         </Link>
 
         {/* Desktop nav links */}

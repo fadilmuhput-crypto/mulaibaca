@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BookOpen, Users, Globe, Flame } from "lucide-react";
 import LandingDemo from "@/components/LandingDemo";
 
@@ -46,9 +47,12 @@ export default function LandingPage() {
         position: "sticky", top: 0, zIndex: 40,
       }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", height: "60px", alignItems: "center", justifyContent: "space-between", padding: "0 1.25rem" }}>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.25rem", color: INK, letterSpacing: "-0.03em" }}>
-            mulaibaca
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Image src="/logo.png" alt="Mulaibaca" width={32} height={32} style={{ borderRadius: "50%" }} />
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.25rem", color: INK, letterSpacing: "-0.03em" }}>
+              mulaibaca
+            </span>
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <Link href="/masuk" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
               Masuk
@@ -342,7 +346,10 @@ export default function LandingPage() {
       {/* FOOTER */}
       <footer style={{ borderTop: `2px solid ${INK}`, padding: "2.5rem 0" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "6px", padding: "0 1.25rem", textAlign: "center" as const }}>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.125rem", color: INK, letterSpacing: "-0.025em" }}>mulaibaca</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Image src="/logo.png" alt="Mulaibaca" width={28} height={28} style={{ borderRadius: "50%" }} />
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.125rem", color: INK, letterSpacing: "-0.025em" }}>mulaibaca</span>
+          </div>
           <p style={{ fontSize: "0.75rem", color: "#7A8E83" }}>Platform membaca keluarga Indonesia · mulaibaca.id</p>
           <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>© 2026 Mulaibaca</p>
         </div>
