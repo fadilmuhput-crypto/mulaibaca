@@ -7,7 +7,7 @@ import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
 import AvatarIcon from "@/components/AvatarIcon";
-import { Flame, BookOpen, PenLine, Plus, Target, Library, BookMarked, LayoutDashboard, LayoutGrid } from "lucide-react";
+import { Flame, BookOpen, PenLine, Plus, Target, Library, BookMarked, LayoutDashboard, LayoutGrid, Check } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     return monday.toISOString();
   })();
 
-  const [{ data: shelf }, { data: familyMembers }, { data: streaks }, { data: weeklyShelf }] = await Promise.all([
+  const [{ data: shelf }, { data: familyMembers }, { data: streaks }, { data: weeklyShelf }, { count: logCount }] = await Promise.all([
     supabase
       .from("shelf_items")
       .select("*, books(*)")
@@ -45,6 +45,10 @@ export default async function DashboardPage() {
       .from("shelf_items")
       .select("id")
       .eq("member_id", session.memberId),
+    supabase
+      .from("reading_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("member_id", session.memberId),
   ]);
 
   const weeklyShelfIds = (weeklyShelf ?? []).map((s: { id: string }) => s.id);
@@ -61,6 +65,9 @@ export default async function DashboardPage() {
   const currentStreak = streaks?.current_streak ?? 0;
   const readingNow = shelf ?? [];
   const memberCount = familyMembers?.length ?? 1;
+  const hasFirstBook = (weeklyShelf ?? []).length > 0;
+  const hasFirstLog = (logCount ?? 0) > 0;
+  const showFamily = hasFirstLog || memberCount > 1;
 
   return (
     <div className="min-h-screen bg-parchment pb-20 sm:pb-0">
@@ -97,6 +104,64 @@ export default async function DashboardPage() {
             <span className="font-semibold text-sm">Catat Bacaan</span>
           </Link>
         </section>
+
+        {/* Onboarding checklist — hide when all steps done */}
+        {(!hasFirstBook || !hasFirstLog) && (
+          <section className="bg-surface rounded-2xl brutal-border p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-black uppercase tracking-widest text-ink-muted">Mulai dari sini</span>
+              <span className="text-xs font-bold text-amber bg-amber-soft px-2 py-0.5 rounded-full">
+                {[hasFirstBook, hasFirstLog].filter(Boolean).length}/2 selesai
+              </span>
+            </div>
+
+            {/* Step 1 */}
+            <Link
+              href={hasFirstBook ? "/rak" : "/onboarding/buku"}
+              className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
+                hasFirstBook ? "opacity-60" : "bg-parchment hover:bg-amber-soft/40"
+              }`}
+            >
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+                hasFirstBook ? "bg-forest border-forest text-white" : "border-amber text-amber"
+              }`}>
+                {hasFirstBook
+                  ? <Check size={13} strokeWidth={3} />
+                  : <span className="text-xs font-bold">1</span>}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold ${hasFirstBook ? "line-through text-ink-muted" : "text-ink"}`}>
+                  Tambah buku pertama
+                </p>
+                <p className="text-xs text-ink-muted">Cari buku yang sedang kamu baca</p>
+              </div>
+              {!hasFirstBook && <span className="text-amber text-xs font-bold flex-shrink-0">Mulai →</span>}
+            </Link>
+
+            {/* Step 2 */}
+            <Link
+              href={!hasFirstBook ? "/onboarding/buku" : hasFirstLog ? "/log" : "/log"}
+              className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
+                hasFirstLog ? "opacity-60" : hasFirstBook ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
+              }`}
+            >
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+                hasFirstLog ? "bg-forest border-forest text-white" : "border-border text-ink-muted"
+              }`}>
+                {hasFirstLog
+                  ? <Check size={13} strokeWidth={3} />
+                  : <span className="text-xs font-bold">2</span>}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold ${hasFirstLog ? "line-through text-ink-muted" : "text-ink"}`}>
+                  Catat log bacaan pertama
+                </p>
+                <p className="text-xs text-ink-muted">Berapa halaman sudah dibaca hari ini?</p>
+              </div>
+              {hasFirstBook && !hasFirstLog && <span className="text-amber text-xs font-bold flex-shrink-0">Catat →</span>}
+            </Link>
+          </section>
+        )}
 
         {/* Weekly goal progress */}
         {session.weeklyPagesGoal > 0 ? (
@@ -199,8 +264,8 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        {/* Family members */}
-        {familyMembers && familyMembers.length >= 1 && (
+        {/* Family members — only after first log, or if family already has multiple members */}
+        {showFamily && familyMembers && familyMembers.length >= 1 && (
           <section>
             <div className="section-header">
               <h2 className="section-title">Anggota keluarga</h2>
@@ -280,8 +345,8 @@ export default async function DashboardPage() {
           <EmailVerifyBanner email={session.email} />
         )}
 
-        {/* Invite card — full when alone, compact when family has members */}
-        {session.inviteCode && (
+        {/* Invite card — only after first log */}
+        {showFamily && session.inviteCode && (
           memberCount <= 1
             ? <InviteCodeCard inviteCode={session.inviteCode} familyName={session.familyName} />
             : (

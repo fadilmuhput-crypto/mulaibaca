@@ -33,8 +33,8 @@ export default function SetupProfilPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      router.push("/onboarding/buku");
-      router.refresh();
+      const dest = mode === "join" ? "/dashboard" : "/onboarding/buku";
+      window.location.href = dest;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {

@@ -57,8 +57,7 @@ export default function DaftarPage() {
       if (!res.ok) throw new Error(data.error);
 
       setStep(2);
-      router.push("/onboarding/buku");
-      router.refresh();
+      window.location.href = "/onboarding/buku";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
       setLoading(false);
