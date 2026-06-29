@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Blog — Mulaibaca",
   description: "Inspirasi dan tips membangun budaya baca keluarga. Temukan panduan, rekomendasi buku, dan cerita dari keluarga Indonesia.",
