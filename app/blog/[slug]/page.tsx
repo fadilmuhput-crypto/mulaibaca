@@ -40,6 +40,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+const CATEGORIES = {
+  "tips-membaca": "Tips Membaca",
+  "kebiasaan": "Kebiasaan & Rutinitas",
+  "review-buku": "Review Buku",
+  "inspirasi": "Inspirasi & Cerita",
+  "produktivitas": "Produktivitas",
+};
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", {
     year: "numeric",
@@ -85,7 +93,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
       <header className="bg-surface/80 backdrop-blur-md border-b border-border/60 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <Link href="/" className="text-lg font-display font-bold text-forest tracking-tight">mulaibaca</Link>
-        <Link href="/masuk" className="btn-primary-sm">Masuk</Link>
+        <div className="flex items-center gap-3">
+          <Link href="/blog" className="text-xs text-ink-secondary font-medium hover:text-ink transition-colors">Blog</Link>
+          <Link href="/daftar" className="btn-primary-sm">Mulai Gratis</Link>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8">
@@ -111,6 +122,14 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
           <div className="flex items-center gap-3 text-sm text-ink-muted mb-6">
             <span>{post.author_name}</span>
+            {post.category && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-border" />
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-amber-soft text-amber">
+                  {CATEGORIES[post.category as keyof typeof CATEGORIES] ?? post.category}
+                </span>
+              </>
+            )}
             <span className="w-1 h-1 rounded-full bg-border" />
             <span>{post.published_at ? formatDate(post.published_at) : ""}</span>
           </div>
@@ -123,10 +142,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
         <div className="mt-10 pt-8 border-t border-border text-center">
           <p className="text-sm text-ink-secondary mb-3">
-            Bangun budaya baca bersama keluarga
+            Mulai bangun kebiasaan membaca hari ini
           </p>
           <Link href="/daftar" className="btn-primary">
-            Buat Ruang Keluarga Gratis →
+            Mulai Gratis →
           </Link>
         </div>
       </main>

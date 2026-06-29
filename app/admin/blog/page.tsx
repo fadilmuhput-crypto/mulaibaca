@@ -10,6 +10,7 @@ export type BlogPost = {
   excerpt: string;
   author_name: string;
   cover_image: string | null;
+  category: string | null;
   published_at: string | null;
   is_published: boolean;
   created_at: string;

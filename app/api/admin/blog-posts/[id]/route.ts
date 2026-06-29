@@ -42,6 +42,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.excerpt !== undefined) updates.excerpt = body.excerpt?.trim() ?? "";
   if (body.author_name !== undefined) updates.author_name = body.author_name?.trim() ?? "Tim Mulaibaca";
   if (body.cover_image !== undefined) updates.cover_image = body.cover_image?.trim() || null;
+  if (body.category !== undefined) updates.category = body.category?.trim() || null;
   if (body.is_published !== undefined) {
     updates.is_published = body.is_published === true;
     updates.published_at = body.is_published ? new Date().toISOString() : null;

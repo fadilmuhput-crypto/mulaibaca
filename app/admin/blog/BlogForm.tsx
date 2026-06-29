@@ -13,6 +13,7 @@ type Props = {
     excerpt: string;
     author_name: string;
     cover_image: string | null;
+    category: string | null;
     is_published: boolean;
   };
 };
@@ -24,6 +25,7 @@ export default function BlogForm({ initial }: Props) {
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [authorName, setAuthorName] = useState(initial?.author_name ?? "Tim Mulaibaca");
   const [coverImage, setCoverImage] = useState(initial?.cover_image ?? "");
+  const [category, setCategory] = useState(initial?.category ?? "");
   const [isPublished, setIsPublished] = useState(initial?.is_published ?? false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -51,6 +53,7 @@ export default function BlogForm({ initial }: Props) {
           excerpt: excerpt.trim(),
           author_name: authorName.trim(),
           cover_image: coverImage.trim() || null,
+          category: category.trim() || null,
           is_published: isPublished,
         }),
       });
@@ -156,6 +159,22 @@ export default function BlogForm({ initial }: Props) {
             <img src={coverImage} alt="Preview" className="mt-2 h-32 w-full object-cover rounded-lg border border-border" />
           )}
         </div>
+      </div>
+
+      <div>
+        <label className="input-label">Kategori</label>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="input w-full"
+        >
+          <option value="">— Tanpa kategori —</option>
+          <option value="tips-membaca">Tips Membaca</option>
+          <option value="kebiasaan">Kebiasaan &amp; Rutinitas</option>
+          <option value="review-buku">Review Buku</option>
+          <option value="inspirasi">Inspirasi &amp; Cerita</option>
+          <option value="produktivitas">Produktivitas</option>
+        </select>
       </div>
 
       <label className="flex items-center gap-3 cursor-pointer">

@@ -22,6 +22,7 @@ export default async function EditBlogPage({ params }: PageProps) {
           excerpt: post.excerpt,
           author_name: post.author_name,
           cover_image: post.cover_image,
+          category: post.category,
           is_published: post.is_published,
         }}
       />

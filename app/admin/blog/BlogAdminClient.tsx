@@ -112,6 +112,11 @@ export default function BlogAdminClient({ initialPosts }: { initialPosts: BlogPo
                     draf
                   </span>
                 )}
+                {post.category && (
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-soft text-amber">
+                    {({ 'tips-membaca': 'Tips', 'kebiasaan': 'Kebiasaan', 'review-buku': 'Review', 'inspirasi': 'Inspirasi', 'produktivitas': 'Produktivitas' } as Record<string, string>)[post.category] ?? post.category}
+                  </span>
+                )}
               </div>
               <p className="font-semibold text-ink text-sm line-clamp-1">{post.title}</p>
               {post.excerpt && (

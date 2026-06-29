@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   const auth = await getAdminAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { title, content, excerpt, author_name, cover_image, is_published } = await req.json();
+  const { title, content, excerpt, author_name, cover_image, is_published, category } = await req.json();
 
   if (!title?.trim()) {
     return NextResponse.json({ error: "Judul wajib diisi" }, { status: 400 });
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       excerpt: excerpt?.trim() ?? "",
       author_name: author_name?.trim() ?? "Tim Mulaibaca",
       cover_image: cover_image?.trim() || null,
+      category: category?.trim() || null,
       is_published: is_published === true,
       published_at: is_published ? new Date().toISOString() : null,
     })
