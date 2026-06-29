@@ -116,14 +116,45 @@ export default function BlogForm({ initial }: Props) {
           />
         </div>
         <div>
-          <label className="input-label">URL Gambar Sampul</label>
-          <input
-            type="url"
-            value={coverImage}
-            onChange={(e) => setCoverImage(e.target.value)}
-            className="input w-full"
-            placeholder="https://…"
-          />
+          <label className="input-label">Gambar Sampul</label>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              className="input flex-1"
+              placeholder="https://…"
+            />
+            <label className="btn-secondary cursor-pointer shrink-0 flex items-center gap-1.5 text-sm">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              Upload
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const form = new FormData();
+                  form.append("file", file);
+                  try {
+                    const res = await fetch("/api/upload/blog-image", { method: "POST", body: form });
+                    if (!res.ok) throw new Error("Gagal upload");
+                    const data = await res.json();
+                    setCoverImage(data.url);
+                  } catch {
+                    setError("Gagal mengupload gambar");
+                  }
+                }}
+              />
+            </label>
+          </div>
+          {coverImage && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={coverImage} alt="Preview" className="mt-2 h-32 w-full object-cover rounded-lg border border-border" />
+          )}
         </div>
       </div>
 

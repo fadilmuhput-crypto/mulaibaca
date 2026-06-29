@@ -212,7 +212,7 @@ export default function LandingDemo() {
             </div>
 
             <p style={{ fontSize: "0.8125rem", color: "#3D4E45", lineHeight: 1.65, textAlign: "center", marginBottom: "1.25rem" }}>
-              <strong>Bayangkan ini setiap hari</strong> — kamu dan keluargamu bisa melacak progres, jaga streak bersama, dan saling menginspirasi.
+              <strong>Bayangkan ini setiap hari</strong> — catat progres, jaga streak, dan lihat bagaimana kebiasaan membaca tumbuh bersama orang terdekat.
             </p>
 
             <Link
@@ -229,7 +229,7 @@ export default function LandingDemo() {
                 marginBottom: "10px",
               }}
             >
-              Simpan progres & daftar gratis →
+              Daftar gratis & lanjutkan →
             </Link>
             <button onClick={reset} style={{ display: "block", width: "100%", padding: "8px", background: "none", border: "none", color: "#7A8E83", fontSize: "0.75rem", cursor: "pointer" }}>
               Coba lagi

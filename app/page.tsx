@@ -6,27 +6,27 @@ const features = [
   {
     num: "01",
     Icon: BookOpen,
-    title: "Track Progres Harian",
-    desc: "Catat halaman yang kamu baca setiap hari. Streak harian membuat kamu dan keluarga tetap termotivasi untuk tidak berhenti.",
+    title: "Catat Progres Harian",
+    desc: "Berapa halaman yang kamu baca hari ini? Catat dalam 10 detik. Streak harian menjagamu tetap konsisten — tanpa tekanan.",
   },
   {
     num: "02",
-    Icon: Users,
-    title: "Satu Keluarga, Satu Ruang",
-    desc: "Ayah, ibu, dan anak — semua punya rak buku sendiri, tapi streak dan pencapaian terlihat bersama dalam satu Family Space.",
+    Icon: Flame,
+    title: "Streak yang Menemani",
+    desc: "Tidak perlu berlomba atau terburu-buru. Cukup hadir setiap hari, walau hanya satu halaman. Streak-mu adalah bukti bahwa kebiasaan sedang tumbuh.",
   },
   {
     num: "03",
-    Icon: Globe,
-    title: "Review yang Jadi Warisan",
-    desc: "Setiap buku yang selesai, tulis ulasan singkat. Otomatis jadi halaman publik yang bisa menginspirasi keluarga lain.",
+    Icon: Users,
+    title: "Bertumbuh Bersama",
+    desc: "Ajak orang terdekatmu bergabung. Lihat progres satu sama lain, saling menyemangati, dan rayakan pencapaian bersama dalam satu ruang keluarga.",
   },
 ];
 
 const steps = [
-  { num: "01", title: "Buat Family Space", desc: "Daftarkan keluargamu dalam satu menit. Undang anggota lewat kode undangan." },
-  { num: "02", title: "Tambah Buku", desc: "Cari buku yang sedang kamu baca, atau input manual kalau bukumu langka." },
-  { num: "03", title: "Log Setiap Hari", desc: "Berapa halaman kamu baca hari ini? Cukup 10 detik. Streak-mu terjaga." },
+  { num: "01", title: "Mulai Catat", desc: "Baca buku apa pun yang kamu suka. Catat halaman yang sudah dibaca — cukup 10 detik." },
+  { num: "02", title: "Jaga Streak", desc: "Konsisten setiap hari, walau hanya satu halaman. Streak-mu tumbuh, kebiasaanmu kuat." },
+  { num: "03", title: "Ajak Orang Terdekat", desc: "Undang pasangan, saudara, atau teman. Bertumbuh bersama jauh lebih menyenangkan." },
 ];
 
 const INK = "#0C0C0A";
@@ -54,6 +54,9 @@ export default function LandingPage() {
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <Link href="/blog" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
+              Blog
+            </Link>
             <Link href="/masuk" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
               Masuk
             </Link>
@@ -87,7 +90,7 @@ export default function LandingPage() {
           color: "#3D4E45",
           marginBottom: "1.75rem",
         }}>
-          Gerakan Literasi Keluarga Indonesia
+          Mulai dari satu halaman
         </div>
 
         <div className="lg:grid-cols-[1fr_400px]" style={{ display: "grid", gap: "3rem", alignItems: "start" }}>
@@ -102,9 +105,9 @@ export default function LandingPage() {
               marginBottom: "1.25rem",
             }}>
               Mulai<br />
-              baca.<br />
+              dari<br />
               <span style={{ color: FOREST, fontStyle: "italic" }}>
-                Bersama<br />keluarga.
+                satu halaman.
               </span>
             </h1>
 
@@ -117,7 +120,9 @@ export default function LandingPage() {
               color: "#3D4E45",
               marginBottom: "2rem",
             }}>
-              Anak yang tumbuh melihat orang tuanya membaca akan membaca. Mulaibaca membantu keluargamu membangun kebiasaan itu — dengan tracking harian, streak bersama, dan review yang saling menginspirasi.
+              Setiap kebiasaan membaca dimulai dari satu halaman, satu orang. 
+              Mulaibaca membantu kamu membangun kebiasaan itu — dengan catatan harian, 
+              streak yang menemani, dan ruang untuk bertumbuh bersama orang-orang terdekat.
             </p>
 
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const, marginBottom: "0.875rem" }}>
@@ -131,7 +136,7 @@ export default function LandingPage() {
                 boxShadow: `3px 3px 0 ${INK}`,
                 textDecoration: "none",
               }}>
-                Buat Family Space Gratis →
+                Mulai Gratis →
               </Link>
               <Link href="/coba" style={{
                 display: "inline-flex", alignItems: "center",
@@ -194,7 +199,7 @@ export default function LandingPage() {
               {[
                 { name: "Ayah", streak: 12, bg: "#dbeafe" },
                 { name: "Ibu", streak: 8, bg: "#fce7f3" },
-                { name: "Anak", streak: 5, bg: "#d1fae5" },
+                { name: "Kakak", streak: 5, bg: "#d1fae5" },
               ].map((m) => (
                 <div key={m.name} style={{ flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "3px" }}>
                   <div style={{ width: "30px", height: "30px", borderRadius: "50%", backgroundColor: m.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 700, color: INK, border: `1px solid ${INK}` }}>
@@ -271,6 +276,34 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* BLOG SECTION */}
+      <section style={{ backgroundColor: INK, borderTop: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, padding: "4rem 0" }}>
+        <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 1.25rem", textAlign: "center" as const }}>
+          <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.4)", marginBottom: "1rem" }}>
+            Mulaibaca Blog
+          </p>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 800, color: PARCHMENT, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "1rem" }}>
+            Inspirasi membaca,<br />
+            <span style={{ color: LIME }}>dari satu halaman</span>
+          </h2>
+          <p style={{ fontSize: "0.9375rem", color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: "440px", margin: "0 auto 2rem" }}>
+            Artikel seputar kebiasaan membaca, tips memilih buku, dan cerita dari para pembaca yang memulai dari satu halaman.
+          </p>
+          <Link href="/blog" style={{
+            display: "inline-flex", alignItems: "center",
+            padding: "0.75rem 1.5rem",
+            backgroundColor: LIME, color: INK,
+            fontWeight: 700, fontSize: "0.9375rem",
+            border: `1.5px solid ${INK}`,
+            borderRadius: "6px",
+            boxShadow: `3px 3px 0 ${FOREST}`,
+            textDecoration: "none",
+          }}>
+            Jelajahi Blog →
+          </Link>
+        </div>
+      </section>
+
       {/* DEMO SECTION */}
       <section style={{ backgroundColor: FOREST, borderTop: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, padding: "5rem 0" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 1.25rem" }}>
@@ -310,13 +343,13 @@ export default function LandingPage() {
       <section style={{ backgroundColor: LIME, borderTop: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, padding: "5rem 0" }}>
         <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 1.25rem", textAlign: "center" as const }}>
           <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#3D4E45", marginBottom: "1.25rem" }}>
-            Bergabung dalam gerakan
+            Mulai dari kamu
           </p>
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 5vw, 3.5rem)", fontWeight: 800, color: INK, letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: "1.25rem" }}>
-            Indonesia membaca<br />dimulai dari rumah
+            Satu halaman<br />bisa jadi awal
           </h2>
           <p style={{ fontSize: "1rem", color: "#3D4E45", lineHeight: 1.65, maxWidth: "440px", margin: "0 auto 2.25rem" }}>
-            Kebiasaan membaca tidak diwariskan lewat nasihat — tapi lewat contoh. Mulai dari dirimu, dan biarkan keluargamu mengikuti.
+            Kebiasaan membaca dimulai dari dirimu. Satu halaman hari ini, esok satu halaman lagi. Sebelum kamu sadari, orang-orang terdekatmu ikut membaca.
           </p>
           <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "12px" }}>
             <Link href="/daftar" style={{
@@ -351,7 +384,7 @@ export default function LandingPage() {
             <img src="/logo.png" alt="Mulaibaca" width={28} height={28} style={{ borderRadius: "50%" }} />
             <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.125rem", color: INK, letterSpacing: "-0.025em" }}>mulaibaca</span>
           </div>
-          <p style={{ fontSize: "0.75rem", color: "#7A8E83" }}>Platform membaca keluarga Indonesia · mulaibaca.id</p>
+          <p style={{ fontSize: "0.75rem", color: "#7A8E83" }}>Bangun kebiasaan membaca, mulai dari satu halaman · mulaibaca.id</p>
           <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>© 2026 Mulaibaca</p>
         </div>
       </footer>
