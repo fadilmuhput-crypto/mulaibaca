@@ -98,7 +98,7 @@ export default function TambahAnakPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-parchment flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
         <Link href="/keluarga" className="p-2 -ml-2 rounded-lg hover:bg-parchment transition-colors">
           <ChevronLeft size={20} strokeWidth={2} className="text-ink" />

@@ -54,7 +54,7 @@ export default async function BlogPage(props: { searchParams?: Promise<{ categor
   const { data: posts } = await query.order("published_at", { ascending: false });
 
   return (
-    <div className="min-h-screen bg-parchment">
+    <div className="min-h-screen">
       <header className="bg-surface/80 backdrop-blur-md border-b border-border/60 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <Link href="/" className="text-lg font-display font-bold text-forest tracking-tight">mulaibaca</Link>
         <div className="flex items-center gap-3">

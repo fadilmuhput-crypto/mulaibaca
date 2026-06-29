@@ -159,7 +159,7 @@ function TulisForm() {
 
 export default function TulisReviewPage() {
   return (
-    <div className="min-h-screen bg-parchment pb-10">
+    <div className="min-h-screen pb-10">
       <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
         <Link href="/review" className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-secondary hover:text-ink rounded-xl">
           ←

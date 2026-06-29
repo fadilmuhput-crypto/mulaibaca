@@ -19,7 +19,7 @@ const features = [
     num: "03",
     Icon: Users,
     title: "Bertumbuh Bersama",
-    desc: "Ajak orang terdekatmu bergabung. Lihat progres satu sama lain, saling menyemangati, dan rayakan pencapaian bersama dalam satu ruang keluarga.",
+    desc: "Ajak orang terdekatmu bergabung. Lihat progres satu sama lain, saling menyemangati, dan rayakan pencapaian bersama.",
   },
 ];
 
@@ -167,7 +167,7 @@ export default function LandingPage() {
             <div style={{ padding: "12px 16px", backgroundColor: FOREST, borderBottom: `1.5px solid ${INK}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, color: "#fff", letterSpacing: "-0.025em", fontSize: "0.9375rem" }}>mulaibaca</span>
-                <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.55)" }}>Keluarga Putra</span>
+                <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.55)" }}>🔥 12 hari streak</span>
               </div>
             </div>
             <div style={{ padding: "16px" }}>
@@ -195,22 +195,19 @@ export default function LandingPage() {
                 <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#fff" }}>✎ Log Baca</p>
               </div>
             </div>
-            <div style={{ display: "flex", borderTop: `1.5px solid ${INK}`, padding: "12px 16px" }}>
-              {[
-                { name: "Ayah", streak: 12, bg: "#dbeafe" },
-                { name: "Ibu", streak: 8, bg: "#fce7f3" },
-                { name: "Kakak", streak: 5, bg: "#d1fae5" },
-              ].map((m) => (
-                <div key={m.name} style={{ flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "3px" }}>
-                  <div style={{ width: "30px", height: "30px", borderRadius: "50%", backgroundColor: m.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 700, color: INK, border: `1px solid ${INK}` }}>
-                    {m.name[0]}
-                  </div>
-                  <span style={{ fontSize: "0.6rem", fontWeight: 600, color: INK }}>{m.name}</span>
-                  <span style={{ fontSize: "0.62rem", fontWeight: 700, color: AMBER, display: "flex", alignItems: "center", gap: "2px" }}>
-                    <Flame size={9} strokeWidth={2} />{m.streak}
-                  </span>
-                </div>
-              ))}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", borderTop: `1.5px solid ${INK}`, padding: "12px 16px" }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 800, color: AMBER, lineHeight: 1.2 }}>12</div>
+                <div style={{ fontSize: "0.6rem", color: "#7A8E83", fontWeight: 600, letterSpacing: "0.03em" }}>Streak</div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 800, color: AMBER, lineHeight: 1.2 }}>1.340</div>
+                <div style={{ fontSize: "0.6rem", color: "#7A8E83", fontWeight: 600, letterSpacing: "0.03em" }}>Halaman</div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem", fontWeight: 800, color: AMBER, lineHeight: 1.2 }}>3</div>
+                <div style={{ fontSize: "0.6rem", color: "#7A8E83", fontWeight: 600, letterSpacing: "0.03em" }}>Selesai</div>
+              </div>
             </div>
           </div>
         </div>

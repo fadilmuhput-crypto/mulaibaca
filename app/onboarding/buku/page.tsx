@@ -130,7 +130,7 @@ export default function OnboardingBukuPage() {
   const showResults = query.trim().length >= 2;
 
   return (
-    <div className="min-h-dvh bg-parchment flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       {/* Header */}
       <header className="flex-shrink-0 px-4 pt-8 pb-4">
         <div className="max-w-lg mx-auto">

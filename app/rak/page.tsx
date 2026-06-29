@@ -31,7 +31,7 @@ export default async function RakPage({
   ]);
 
   return (
-    <div className="min-h-screen bg-parchment pb-20 sm:pb-0">
+    <div className="min-h-screen pb-20 sm:pb-0">
       <NavBar session={session} />
       <main className="max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-5">

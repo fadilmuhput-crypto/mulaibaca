@@ -44,7 +44,7 @@
 @layer base {
   * { box-sizing: border-box; }
   body {
-    background-color: var(--color-parchment);
+    background-color: var(--color-surface);
     color: var(--color-ink);
     font-size: 16px;
     line-height: 1.6;
@@ -337,7 +337,7 @@
   top: 0;
   bottom: 0;
   width: 3rem;
-  background: linear-gradient(to right, transparent, var(--color-parchment));
+  background: linear-gradient(to right, transparent, var(--color-surface));
   pointer-events: none;
   z-index: 1;
 }

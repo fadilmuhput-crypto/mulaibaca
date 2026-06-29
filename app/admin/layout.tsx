@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!session.isCmsAdmin) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-parchment">
+    <div className="min-h-screen">
       <header className="bg-surface border-b border-border sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">

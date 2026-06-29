@@ -294,7 +294,7 @@ export default async function BookDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-parchment pb-10">
+    <div className="min-h-screen pb-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

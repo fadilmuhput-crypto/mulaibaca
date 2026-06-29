@@ -100,7 +100,7 @@ export default async function PublicReviewPage({
   };
 
   return (
-    <div className="min-h-screen bg-parchment">
+    <div className="min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

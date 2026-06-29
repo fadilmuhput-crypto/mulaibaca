@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@/lib/session";
 import type { ProfilStats, ActingAsInfo, FamilyMember } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
-import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink, Users, LogIn, Mail, Target, Trophy } from "lucide-react";
+import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink, Users, LogIn, Mail, Target, Trophy, User, Heart, Baby, Smile } from "lucide-react";
 import Link from "next/link";
 
 const MEMBER_TYPES = [
-  { key: "ayah",   label: "Ayah" },
-  { key: "ibu",    label: "Ibu" },
-  { key: "anak",   label: "Anak" },
-  { key: "dewasa", label: "Lainnya" },
+  { key: "ayah",   label: "Ayah", icon: User,     desc: "Ayah dari keluarga" },
+  { key: "ibu",    label: "Ibu",  icon: Heart,    desc: "Ibu dari keluarga" },
+  { key: "anak",   label: "Anak", icon: Baby,     desc: "Anak dalam keluarga" },
+  { key: "dewasa", label: "Lainnya", icon: Smile, desc: "Anggota keluarga lainnya" },
 ] as const;
 
 export default function ProfilClient({
@@ -301,21 +301,33 @@ export default function ProfilClient({
         {/* Member type */}
         <div>
           <label className="input-label mb-2 block">Kamu adalah</label>
-          <div className="flex gap-2">
-            {MEMBER_TYPES.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setMemberType(t.key)}
-                className={`flex-1 min-h-[40px] rounded-xl border-2 text-sm font-medium transition-all ${
-                  memberType === t.key
-                    ? "border-amber bg-amber text-white"
-                    : "border-border bg-parchment text-ink-secondary hover:border-amber/40"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+          <div className="space-y-2">
+            {MEMBER_TYPES.map((t) => {
+              const Icon = t.icon;
+              const selected = memberType === t.key;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setMemberType(t.key)}
+                  className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
+                    selected
+                      ? "border-amber bg-amber text-white"
+                      : "border-border bg-parchment text-ink-secondary hover:border-amber/40"
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    selected ? "bg-white/20" : "bg-surface"
+                  }`}>
+                    <Icon size={16} strokeWidth={1.75} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold">{t.label}</p>
+                    <p className={`text-xs ${selected ? "text-white/70" : "text-ink-muted"}`}>{t.desc}</p>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 

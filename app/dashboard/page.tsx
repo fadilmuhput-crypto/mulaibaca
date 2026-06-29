@@ -67,12 +67,13 @@ export default async function DashboardPage() {
   const memberCount = familyMembers?.length ?? 1;
   const hasFirstBook = (weeklyShelf ?? []).length > 0;
   const hasFirstLog = (logCount ?? 0) > 0;
+  const hasWeeklyGoal = (session.weeklyPagesGoal ?? 0) > 0;
   const hasFamilyMember = memberCount > 1;
   const showFamily = hasFirstLog || hasFamilyMember;
-  const allOnboardingDone = hasFirstBook && hasFirstLog && hasFamilyMember;
+  const allOnboardingDone = hasFirstBook && hasFirstLog && hasWeeklyGoal && hasFamilyMember;
 
   return (
-    <div className="min-h-screen bg-parchment pb-20 sm:pb-0">
+    <div className="min-h-screen pb-20 sm:pb-0">
       <NavBar session={session} />
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
@@ -95,7 +96,7 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-black uppercase tracking-widest text-ink-muted">Mulai dari sini</span>
               <span className="text-xs font-bold text-amber bg-amber-soft px-2 py-0.5 rounded-full">
-                {[hasFirstBook, hasFirstLog, hasFamilyMember].filter(Boolean).length}/3 selesai
+                {[hasFirstBook, hasFirstLog, hasWeeklyGoal, hasFamilyMember].filter(Boolean).length}/4 selesai
               </span>
             </div>
 
@@ -147,9 +148,32 @@ export default async function DashboardPage() {
 
             {/* Step 3 */}
             <Link
+              href="/profil"
+              className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
+                hasWeeklyGoal ? "opacity-60" : hasFirstLog ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
+              }`}
+            >
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+                hasWeeklyGoal ? "bg-forest border-forest text-white" : "border-border text-ink-muted"
+              }`}>
+                {hasWeeklyGoal
+                  ? <Check size={13} strokeWidth={3} />
+                  : <Target size={12} strokeWidth={2} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold ${hasWeeklyGoal ? "line-through text-ink-muted" : "text-ink"}`}>
+                  Atur target mingguan
+                </p>
+                <p className="text-xs text-ink-muted">Tetapkan target halaman baca per minggu</p>
+              </div>
+              {hasFirstLog && !hasWeeklyGoal && <span className="text-amber text-xs font-bold flex-shrink-0">Atur →</span>}
+            </Link>
+
+            {/* Step 4 */}
+            <Link
               href="/keluarga"
               className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
-                hasFamilyMember ? "opacity-60" : hasFirstLog ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
+                hasFamilyMember ? "opacity-60" : hasWeeklyGoal ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
               }`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
@@ -165,7 +189,7 @@ export default async function DashboardPage() {
                 </p>
                 <p className="text-xs text-ink-muted">Baca bareng dan pantau progress bersama</p>
               </div>
-              {hasFirstLog && !hasFamilyMember && <span className="text-amber text-xs font-bold flex-shrink-0">Undang →</span>}
+              {hasWeeklyGoal && !hasFamilyMember && <span className="text-amber text-xs font-bold flex-shrink-0">Undang →</span>}
             </Link>
           </section>
         )}
