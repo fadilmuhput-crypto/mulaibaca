@@ -7,7 +7,7 @@ import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
 import AvatarIcon from "@/components/AvatarIcon";
-import { Flame, BookOpen, PenLine, Plus, Target, Library, BookMarked, LayoutDashboard, LayoutGrid, Check, Users } from "lucide-react";
+import { Flame, BookOpen, PenLine, Plus, Target, Check, Users } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -317,70 +317,6 @@ export default async function DashboardPage() {
                   <span className="text-xs text-ink-muted max-w-[48px] text-center leading-tight">Tambah</span>
                 </Link>
               )}
-            </div>
-          </section>
-        )}
-
-        {/* Admin CMS — only for isCmsAdmin */}
-        {session.isCmsAdmin && (
-          <section>
-            <div className="section-header mb-3">
-              <div className="flex items-center gap-1.5">
-                <LayoutDashboard size={14} strokeWidth={2} className="text-ink-muted" />
-                <h2 className="section-title">Admin CMS</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href="/admin/buku"
-                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-forest/40 hover:bg-forest/5 transition-all"
-              >
-                <BookMarked size={20} strokeWidth={1.75} className="text-forest" />
-                <div>
-                  <p className="font-semibold text-sm text-ink">Kurasi Buku</p>
-                  <p className="text-xs text-ink-muted mt-0.5">Kelola buku pilihan editorial</p>
-                </div>
-              </Link>
-              <Link
-                href="/admin/perpustakaan"
-                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-amber/40 hover:bg-amber-soft/40 transition-all"
-              >
-                <Library size={20} strokeWidth={1.75} className="text-amber" />
-                <div>
-                  <p className="font-semibold text-sm text-ink">Perpustakaan</p>
-                  <p className="text-xs text-ink-muted mt-0.5">Lengkapi data buku pengguna</p>
-                </div>
-              </Link>
-              <Link
-                href="/admin/jelajah"
-                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-[#2D4D7A]/40 hover:bg-[#EBF0F8]/40 transition-all col-span-2"
-              >
-                <LayoutGrid size={20} strokeWidth={1.75} className="text-[#2D4D7A]" />
-                <div>
-                  <p className="font-semibold text-sm text-ink">Halaman Jelajah</p>
-                  <p className="text-xs text-ink-muted mt-0.5">Atur section, urutan, dan konten halaman /jelajah</p>
-                </div>
-              </Link>
-              <Link
-                href="/admin/blog"
-                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-forest/40 hover:bg-forest/5 transition-all"
-              >
-                <PenLine size={20} strokeWidth={1.75} className="text-forest" />
-                <div>
-                  <p className="font-semibold text-sm text-ink">Blog</p>
-                  <p className="text-xs text-ink-muted mt-0.5">Tulis & kelola artikel blog</p>
-                </div>
-              </Link>
-              <Link
-                href="/admin/bantuan"
-                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-amber/40 hover:bg-amber-soft/40 transition-all"
-              >
-                <BookOpen size={20} strokeWidth={1.75} className="text-amber" />
-                <div>
-                  <p className="font-semibold text-sm text-ink">Bantuan</p>
-                  <p className="text-xs text-ink-muted mt-0.5">Kelola FAQ & panduan</p>
-                </div>
-              </Link>
             </div>
           </section>
         )}

@@ -115,9 +115,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
             <span>{post.published_at ? formatDate(post.published_at) : ""}</span>
           </div>
 
-          <div className="prose prose-sm max-w-none text-ink-secondary leading-relaxed whitespace-pre-wrap">
-            {post.content}
-          </div>
+          <div
+            className="prose-blog max-w-none"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
         </article>
 
         <div className="mt-10 pt-8 border-t border-border text-center">

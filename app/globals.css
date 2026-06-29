@@ -345,4 +345,50 @@
 /* ━━━ SAFE AREA (iOS notch / gesture bar) ━━━ */
 .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
 
+/* ━━━ BLOG PROSE ━━━ */
+.prose-blog h2 {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+.prose-blog h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-top: 1.25em;
+  margin-bottom: 0.4em;
+}
+.prose-blog p {
+  margin-bottom: 1em;
+  line-height: 1.75;
+  color: var(--color-ink-secondary);
+}
+.prose-blog ul, .prose-blog ol {
+  margin-left: 1.25em;
+  margin-bottom: 1em;
+}
+.prose-blog li {
+  margin-bottom: 0.4em;
+  line-height: 1.65;
+  color: var(--color-ink-secondary);
+}
+.prose-blog ul li {
+  list-style-type: disc;
+}
+.prose-blog ol li {
+  list-style-type: decimal;
+}
+.prose-blog strong {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.prose-blog img {
+  border-radius: 0.75rem;
+  margin: 1.5em auto;
+  max-width: 100%;
+  height: auto;
+}
+
 } /* end @layer components */

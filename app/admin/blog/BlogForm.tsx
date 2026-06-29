@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import RichEditor from "@/components/RichEditor";
 
 type Props = {
   initial?: {
@@ -101,13 +102,7 @@ export default function BlogForm({ initial }: Props) {
 
       <div>
         <label className="input-label">Konten</label>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="input w-full h-64 resize-y font-mono text-sm leading-relaxed"
-          placeholder="Tulis konten artikel di sini…"
-        />
-        <p className="input-hint">HTML didukung. Bisa juga gunakan Markdown sederhana.</p>
+        <RichEditor value={content} onChange={setContent} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
