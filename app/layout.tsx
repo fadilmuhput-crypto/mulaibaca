@@ -18,9 +18,9 @@ const fraunces = Fraunces({
 const ROOT = "https://mulaibaca.id";
 
 export const metadata: Metadata = {
-  title: "Mulaibaca — Platform Membaca Keluarga",
+  title: "Mulaibaca — Bangun Kebiasaan Membaca",
   description:
-    "Bangun kebiasaan membaca bersama keluarga. Track progres harian, tulis review buku, dan jadilah bagian dari gerakan literasi Indonesia.",
+    "Bangun kebiasaan membaca dari satu halaman per hari. Catat progres, jaga streak, dan tulis review buku. Mulai dari dirimu, bertumbuh bersama orang terdekat.",
   metadataBase: new URL(ROOT),
   alternates: {
     canonical: ROOT,
@@ -30,15 +30,15 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: ROOT,
     siteName: "Mulaibaca",
-    title: "Mulaibaca — Platform Membaca Keluarga",
+    title: "Mulaibaca — Bangun Kebiasaan Membaca",
     description:
-      "Bangun kebiasaan membaca bersama keluarga. Track progres harian, tulis review buku.",
+      "Bangun kebiasaan membaca dari satu halaman per hari. Catat progres, jaga streak, tulis review.",
   },
   twitter: {
     card: "summary",
-    title: "Mulaibaca — Platform Membaca Keluarga",
+    title: "Mulaibaca — Bangun Kebiasaan Membaca",
     description:
-      "Bangun kebiasaan membaca bersama keluarga. Track progres harian, tulis review buku.",
+      "Bangun kebiasaan membaca dari satu halaman per hari. Catat progres, jaga streak, tulis review.",
   },
   verification: {
     google: "iVM6wykx3g3g3pTQ86zRJ6ut6cjWYK5-detLwmk-dvM",

@@ -48,7 +48,7 @@ function MasukForm() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
-          <p className="mt-2 text-ink-secondary text-sm">Masuk ke ruang baca keluargamu</p>
+          <p className="mt-2 text-ink-secondary text-sm">Masuk untuk lanjutkan kebiasaan membaca</p>
         </div>
 
         <div className="card-elevated overflow-hidden">

@@ -187,13 +187,13 @@ export default async function PublicReviewPage({
         ) : (
           <div className="mt-8 bg-forest rounded-2xl p-6 text-center">
             <p className="text-white font-display font-bold text-lg mb-1">
-              Yuk baca bareng keluarga!
+              Mulai bangun kebiasaan membaca
             </p>
             <p className="text-white/70 text-sm mb-4">
-              Track progress, tulis review, jaga streak baca harian
+              Catat progres, tulis review, jaga streak baca harian
             </p>
             <Link href="/daftar" className="btn-primary-lg inline-flex">
-              Buat Ruang Keluarga Gratis →
+              Mulai Gratis →
             </Link>
           </div>
         )}

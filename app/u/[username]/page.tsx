@@ -283,10 +283,10 @@ export default async function PublicProfilePage({
 
         {/* CTA */}
         <div className="bg-forest rounded-2xl p-6 text-center brutal-border brutal-shadow-sm">
-          <p className="text-white font-display font-bold text-lg mb-1">Yuk baca bareng keluarga!</p>
-          <p className="text-white/70 text-sm mb-4">Track progress, tulis review, jaga streak baca harian</p>
+          <p className="text-white font-display font-bold text-lg mb-1">Mulai bangun kebiasaan membaca</p>
+          <p className="text-white/70 text-sm mb-4">Catat progres, tulis review, jaga streak baca harian</p>
           <Link href="/daftar" className="bg-white text-forest text-sm font-bold px-6 py-2.5 rounded-lg inline-flex hover:bg-parchment transition-colors">
-            Buat Ruang Keluarga Gratis →
+            Mulai Gratis →
           </Link>
         </div>
       </main>

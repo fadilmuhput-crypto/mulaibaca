@@ -53,9 +53,6 @@ export default async function ReviewPage() {
         <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-h1">Review Buku</h1>
-            {(reviews ?? []).length > 0 && (
-              <Link href="/review" className="text-xs text-amber font-medium">Semua review publik →</Link>
-            )}
           </div>
 
           {/* Books waiting for review */}
@@ -208,8 +205,8 @@ export default async function ReviewPage() {
         )}
 
         <div className="mt-10 text-center">
-          <p className="text-sm text-ink-secondary mb-3">Punya buku yang ingin direviewa?</p>
-          <Link href="/daftar" className="btn-primary">Mulai Membaca Bersama Keluarga →</Link>
+          <p className="text-sm text-ink-secondary mb-3">Mulai catat progres bacaanmu</p>
+          <Link href="/daftar" className="btn-primary">Mulai Gratis →</Link>
         </div>
       </main>
     </div>
