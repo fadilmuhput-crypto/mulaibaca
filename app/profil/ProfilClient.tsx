@@ -298,39 +298,6 @@ export default function ProfilClient({
           )}
         </div>
 
-        {/* Member type */}
-        <div>
-          <label className="input-label mb-2 block">Kamu adalah</label>
-          <div className="space-y-2">
-            {MEMBER_TYPES.map((t) => {
-              const Icon = t.icon;
-              const selected = memberType === t.key;
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setMemberType(t.key)}
-                  className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
-                    selected
-                      ? "border-amber bg-amber text-white"
-                      : "border-border bg-parchment text-ink-secondary hover:border-amber/40"
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    selected ? "bg-white/20" : "bg-surface"
-                  }`}>
-                    <Icon size={16} strokeWidth={1.75} />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold">{t.label}</p>
-                    <p className={`text-xs ${selected ? "text-white/70" : "text-ink-muted"}`}>{t.desc}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Date of birth */}
         <div>
           <label htmlFor="birth-date" className="input-label">Tanggal lahir</label>
@@ -481,6 +448,39 @@ export default function ProfilClient({
             )}
           </div>
         )}
+
+        {/* Member type selector — inside keluarga section */}
+        <div>
+          <label className="input-label mb-2 block">Kamu adalah</label>
+          <div className="space-y-2">
+            {MEMBER_TYPES.map((t) => {
+              const Icon = t.icon;
+              const selected = memberType === t.key;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setMemberType(t.key)}
+                  className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
+                    selected
+                      ? "border-amber bg-amber text-white"
+                      : "border-border bg-parchment text-ink-secondary hover:border-amber/40"
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    selected ? "bg-white/20" : "bg-surface"
+                  }`}>
+                    <Icon size={16} strokeWidth={1.75} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold">{t.label}</p>
+                    <p className={`text-xs ${selected ? "text-white/70" : "text-ink-muted"}`}>{t.desc}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {session.memberRole === "admin" ? (
           <>

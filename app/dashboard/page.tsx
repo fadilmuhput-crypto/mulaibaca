@@ -81,7 +81,6 @@ export default async function DashboardPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-h1">Halo, {session.memberName}!</h1>
-            <p className="text-ink-secondary text-sm mt-0.5">{session.familyName}</p>
           </div>
           <div className="text-center bg-surface rounded-xl px-4 py-2 brutal-border brutal-shadow-sm">
             <div className="flex justify-center text-amber mb-0.5"><Flame size={22} strokeWidth={1.75} /></div>
