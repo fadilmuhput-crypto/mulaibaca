@@ -173,9 +173,23 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const curated = findCurated(id);
   const title = curated?.title ?? id.replace(/-ol\w+$/i, "").replace(/-/g, " ");
+  const description = curated?.description ?? `Detail buku ${title} di Mulaibaca — baca, track progres, dan tulis review.`;
+  const url = `https://mulaibaca.id/buku/${id}`;
   return {
     title: `${title} — Mulaibaca`,
-    description: curated?.description ?? `Detail buku ${title} di Mulaibaca`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${title} — Mulaibaca`,
+      description,
+      url,
+      type: "book",
+    },
+    twitter: {
+      card: "summary",
+      title: `${title} — Mulaibaca`,
+      description,
+    },
   };
 }
 
@@ -266,8 +280,25 @@ export default async function BookDetailPage({
 
   const STARS = [1, 2, 3, 4, 5];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Book",
+    name: book.title,
+    author: book.author ? { "@type": "Person", name: book.author } : undefined,
+    numberOfPages: book.total_pages ?? undefined,
+    description: book.description ?? undefined,
+    url: `https://mulaibaca.id/buku/${id}`,
+    image: book.cover_url ?? undefined,
+    inLanguage: book.language === "en" ? "en" : "id",
+    isbn: book.isbn ?? undefined,
+  };
+
   return (
     <div className="min-h-screen bg-parchment pb-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
         <Link
           href="/jelajah"

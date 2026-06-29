@@ -1,8 +1,25 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 import FaqAccordion from "./FaqAccordion";
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "FAQ — Mulaibaca",
+  description: "Pertanyaan yang sering diajukan tentang Mulaibaca. Pelajari cara menggunakan platform membaca keluarga ini.",
+  alternates: { canonical: "https://mulaibaca.id/faq" },
+  openGraph: {
+    title: "FAQ — Mulaibaca",
+    description: "Pertanyaan yang sering diajukan tentang Mulaibaca.",
+    url: "https://mulaibaca.id/faq",
+  },
+  twitter: {
+    card: "summary",
+    title: "FAQ — Mulaibaca",
+    description: "Pertanyaan yang sering diajukan tentang Mulaibaca.",
+  },
+};
 
 export default async function FAQPage() {
   const admin = createAdminClient();
@@ -14,8 +31,24 @@ export default async function FAQPage() {
 
   const faqs = (data ?? []) as { id: string; question: string; answer: string }[];
 
+  const faqLd = faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  } : null;
+
   return (
     <div className="min-h-dvh bg-parchment">
+      {faqLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+      )}
       <header className="bg-surface border-b border-border px-4 py-4">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <Link href="/" className="text-xl font-display font-bold text-forest">mulaibaca</Link>

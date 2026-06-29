@@ -9,6 +9,18 @@ import BookCover from "@/components/BookCover";
 export const metadata = {
   title: "Review Buku — Mulaibaca",
   description: "Kumpulan review buku dari keluarga Indonesia. Temukan rekomendasi buku terbaik.",
+  alternates: { canonical: "https://mulaibaca.id/review" },
+  openGraph: {
+    title: "Review Buku — Mulaibaca",
+    description: "Kumpulan review buku dari keluarga Indonesia. Temukan rekomendasi buku terbaik.",
+    url: "https://mulaibaca.id/review",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Review Buku — Mulaibaca",
+    description: "Kumpulan review buku dari keluarga Indonesia. Temukan rekomendasi buku terbaik.",
+  },
 };
 
 const STARS = [1, 2, 3, 4, 5];

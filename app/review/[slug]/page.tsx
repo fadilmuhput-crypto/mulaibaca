@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 import { getSession } from "@/lib/session";
 import AvatarIcon from "@/components/AvatarIcon";
@@ -7,6 +8,51 @@ import { BookOpen } from "lucide-react";
 import BookCover from "@/components/BookCover";
 
 const STARS = [1, 2, 3, 4, 5];
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = createAdminClient();
+  const { data: review } = await supabase
+    .from("reviews")
+    .select(`
+      rating, q_about, is_anonymous,
+      shelf_items(books(title, author)),
+      members(name)
+    `)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!review) return { title: "Review Buku — Mulaibaca" };
+
+  const shelfItems = review.shelf_items as any[];
+  const book = shelfItems?.[0]?.books ?? null;
+  const membersList = review.members as any[];
+  const member = membersList?.[0] ?? null;
+  const reviewer = review.is_anonymous ? "Anonim" : (member?.name ?? "Pembaca");
+  const title = book?.title ?? "Buku";
+  const stars = "⭐".repeat(review.rating ?? 0);
+  const description = review.q_about
+    ? `"${review.q_about.slice(0, 200)}" — ${stars} oleh ${reviewer}`
+    : `Review buku ${title} oleh ${reviewer} di Mulaibaca.`;
+  const url = `https://mulaibaca.id/review/${slug}`;
+
+  return {
+    title: `Review ${title} oleh ${reviewer} — Mulaibaca`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `Review ${title} oleh ${reviewer} — Mulaibaca`,
+      description,
+      url,
+      type: "article",
+    },
+    twitter: {
+      card: "summary",
+      title: `Review ${title} oleh ${reviewer} — Mulaibaca`,
+      description,
+    },
+  };
+}
 
 export default async function PublicReviewPage({
   params,
@@ -34,8 +80,31 @@ export default async function PublicReviewPage({
   const member = review.members as { name: string; avatar: string } | null;
   const family = review.families as { name: string } | null;
 
+  const reviewerName = review.is_anonymous ? "Anonim" : (member?.name ?? "Pembaca");
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Review",
+    itemReviewed: {
+      "@type": "Book",
+      name: book?.title ?? "Buku",
+      author: book?.author ? { "@type": "Person", name: book.author } : undefined,
+    },
+    author: { "@type": "Person", name: reviewerName },
+    reviewRating: {
+      "@type": "Rating",
+      ratingValue: review.rating,
+      bestRating: 5,
+    },
+    description: review.q_about ?? undefined,
+    url: `https://mulaibaca.id/review/${slug}`,
+  };
+
   return (
     <div className="min-h-screen bg-parchment">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Header */}
       <header className="bg-surface border-b border-border px-6 py-4 flex items-center justify-between">
         <Link href="/" className="text-xl font-display font-bold text-forest">

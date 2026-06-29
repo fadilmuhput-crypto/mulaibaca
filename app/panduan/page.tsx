@@ -1,8 +1,25 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Panduan — Mulaibaca",
+  description: "Panduan lengkap menggunakan Mulaibaca. Pelajari cara membuat Family Space, menambahkan buku, dan mencatat progres bacaan keluarga.",
+  alternates: { canonical: "https://mulaibaca.id/panduan" },
+  openGraph: {
+    title: "Panduan — Mulaibaca",
+    description: "Panduan lengkap menggunakan Mulaibaca.",
+    url: "https://mulaibaca.id/panduan",
+  },
+  twitter: {
+    card: "summary",
+    title: "Panduan — Mulaibaca",
+    description: "Panduan lengkap menggunakan Mulaibaca.",
+  },
+};
 
 type Guide = {
   id: string;

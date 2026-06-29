@@ -20,9 +20,29 @@ function bookUrl(book: { title: string; open_library_id: string | null }): strin
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
+  const supabase = createAdminClient();
+  const { data: member } = await supabase
+    .from("members")
+    .select("name")
+    .eq("username", username.toLowerCase())
+    .maybeSingle();
+
+  const displayName = member?.name ?? `@${username}`;
+  const url = `https://mulaibaca.id/u/${username}`;
   return {
-    title: `@${username} — mulaibaca`,
-    description: `Profil pembaca @${username} di mulaibaca`,
+    title: `${displayName} (@${username}) — mulaibaca`,
+    description: `Profil pembaca ${displayName} di Mulaibaca. Lihat buku yang sedang dibaca, sudah selesai, dan review buku.`,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${displayName} (@${username}) — mulaibaca`,
+      description: `Profil pembaca ${displayName} di Mulaibaca.`,
+      url,
+    },
+    twitter: {
+      card: "summary",
+      title: `${displayName} (@${username}) — mulaibaca`,
+      description: `Profil pembaca ${displayName} di Mulaibaca.`,
+    },
   };
 }
 

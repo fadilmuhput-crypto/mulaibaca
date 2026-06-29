@@ -15,17 +15,30 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
+const ROOT = "https://mulaibaca.id";
+
 export const metadata: Metadata = {
   title: "Mulaibaca — Platform Membaca Keluarga",
   description:
     "Bangun kebiasaan membaca bersama keluarga. Track progres harian, tulis review buku, dan jadilah bagian dari gerakan literasi Indonesia.",
-  metadataBase: new URL("https://mulaibaca.id"),
+  metadataBase: new URL(ROOT),
+  alternates: {
+    canonical: ROOT,
+  },
   openGraph: {
     type: "website",
+    locale: "id_ID",
+    url: ROOT,
+    siteName: "Mulaibaca",
     title: "Mulaibaca — Platform Membaca Keluarga",
     description:
       "Bangun kebiasaan membaca bersama keluarga. Track progres harian, tulis review buku.",
-    siteName: "Mulaibaca",
+  },
+  twitter: {
+    card: "summary",
+    title: "Mulaibaca — Platform Membaca Keluarga",
+    description:
+      "Bangun kebiasaan membaca bersama keluarga. Track progres harian, tulis review buku.",
   },
   verification: {
     google: "iVM6wykx3g3g3pTQ86zRJ6ut6cjWYK5-detLwmk-dvM",
