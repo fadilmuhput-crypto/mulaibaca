@@ -70,7 +70,8 @@ export default async function DashboardPage() {
   const hasWeeklyGoal = (session.weeklyPagesGoal ?? 0) > 0;
   const hasFamilyMember = memberCount > 1;
   const showFamily = hasFirstLog || hasFamilyMember;
-  const allOnboardingDone = hasFirstBook && hasFirstLog && hasWeeklyGoal && hasFamilyMember;
+  const checklistStepsDone = [hasFirstBook, hasFirstLog, hasWeeklyGoal];
+  const allOnboardingDone = checklistStepsDone.every(Boolean);
 
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
@@ -95,7 +96,7 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-black uppercase tracking-widest text-ink-muted">Mulai dari sini</span>
               <span className="text-xs font-bold text-amber bg-amber-soft px-2 py-0.5 rounded-full">
-                {[hasFirstBook, hasFirstLog, hasWeeklyGoal, hasFamilyMember].filter(Boolean).length}/4 selesai
+                {checklistStepsDone.filter(Boolean).length}/3 selesai
               </span>
             </div>
 
@@ -168,30 +169,64 @@ export default async function DashboardPage() {
               {hasFirstLog && !hasWeeklyGoal && <span className="text-amber text-xs font-bold flex-shrink-0">Atur →</span>}
             </Link>
 
-            {/* Step 4 */}
-            <Link
-              href="/keluarga"
-              className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
-                hasFamilyMember ? "opacity-60" : hasWeeklyGoal ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
-              }`}
-            >
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
-                hasFamilyMember ? "bg-forest border-forest text-white" : "border-border text-ink-muted"
-              }`}>
-                {hasFamilyMember
-                  ? <Check size={13} strokeWidth={3} />
-                  : <Users size={12} strokeWidth={2} />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold ${hasFamilyMember ? "line-through text-ink-muted" : "text-ink"}`}>
-                  Undang anggota keluarga
-                </p>
-                <p className="text-xs text-ink-muted">Baca bareng dan pantau progress bersama</p>
-              </div>
-              {hasWeeklyGoal && !hasFamilyMember && <span className="text-amber text-xs font-bold flex-shrink-0">Undang →</span>}
-            </Link>
           </section>
         )}
+
+        {/* Optional: invite family — shown after checklist is complete or if user has first log */}
+        {allOnboardingDone && !hasFamilyMember && memberCount <= 1 && (
+          <Link
+            href="/keluarga"
+            className="flex items-center gap-3 bg-surface rounded-2xl border border-border p-4 hover:border-amber/40 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-xl bg-amber-soft flex items-center justify-center text-amber flex-shrink-0">
+              <Users size={16} strokeWidth={1.75} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-ink">Ajak keluarga baca bareng</p>
+              <p className="text-xs text-ink-muted">Opsional — pantau progres membaca bersama</p>
+            </div>
+            <span className="text-xs font-semibold text-amber flex-shrink-0">Lihat →</span>
+          </Link>
+        )}
+
+        {/* Weekly goal — prominent: show progress if set, or CTA if first log done but no goal yet */}
+        {session.weeklyPagesGoal > 0 ? (
+          <Link href="/profil" className="block bg-surface rounded-2xl p-4 brutal-border brutal-shadow-xs">
+            {(() => {
+              const goal = session.weeklyPagesGoal;
+              const pct = Math.min(Math.round((weeklyPagesRead / goal) * 100), 100);
+              const met = weeklyPagesRead >= goal;
+              return (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Target size={16} strokeWidth={1.75} className={met ? "text-forest" : "text-amber"} />
+                      <span className="text-overline">{met ? "Target tercapai!" : "Target minggu ini"}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-ink-secondary">{weeklyPagesRead} / {goal} hal</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div className="progress-fill transition-all" style={{ width: `${pct}%`, backgroundColor: met ? "var(--color-forest)" : "var(--color-amber)" }} />
+                  </div>
+                  {!met && (
+                    <p className="text-xs text-ink-muted mt-1.5">{goal - weeklyPagesRead} halaman lagi untuk mencapai target</p>
+                  )}
+                </>
+              );
+            })()}
+          </Link>
+        ) : hasFirstLog ? (
+          <Link
+            href="/profil"
+            className="flex items-center justify-between bg-amber-soft rounded-2xl px-4 py-3.5 border border-amber/20"
+          >
+            <div className="flex items-center gap-2">
+              <Target size={18} strokeWidth={1.75} className="text-amber" />
+              <span className="text-sm font-semibold text-ink-secondary">Tetapkan target membaca mingguanmu</span>
+            </div>
+            <span className="text-amber text-sm font-semibold">Atur →</span>
+          </Link>
+        ) : null}
 
         {/* Quick actions */}
         <section className="grid grid-cols-2 gap-3">
@@ -210,48 +245,6 @@ export default async function DashboardPage() {
             <span className="font-semibold text-sm">Catat Bacaan</span>
           </Link>
         </section>
-
-        {/* Weekly goal progress */}
-        {session.weeklyPagesGoal > 0 ? (
-          <section>
-            {(() => {
-              const goal = session.weeklyPagesGoal;
-              const pct = Math.min(Math.round((weeklyPagesRead / goal) * 100), 100);
-              const met = weeklyPagesRead >= goal;
-              return (
-                <Link href="/profil" className="block bg-surface rounded-2xl p-4 brutal-border brutal-shadow-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Target size={16} strokeWidth={1.75} className={met ? "text-forest" : "text-amber"} />
-                      <span className="text-overline">{met ? "Target tercapai!" : "Target minggu ini"}</span>
-                    </div>
-                    <span className="text-xs font-semibold text-ink-secondary">{weeklyPagesRead} / {goal} hal</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill transition-all"
-                      style={{ width: `${pct}%`, backgroundColor: met ? "var(--color-forest)" : "var(--color-amber)" }}
-                    />
-                  </div>
-                  {!met && (
-                    <p className="text-xs text-ink-muted mt-1.5">{goal - weeklyPagesRead} halaman lagi untuk mencapai target</p>
-                  )}
-                </Link>
-              );
-            })()}
-          </section>
-        ) : hasFirstLog ? (
-          <Link
-            href="/profil"
-            className="flex items-center justify-between bg-amber-soft rounded-2xl px-4 py-3 border border-amber/20"
-          >
-            <div className="flex items-center gap-2">
-              <Target size={16} strokeWidth={1.75} className="text-amber" />
-              <span className="text-sm text-ink-secondary">Tetapkan target membaca mingguanmu</span>
-            </div>
-            <span className="text-amber text-sm font-semibold">→</span>
-          </Link>
-        ) : null}
 
         {/* Currently reading */}
         <section>
