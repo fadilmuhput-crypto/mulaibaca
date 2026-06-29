@@ -37,6 +37,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Halaman Jelajah
             </Link>
             <Link
+              href="/admin/blog"
+              className="text-sm font-medium text-ink-secondary hover:text-ink transition-colors"
+            >
+              Blog
+            </Link>
+            <Link
               href="/admin/bantuan"
               className="text-sm font-medium text-ink-secondary hover:text-ink transition-colors"
             >
