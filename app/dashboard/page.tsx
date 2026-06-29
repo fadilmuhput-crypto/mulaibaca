@@ -361,6 +361,26 @@ export default async function DashboardPage() {
                   <p className="text-xs text-ink-muted mt-0.5">Atur section, urutan, dan konten halaman /jelajah</p>
                 </div>
               </Link>
+              <Link
+                href="/admin/blog"
+                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-forest/40 hover:bg-forest/5 transition-all"
+              >
+                <PenLine size={20} strokeWidth={1.75} className="text-forest" />
+                <div>
+                  <p className="font-semibold text-sm text-ink">Blog</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Tulis & kelola artikel blog</p>
+                </div>
+              </Link>
+              <Link
+                href="/admin/bantuan"
+                className="bg-surface rounded-xl brutal-border brutal-shadow-xs p-4 flex flex-col gap-2 hover:border-amber/40 hover:bg-amber-soft/40 transition-all"
+              >
+                <BookOpen size={20} strokeWidth={1.75} className="text-amber" />
+                <div>
+                  <p className="font-semibold text-sm text-ink">Bantuan</p>
+                  <p className="text-xs text-ink-muted mt-0.5">Kelola FAQ & panduan</p>
+                </div>
+              </Link>
             </div>
           </section>
         )}
