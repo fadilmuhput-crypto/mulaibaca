@@ -109,6 +109,8 @@ export default function JelajahClient({
   familyBooks,
   allBooks,
   sections,
+  trendingBooks,
+  personalBooks,
   memberType,
   memberAge,
   memberName,
@@ -116,6 +118,8 @@ export default function JelajahClient({
   familyBooks: FamilyBook[];
   allBooks: Book[];
   sections: JelajahSection[];
+  trendingBooks: Book[];
+  personalBooks: Book[];
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
   memberAge: number | null;
   memberName: string;
@@ -593,6 +597,52 @@ export default function JelajahClient({
                 </section>
               );
             })()}
+
+            {/* ── Trending — buku yang paling banyak ditambahkan ke rak ── */}
+            {trendingBooks.length > 1 && !activeParent && (
+              <section>
+                <SectionLabel>Trending Minggu Ini</SectionLabel>
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
+                  {trendingBooks.map((b) => {
+                    const c = fromBook(b);
+                    return (
+                      <div key={b.id} className="flex-shrink-0 w-24">
+                        <Link href={bookUrl(c)}>
+                          <BookCover src={b.cover_url} title={b.title} className="w-full h-[88px] rounded-xl mb-1.5" />
+                        </Link>
+                        <Link href={bookUrl(c)} className="hover:text-amber transition-colors">
+                          <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
+                        </Link>
+                        <p className="text-[10px] text-ink-muted truncate">{b.author}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ── Personal — rekomendasi berdasarkan buku di rak user ── */}
+            {personalBooks.length > 1 && !activeParent && (
+              <section>
+                <SectionLabel>Karena Kamu Baca…</SectionLabel>
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
+                  {personalBooks.map((b) => {
+                    const c = fromBook(b);
+                    return (
+                      <div key={b.id} className="flex-shrink-0 w-24">
+                        <Link href={bookUrl(c)}>
+                          <BookCover src={b.cover_url} title={b.title} className="w-full h-[88px] rounded-xl mb-1.5" />
+                        </Link>
+                        <Link href={bookUrl(c)} className="hover:text-amber transition-colors">
+                          <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
+                        </Link>
+                        <p className="text-[10px] text-ink-muted truncate">{b.author}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
             {/* ── DB Sections (featured, grid_v, grid_h, banner) — hanya saat tidak ada filter ── */}
             {!activeParent && sections.map((sec) => (
