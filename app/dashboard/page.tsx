@@ -89,7 +89,7 @@ export default async function DashboardPage() {
               <div className="font-display text-2xl font-black text-ink leading-none">{currentStreak}</div>
               <div className="text-xs text-ink-muted mt-0.5 font-semibold">hari</div>
             </div>
-            {currentStreak > 0 && (
+            {false && currentStreak > 0 && (
               <a
                 href={`https://wa.me/?text=${encodeURIComponent(`Aku sudah baca ${currentStreak} hari berturut-turut di mulaibaca! 📚\n\nmulaibaca.id`)}`}
                 target="_blank"
