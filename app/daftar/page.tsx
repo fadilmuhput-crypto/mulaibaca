@@ -42,15 +42,12 @@ export default function DaftarPage() {
         throw new Error(authErr.message);
       }
       if (!authData.user) throw new Error("Gagal membuat akun");
-      if (!authData.session) {
-        throw new Error("Cek emailmu untuk verifikasi sebelum melanjutkan.");
-      }
 
       setStep(1);
       const res = await fetch("/api/daftar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, accessToken: authData.session.access_token }),
+        body: JSON.stringify({ username, accessToken: authData.session!.access_token }),
       });
 
       const data = await res.json();

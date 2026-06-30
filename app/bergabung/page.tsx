@@ -57,7 +57,6 @@ export default function BergabungPage() {
         throw new Error(authErr.message);
       }
       if (!authData.user) throw new Error("Gagal membuat akun");
-      if (!authData.session) throw new Error("Cek emailmu untuk verifikasi sebelum melanjutkan.");
 
       const res = await fetch("/api/bergabung", {
         method: "POST",
@@ -65,7 +64,7 @@ export default function BergabungPage() {
         body: JSON.stringify({
           inviteCode,
           username,
-          accessToken: authData.session.access_token,
+          accessToken: authData.session!.access_token,
         }),
       });
 

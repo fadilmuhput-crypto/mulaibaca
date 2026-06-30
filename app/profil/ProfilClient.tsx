@@ -206,7 +206,7 @@ export default function ProfilClient({
                     <p className="text-xs text-ink-muted">{actingAsInfo.email}</p>
                     {actingAsInfo.emailVerified
                       ? <span className="badge-forest flex items-center gap-1"><Check size={10} strokeWidth={3} />terverifikasi</span>
-                      : <span className="badge-amber flex items-center gap-1"><AlertTriangle size={10} strokeWidth={2.5} />belum terverifikasi</span>}
+                      : <VerifyEmailButton email={actingAsInfo.email} />}
                   </>
                 )
               ) : (
@@ -214,7 +214,7 @@ export default function ProfilClient({
                   <p className="text-xs text-ink-muted">{session.email}</p>
                   {session.emailVerified
                     ? <span className="badge-forest flex items-center gap-1"><Check size={10} strokeWidth={3} />terverifikasi</span>
-                    : <span className="badge-amber flex items-center gap-1"><AlertTriangle size={10} strokeWidth={2.5} />belum terverifikasi</span>}
+                    : <VerifyEmailButton email={session.email} />}
                 </>
               )}
             </div>
@@ -599,5 +599,45 @@ export default function ProfilClient({
         {saving ? "Menyimpan…" : "Simpan perubahan"}
       </button>
     </div>
+  );
+}
+
+function VerifyEmailButton({ email }: { email: string }) {
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleVerify() {
+    setLoading(true);
+    setError("");
+    const { createClient } = await import("@/lib/supabase");
+    const supabase = createClient();
+    const { error: err } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${location.origin}/auth/callback` },
+    });
+    if (err) {
+      setError(err.message);
+    } else {
+      setSent(true);
+    }
+    setLoading(false);
+  }
+
+  if (sent) return <span className="badge-success flex items-center gap-1 text-xs"><Check size={10} strokeWidth={3} />link verifikasi terkirim</span>;
+
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      <span className="badge-amber flex items-center gap-1 text-xs"><AlertTriangle size={10} strokeWidth={2.5} />belum terverifikasi</span>
+      <button
+        onClick={handleVerify}
+        disabled={loading}
+        className="text-xs text-amber hover:text-amber/80 font-semibold underline underline-offset-2"
+      >
+        {loading ? "mengirim…" : "verifikasi"}
+      </button>
+      {error && <span className="text-xs text-error">{error}</span>}
+    </span>
   );
 }

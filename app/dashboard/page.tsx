@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import NavBar from "@/components/NavBar";
-import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
 import AvatarIcon from "@/components/AvatarIcon";
@@ -339,11 +338,6 @@ export default async function DashboardPage() {
               )}
             </div>
           </section>
-        )}
-
-        {/* Email verification */}
-        {!session.emailVerified && (
-          <EmailVerifyBanner email={session.email} />
         )}
 
         {/* Invite card — only after first log */}
