@@ -1,4 +1,4 @@
-import type { CuratedBook } from "@/lib/curated-books";
+import type { Book } from "@/lib/books";
 
 export type SectionType = "featured" | "grid_v" | "grid_h" | "banner";
 
@@ -24,7 +24,7 @@ export type JelajahSection = {
   sort_order: number;
   is_active: boolean;
   created_at: string;
-  books?: CuratedBook[];
+  books?: Book[];
 };
 
 export const SECTION_TYPE_LABELS: Record<SectionType, string> = {

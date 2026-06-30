@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-route";
 import JelajahClient from "./JelajahClient";
-import type { CuratedBook } from "@/lib/curated-books";
+import type { Book } from "@/lib/books";
 import type { JelajahSection } from "@/lib/jelajah-sections";
 
 export type FamilyBook = {
@@ -54,10 +54,10 @@ export default async function JelajahPage() {
   }
 
   const adminClient = createAdminClient();
-  const [{ data: curatedRows }, { data: sectionRows }, { data: sectionBooksRows }] = await Promise.all([
+  const [{ data: bookRows }, { data: sectionRows }, { data: linkRows }] = await Promise.all([
     adminClient
-      .from("curated_books")
-      .select("title,author,cover_url,open_library_id,total_pages,description,category,categories,tags")
+      .from("books")
+      .select("id,title,author,cover_url,open_library_id,total_pages,description,categories,tags,publisher,published_year,language,is_curated")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("title", { ascending: true }),
@@ -68,17 +68,19 @@ export default async function JelajahPage() {
       .order("sort_order", { ascending: true }),
     adminClient
       .from("jelajah_section_books")
-      .select("section_id, sort_order, curated_books(title,author,cover_url,open_library_id,total_pages,description,category,categories,tags)")
+      .select("section_id, book_id")
       .order("sort_order", { ascending: true }),
   ]);
 
-  const allBooks = (curatedRows ?? []) as CuratedBook[];
+  const allBooks = (bookRows ?? []) as Book[];
+  const bookMap = new Map(allBooks.map((b) => [b.id, b]));
 
   // Pasangkan buku ke masing-masing section
   const sections: JelajahSection[] = (sectionRows ?? []).map((s) => {
-    const books = (sectionBooksRows ?? [])
-      .filter((sb: { section_id: string }) => sb.section_id === s.id)
-      .map((sb: { curated_books: unknown }) => sb.curated_books as CuratedBook);
+    const books = (linkRows ?? [])
+      .filter((l: { section_id: string }) => l.section_id === s.id)
+      .map((l: { book_id: string }) => bookMap.get(l.book_id))
+      .filter(Boolean) as Book[];
     return { ...s, books } as JelajahSection;
   });
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteClient } from "@/lib/supabase-route";
+import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
 import { getEffectiveAuth } from "@/lib/effective-auth";
 
 async function getSelfAuth(req: NextRequest) {
@@ -43,9 +43,13 @@ export async function POST(req: NextRequest) {
       bookId = existing.id;
     } else {
       const { data: newBook, error: bookErr } = await supabase
-        .from("books").insert(book).select("id").single();
+        .from("books").insert({ ...book, enrichment_status: "pending" }).select("id").single();
       if (bookErr || !newBook) return NextResponse.json({ error: "Gagal menyimpan buku" }, { status: 500 });
       bookId = newBook.id;
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/books/enrich`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId: newBook.id }),
+      }).catch(() => {});
     }
   } else {
     // For manual books: deduplicate by exact title (case-insensitive) + author
@@ -60,7 +64,7 @@ export async function POST(req: NextRequest) {
       bookId = existingByTitle.id;
     } else {
       const { data: newBook, error: bookErr } = await supabase
-        .from("books").insert(book).select("id").single();
+        .from("books").insert({ ...book, enrichment_status: "pending" }).select("id").single();
       if (bookErr || !newBook) return NextResponse.json({ error: "Gagal menyimpan buku" }, { status: 500 });
       bookId = newBook.id;
     }

@@ -29,11 +29,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // Ambil buku yang terhubung
   const { data: sectionBooks } = await admin
     .from("jelajah_section_books")
-    .select("sort_order, curated_books(*)")
+    .select("sort_order, books(*)")
     .eq("section_id", id)
     .order("sort_order", { ascending: true });
 
-  const books = (sectionBooks ?? []).map((sb: { curated_books: unknown }) => sb.curated_books);
+  const books = (sectionBooks ?? []).map((sb: { books: unknown }) => sb.books);
 
   return NextResponse.json({ section: { ...section, books } });
 }

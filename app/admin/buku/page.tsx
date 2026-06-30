@@ -10,13 +10,14 @@ export type AdminBook = {
   open_library_id: string | null;
   total_pages: number | null;
   description: string;
-  category: string;
   categories: string[];
   tags: string[];
   isbn: string | null;
   publisher: string | null;
   published_year: number | null;
   language: string;
+  is_curated?: boolean;
+  enrichment_status?: string;
   is_active: boolean;
   sort_order: number;
   created_at: string;
@@ -25,9 +26,8 @@ export type AdminBook = {
 export default async function AdminBukuPage() {
   const admin = createAdminClient();
   const { data: books } = await admin
-    .from("curated_books")
+    .from("books")
     .select("*")
-    .order("category", { ascending: true })
     .order("sort_order", { ascending: true })
     .order("title", { ascending: true });
 

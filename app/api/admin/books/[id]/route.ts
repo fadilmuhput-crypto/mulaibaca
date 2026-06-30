@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const admin = createAdminClient();
   const { data, error } = await admin
-    .from("curated_books")
+    .from("books")
     .update(updates)
     .eq("id", id)
     .select()
@@ -53,7 +53,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const { id } = await params;
   const admin = createAdminClient();
-  const { error } = await admin.from("curated_books").delete().eq("id", id);
+  const { error } = await admin.from("books").delete().eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });

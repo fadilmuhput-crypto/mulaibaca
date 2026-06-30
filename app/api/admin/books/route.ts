@@ -17,9 +17,8 @@ export async function GET(req: NextRequest) {
 
   const admin = createAdminClient();
   const { data, error } = await admin
-    .from("curated_books")
+    .from("books")
     .select("*")
-    .order("category", { ascending: true })
     .order("sort_order", { ascending: true })
     .order("title", { ascending: true });
 
@@ -39,11 +38,12 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient();
   const { data, error } = await admin
-    .from("curated_books")
+    .from("books")
     .insert({
       title: title.trim(),
       author: author.trim(),
-      category: "lokal",
+      is_curated: true,
+      enrichment_status: open_library_id ? "pending" : "enriched",
       description: description?.trim() ?? "",
       cover_url: cover_url?.trim() || null,
       open_library_id: open_library_id?.trim() || null,

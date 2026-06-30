@@ -12,11 +12,11 @@ export default async function EditSectionPage({ params }: { params: Promise<{ id
     admin.from("jelajah_sections").select("*").eq("id", id).single(),
     admin
       .from("jelajah_section_books")
-      .select("sort_order, curated_books(*)")
+      .select("sort_order, books(*)")
       .eq("section_id", id)
       .order("sort_order", { ascending: true }),
     admin
-      .from("curated_books")
+      .from("books")
       .select("*")
       .eq("is_active", true)
       .order("title", { ascending: true }),
@@ -25,7 +25,7 @@ export default async function EditSectionPage({ params }: { params: Promise<{ id
   if (!section) notFound();
 
   const linkedBooks = (sectionBooks ?? []).map(
-    (sb: { sort_order: number; curated_books: unknown }) => sb.curated_books as AdminBook
+    (sb: { sort_order: number; books: unknown }) => sb.books as AdminBook
   );
 
   return (

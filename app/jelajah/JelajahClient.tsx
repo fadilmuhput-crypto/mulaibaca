@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import type { CuratedBook } from "@/lib/curated-books";
+import type { Book } from "@/lib/books";
 import { CATEGORY_TREE, findSubCategory, countBooksInCategory } from "@/lib/category-tree";
 import { Bookmark, Search, ChevronLeft, ChevronRight, X, Clock } from "lucide-react";
 import BookCover from "@/components/BookCover";
@@ -43,14 +43,13 @@ function bookUrl(card: BookCard): string {
   return `/buku/${card.id}`;
 }
 
-function fromCurated(b: CuratedBook): BookCard {
-  // Combine tags from categories + tags for full category matching
+function fromBook(b: Book): BookCard {
   const allTags = [...new Set([
     ...(b.categories ?? []),
-    ...(b.category === "anak" && !b.tags.includes("anak") ? [...b.tags, "anak"] : b.tags),
+    ...b.tags,
   ])];
   return {
-    id: toSlug(b.title),
+    id: b.id ?? toSlug(b.title),
     title: b.title,
     author: b.author,
     cover_url: b.cover_url,
@@ -80,13 +79,10 @@ function fromOL(b: OLBook): BookCard {
 }
 
 // Books augmented with combined categories + tags for category matching
-function augmentBooks(books: CuratedBook[]): CuratedBook[] {
+function augmentBooks(books: Book[]): Book[] {
   return books.map((b) => ({
     ...b,
-    tags: [...new Set([
-      ...(b.categories ?? []),
-      ...(b.category === "anak" && !b.tags.includes("anak") ? [...b.tags, "anak"] : b.tags),
-    ])],
+    tags: [...new Set([...(b.categories ?? []), ...b.tags])],
   }));
 }
 
@@ -117,7 +113,7 @@ export default function JelajahClient({
   memberName,
 }: {
   familyBooks: FamilyBook[];
-  allBooks: CuratedBook[];
+  allBooks: Book[];
   sections: JelajahSection[];
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
   memberAge: number | null;
@@ -199,7 +195,7 @@ export default function JelajahClient({
   // Augment so anak books always have "anak" tag for category matching
   const augmented = augmentBooks(allBooks);
 
-  const displayBooks: CuratedBook[] = (() => {
+  const displayBooks: Book[] = (() => {
     if (activeSub) {
       const sub = findSubCategory(activeSub);
       if (sub) return augmented.filter((b) => b.tags.some((t) => sub.matchTags.includes(t)));
@@ -239,7 +235,7 @@ export default function JelajahClient({
           b.author.toLowerCase().includes(qLow) ||
           b.tags.some((t) => t.toLowerCase().includes(qLow))
       )
-      .map(fromCurated);
+      .map(fromBook);
   }
 
   const isSearching = curatedResults !== null || olLoading;
@@ -513,7 +509,7 @@ export default function JelajahClient({
 
             {/* ── Buku Anak section ── */}
             {(() => {
-              const anakBooks = augmented.filter((b) => b.category === "anak" || (b.categories ?? []).some((c: string) => CATEGORY_TREE[2]?.matchTags.includes(c)));
+              const anakBooks = augmented.filter((b) => (b.categories ?? []).includes("anak-anak") || (b.categories ?? []).some((c: string) => CATEGORY_TREE[2]?.matchTags.includes(c)));
               if (anakBooks.length === 0) return null;
 
               const isChild = memberType === "anak";
@@ -570,7 +566,7 @@ export default function JelajahClient({
                   {/* Book row */}
                   <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 mt-1">
                     {filteredBooks.map((b) => {
-                      const card = fromCurated(b);
+                      const card = fromBook(b);
                       return (
                         <div key={b.title} className="flex-shrink-0 w-[100px]">
                           <div className="relative group">
@@ -685,7 +681,7 @@ export default function JelajahClient({
                   {displayBooks.map((b) => (
                     <ShelfBookCard
                       key={b.title}
-                      card={fromCurated(b)}
+                      card={fromBook(b)}
                       adding={adding}
                       onAdd={addBook}
                     />
@@ -749,7 +745,7 @@ function FeaturedSection({
   onAdd: (card: BookCard, status: "reading" | "want") => void;
 }) {
   const [idx, setIdx] = useState(0);
-  const books = (section.books ?? []).map(fromCurated);
+  const books = (section.books ?? []).map(fromBook);
   if (books.length === 0) return null;
   const card = books[idx];
   return (
@@ -803,7 +799,7 @@ function GridVSection({
   onAdd: (card: BookCard, status: "reading" | "want") => void;
 }) {
   const [showAll, setShowAll] = useState(false);
-  const books = (section.books ?? []).map(fromCurated);
+  const books = (section.books ?? []).map(fromBook);
   if (books.length === 0) return null;
   const visible = showAll ? books : books.slice(0, 9);
   return (
@@ -837,7 +833,7 @@ function GridHSection({
   onAdd: (card: BookCard, status: "reading" | "want") => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const books = (section.books ?? []).map(fromCurated);
+  const books = (section.books ?? []).map(fromBook);
   if (books.length === 0) return null;
   return (
     <section>
