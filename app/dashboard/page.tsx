@@ -182,7 +182,7 @@ export default async function DashboardPage() {
               <Users size={16} strokeWidth={1.75} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-ink">Ajak teman baca bareng</p>
+              <p className="text-sm font-semibold text-ink">Ajak keluarga baca bareng</p>
               <p className="text-xs text-ink-muted">Opsional — pantau progres membaca bersama</p>
             </div>
             <span className="text-xs font-semibold text-amber flex-shrink-0">Lihat →</span>
@@ -309,7 +309,7 @@ export default async function DashboardPage() {
         {showFamily && familyMembers && familyMembers.length >= 1 && (
           <section>
             <div className="section-header">
-              <h2 className="section-title">Anggota</h2>
+              <h2 className="section-title">Anggota keluarga</h2>
               <Link href="/keluarga" className="section-link">
                 {session.memberRole === "admin" ? "Kelola →" : "Lihat progress →"}
               </Link>
@@ -348,7 +348,7 @@ export default async function DashboardPage() {
             ? <InviteCodeCard inviteCode={session.inviteCode} familyName={session.familyName} />
             : (
               <section className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
-                <p className="text-overline mb-2">Kode undangan</p>
+                <p className="text-overline mb-2">Kode undangan keluarga</p>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xl font-bold text-ink tracking-widest uppercase">
                     {session.inviteCode}

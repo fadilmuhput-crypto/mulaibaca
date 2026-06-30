@@ -41,8 +41,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 const SAMPLE_FAQ = [
-  { q: "Apa itu Mulaibaca?", a: "Mulaibaca adalah aplikasi pencatat bacaan. Kamu bisa melacak buku yang sedang dibaca, mau dibaca, dan sudah selesai — semua dalam satu ruang baca." },
-  { q: "Bagaimana cara menambahkan anggota?", a: "Buka halaman grup, lalu klik tombol 'Tambah Anggota'. Kamu bisa mengundang lewat link undangan atau kode undangan." },
+  { q: "Apa itu Mulaibaca?", a: "Mulaibaca adalah aplikasi pencatat bacaan untuk keluarga. Kamu bisa melacak buku yang sedang dibaca, mau dibaca, dan sudah selesai — semua dalam satu ruang keluarga." },
+  { q: "Bagaimana cara menambahkan anggota keluarga?", a: "Buka halaman Keluarga, lalu klik tombol 'Tambah Anggota'. Kamu bisa mengundang lewat link undangan atau kode undangan." },
   { q: "Bagaimana cara menambahkan buku ke rak?", a: "Cari buku di halaman Jelajah, lalu tekan tombol 'Mau Baca' atau 'Sedang Baca'. Buku akan otomatis masuk ke Rak Bukumu." },
   { q: "Apakah Mulaibaca gratis?", a: "Ya, Mulaibaca gratis digunakan. Tidak ada biaya berlangganan untuk fitur dasar seperti mencatat buku, membuat keluarga, dan melihat statistik bacaan." },
 ];
