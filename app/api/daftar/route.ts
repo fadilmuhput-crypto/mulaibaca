@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     body: "Kamu siap membangun kebiasaan membaca? Mulai dengan menambahkan buku ke rak bacaanmu.",
     type: "achievement",
     link: "/jelajah",
-  }.catch(() => {});
+  }).catch(() => {});
 
   return NextResponse.json({ success: true, inviteCode: family.invite_code });
 }
