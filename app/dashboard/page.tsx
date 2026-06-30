@@ -7,6 +7,7 @@ import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import BookCover from "@/components/BookCover";
 import InviteCodeCard from "@/components/InviteCodeCard";
 import AvatarIcon from "@/components/AvatarIcon";
+import KeluargaTooltip from "@/components/KeluargaTooltip";
 import { Flame, BookOpen, PenLine, Plus, Target, Check, Users } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -309,7 +310,10 @@ export default async function DashboardPage() {
         {showFamily && familyMembers && familyMembers.length >= 1 && (
           <section>
             <div className="section-header">
-              <h2 className="section-title">Anggota keluarga</h2>
+              <h2 className="section-title flex items-center gap-1.5">
+                Anggota keluarga
+                <KeluargaTooltip />
+              </h2>
               <Link href="/keluarga" className="section-link">
                 {session.memberRole === "admin" ? "Kelola →" : "Lihat progress →"}
               </Link>

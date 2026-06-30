@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@/lib/session";
 import type { ProfilStats, ActingAsInfo, FamilyMember } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
+import KeluargaTooltip from "@/components/KeluargaTooltip";
 import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, ExternalLink, Users, LogIn, Mail, Target, Trophy, User, Heart, Baby, Smile } from "lucide-react";
 import Link from "next/link";
 
@@ -414,7 +415,10 @@ export default function ProfilClient({
       {/* ── Family card ── */}
       <div className="card-elevated p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-h3">Keluarga</h2>
+          <h2 className="text-h3 flex items-center gap-1.5">
+            Keluarga
+            <KeluargaTooltip />
+          </h2>
           {session.memberRole === "admin" && (
             <Link href="/keluarga" className="flex items-center gap-1.5 text-xs font-semibold text-amber hover:text-amber/80 transition-colors">
               <Users size={13} strokeWidth={2} />
