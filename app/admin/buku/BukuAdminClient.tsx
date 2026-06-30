@@ -8,7 +8,7 @@ import type { AdminBook, LibraryBook } from "./page";
 import { Pencil, Trash2, Eye, EyeOff, Users, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
 import { CATEGORY_TREE } from "@/lib/category-tree";
 
-type Tab = "semua" | "terkurasi" | "perpustakaan" | "enrichment";
+type Tab = "semua" | "terkurasi" | "perpustakaan" | "enrichment" | "tanpa-kategori";
 
 type FilterTab = {
   key: Tab;
@@ -19,6 +19,7 @@ const TABS: FilterTab[] = [
   { key: "semua", label: "Semua" },
   { key: "terkurasi", label: "Terkurasi" },
   { key: "perpustakaan", label: "Perpustakaan" },
+  { key: "tanpa-kategori", label: "Tanpa Kategori" },
   { key: "enrichment", label: "Enrichment" },
 ];
 
@@ -41,6 +42,10 @@ export default function BukuAdminClient({
 
   const curatedCount = books.filter((b) => b.is_curated).length;
   const enrichmentPending = books.filter((b) => b.enrichment_status === "pending" || b.enrichment_status === "failed").length;
+  const tanpaKategori = books.filter((b) => {
+    const cats = b.categories ?? [];
+    return cats.length === 0 || cats.every((c) => c === "lainnya");
+  }).length;
 
   function completeness(b: LibraryBook) {
     const fields = [
@@ -72,6 +77,17 @@ export default function BukuAdminClient({
     }
     if (tab === "terkurasi") {
       return books.filter((b) => b.is_curated);
+    }
+    if (tab === "tanpa-kategori") {
+      let list = books.filter((b) => {
+        const cats = b.categories ?? [];
+        return cats.length === 0 || cats.every((c) => c === "lainnya");
+      });
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        list = list.filter((b) => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+      }
+      return list;
     }
     // "semua"
     let list = books;
@@ -161,9 +177,9 @@ export default function BukuAdminClient({
               }`}
             >
               {t.label}
-              {count !== null && (
+              {(count !== null || t.key === "tanpa-kategori") && (
                 <span className={`ml-1.5 text-xs ${tab === t.key ? "text-white/70" : "text-ink-muted"}`}>
-                  {count}
+                  {t.key === "tanpa-kategori" ? tanpaKategori : count}
                 </span>
               )}
             </button>
@@ -231,10 +247,11 @@ export default function BukuAdminClient({
       <div className="space-y-2">
         {filteredBooks.length === 0 && (
           <div className="text-center py-16 text-ink-muted text-sm">
-            {tab === "enrichment" && "Semua buku sudah di-enrich."}
-            {tab === "perpustakaan" && "Semua buku sudah lengkap datanya."}
-            {tab === "terkurasi" && "Belum ada buku yang dikurasi."}
-            {tab === "semua" && (search ? "Tidak ada buku yang cocok." : "Belum ada buku.")}
+        {tab === "enrichment" && "Semua buku sudah di-enrich."}
+              {tab === "perpustakaan" && "Semua buku sudah lengkap datanya."}
+              {tab === "terkurasi" && "Belum ada buku yang dikurasi."}
+              {tab === "tanpa-kategori" && "Semua buku sudah punya kategori."}
+              {tab === "semua" && (search ? "Tidak ada buku yang cocok." : "Belum ada buku.")}
           </div>
         )}
 
