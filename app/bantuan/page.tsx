@@ -41,10 +41,12 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 const SAMPLE_FAQ = [
-  { q: "Apa itu Mulaibaca?", a: "Mulaibaca adalah aplikasi pencatat bacaan untuk keluarga. Kamu bisa melacak buku yang sedang dibaca, mau dibaca, dan sudah selesai — semua dalam satu ruang keluarga." },
-  { q: "Bagaimana cara menambahkan anggota keluarga?", a: "Buka halaman Keluarga, lalu klik tombol 'Tambah Anggota'. Kamu bisa mengundang lewat link undangan atau kode undangan." },
-  { q: "Bagaimana cara menambahkan buku ke rak?", a: "Cari buku di halaman Jelajah, lalu tekan tombol 'Mau Baca' atau 'Sedang Baca'. Buku akan otomatis masuk ke Rak Bukumu." },
-  { q: "Apakah Mulaibaca gratis?", a: "Ya, Mulaibaca gratis digunakan. Tidak ada biaya berlangganan untuk fitur dasar seperti mencatat buku, membuat keluarga, dan melihat statistik bacaan." },
+  { q: "Apa itu Mulaibaca?", a: "Mulaibaca adalah aplikasi pencatat bacaan yang dirancang untuk keluarga. Setiap keluarga punya ruang bersama (Keluarga) untuk saling memantau progres bacaan, berbagi rekomendasi buku, dan bertumbuh bersama." },
+  { q: "Apa itu fitur Keluarga?", a: "Fitur Keluarga adalah ruang bersama antar anggota. Kamu bisa membuat ruang keluarga sendiri, mengundang anggota lain (pasangan, anak, saudara) dengan kode undangan, dan melihat progres bacaan satu sama lain. Cocok untuk membangun kebiasaan membaca bersama." },
+  { q: "Bagaimana cara menambahkan anggota ke ruang keluarga?", a: "Buka halaman Keluarga, bagikan kode undangan ke orang terdekatmu. Mereka tinggal masuk ke mulaibaca.id/bergabung, masukkan kode, dan langsung bergabung ke ruang keluargamu." },
+  { q: "Apa perbedaan peran Ayah, Ibu, Anak, dan Dewasa?", a: "Peran ini membantu menyesuaikan rekomendasi buku berdasarkan usia. Misalnya, anak akan dapat rekomendasi buku anak-anak, sementara Ayah/Ibu/Dewasa dapat rekomendasi yang lebih umum. Peran bisa diubah kapan saja di halaman Profil." },
+  { q: "Bagaimana cara menambahkan buku ke rak?", a: "Cari buku di halaman Jelajah, lalu tekan tombol 'Mau Baca' atau 'Sedang Baca'. Buku akan otomatis masuk ke Rak Bukumu. Kamu juga bisa tambah buku manual lewat halaman Rak." },
+  { q: "Apakah Mulaibaca gratis?", a: "Ya, Mulaibaca gratis digunakan. Tidak ada biaya berlangganan untuk fitur dasar seperti mencatat buku, membuat ruang keluarga, mengundang anggota, dan melihat statistik bacaan." },
 ];
 
 export default function BantuanPage() {

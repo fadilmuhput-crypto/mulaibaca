@@ -7,7 +7,7 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Panduan — Mulaibaca",
-  description: "Panduan lengkap menggunakan Mulaibaca. Pelajari cara membuat Family Space, menambahkan buku, dan mencatat progres bacaan keluarga.",
+  description: "Panduan lengkap menggunakan Mulaibaca. Pelajari cara membuat ruang keluarga, menambahkan anggota, mencatat buku, dan bertumbuh bersama.",
   alternates: { canonical: "https://mulaibaca.id/panduan" },
   openGraph: {
     title: "Panduan — Mulaibaca",
@@ -50,7 +50,7 @@ export default async function PanduanPage() {
       <main className="max-w-lg mx-auto px-4 py-8 space-y-10">
         <div>
           <h1 className="text-h1">Panduan</h1>
-          <p className="text-sm text-ink-muted mt-1">Semua yang perlu kamu tahu tentang Mulaibaca</p>
+          <p className="text-sm text-ink-muted mt-1">Panduan lengkap menggunakan Mulaibaca bersama keluarga</p>
         </div>
 
         {guides.length > 0 ? (

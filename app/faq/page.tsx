@@ -7,7 +7,7 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "FAQ — Mulaibaca",
-  description: "Pertanyaan yang sering diajukan tentang Mulaibaca. Pelajari cara menggunakan platform membaca keluarga ini.",
+  description: "Pertanyaan yang sering diajukan tentang Mulaibaca. Pelajari cara membuat ruang keluarga, menambahkan anggota, dan memantau progres bacaan bersama.",
   alternates: { canonical: "https://mulaibaca.id/faq" },
   openGraph: {
     title: "FAQ — Mulaibaca",

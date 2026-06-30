@@ -201,7 +201,7 @@ export default function BergabungPage() {
 
         <p className="text-center text-sm text-ink-muted mt-6">
           Belum punya kode undangan?{" "}
-          <Link href="/daftar" className="text-amber hover:text-amber-hover font-medium">Buat keluarga baru</Link>
+          <Link href="/daftar" className="text-amber hover:text-amber-hover font-medium">Buat akun baru</Link>
         </p>
       </div>
     </div>
