@@ -145,7 +145,7 @@ function BergabungForm() {
                     onChange={(e) => setUsername(e.target.value)}
                     className="input"
                     autoFocus
-                    autoComplete="username"
+                    autoComplete="nickname"
                   />
                 </div>
                 <div>

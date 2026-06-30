@@ -165,12 +165,12 @@ export default function ProfilClient({
 
       {/* ── Stats row ── */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-xs)" }}>
+        <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
           <BookCheck size={16} strokeWidth={1.75} className="text-forest mx-auto mb-1" />
           <div className="font-display text-2xl font-black text-ink leading-none">{stats.booksFinished}</div>
           <div className="text-[10px] text-ink-muted mt-1 font-medium">Buku Selesai</div>
         </div>
-        <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-xs)" }}>
+        <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
           <BookText size={16} strokeWidth={1.75} className="text-amber mx-auto mb-1" />
           <div className="font-display text-2xl font-black text-ink leading-none">
             {stats.totalPagesRead >= 1000
@@ -179,7 +179,7 @@ export default function ProfilClient({
           </div>
           <div className="text-[10px] text-ink-muted mt-1 font-medium">Total Halaman</div>
         </div>
-        <div className="bg-surface rounded-xl p-3 text-center" style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal-xs)" }}>
+        <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
           <Flame size={16} strokeWidth={1.75} className="text-amber mx-auto mb-1" />
           <div className="font-display text-2xl font-black text-ink leading-none">{stats.longestStreak}</div>
           <div className="text-[10px] text-ink-muted mt-1 font-medium">Streak Terpanjang</div>

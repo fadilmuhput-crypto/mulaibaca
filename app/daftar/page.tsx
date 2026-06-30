@@ -110,7 +110,7 @@ export default function DaftarPage() {
                   autoComplete="new-password"
                   disabled={loading}
                 />
-                <p className="input-hint">Password minimal 8 karakter</p>
+                <p className="input-hint">Minimal 8 karakter, gunakan kombinasi huruf, angka, atau simbol</p>
               </div>
 
               {error && (
@@ -142,7 +142,7 @@ export default function DaftarPage() {
           </p>
           <p>
             Punya kode undangan?{" "}
-            <Link href="/bergabung" className="text-amber hover:text-amber-hover font-medium">            Bergabung ke keluarga</Link>
+            <Link href="/bergabung" className="text-amber hover:text-amber-hover font-medium">Bergabung ke keluarga</Link>
           </p>
           <div className="flex items-center justify-center gap-3 pt-3 text-xs">
             <Link href="/bantuan" className="hover:text-ink transition-colors">Bantuan</Link>

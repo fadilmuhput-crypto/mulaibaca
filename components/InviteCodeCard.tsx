@@ -10,6 +10,7 @@ export default function InviteCodeCard({
   familyName: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const [copiedHighlight, setCopiedHighlight] = useState(false);
 
   const shareUrl = `https://mulaibaca.id/bergabung?code=${inviteCode.toUpperCase()}`;
   const shareText = `Ayo gabung ke "${familyName}" di mulaibaca! 📚\n\nKlik link ini langsung:\n${shareUrl}`;
@@ -17,7 +18,9 @@ export default function InviteCodeCard({
   async function handleCopy() {
     await navigator.clipboard.writeText(inviteCode.toUpperCase());
     setCopied(true);
+    setCopiedHighlight(true);
     setTimeout(() => setCopied(false), 2500);
+    setTimeout(() => setCopiedHighlight(false), 1500);
   }
 
   async function handleShare() {
@@ -40,7 +43,7 @@ export default function InviteCodeCard({
       </p>
 
       {/* Code display */}
-      <div className="bg-white/10 rounded-xl px-5 py-3 mb-4 flex items-center justify-between">
+      <div className={`rounded-xl px-5 py-3 mb-4 flex items-center justify-between transition-colors ${copiedHighlight ? "bg-white/20" : "bg-white/10"}`}>
         <span className="font-mono text-2xl font-bold tracking-[0.2em] uppercase text-white">
           {inviteCode}
         </span>
