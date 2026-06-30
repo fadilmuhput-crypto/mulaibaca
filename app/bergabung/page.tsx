@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 
-export default function BergabungPage() {
+function BergabungForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<1 | 2>(1);
@@ -204,5 +204,13 @@ export default function BergabungPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function BergabungPage() {
+  return (
+    <Suspense fallback={<div className="min-h-dvh bg-parchment flex items-center justify-center"><p className="text-sm text-ink-muted">Memuat…</p></div>}>
+      <BergabungForm />
+    </Suspense>
   );
 }
