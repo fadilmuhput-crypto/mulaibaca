@@ -46,6 +46,14 @@ function extractOLIdFromSlug(id: string): string | null {
   return match ? match[1].toUpperCase() : null;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Extracts UUID from slugs like "atomic-habits-uuid" → UUID
+function extractUUIDFromSlug(id: string): string | null {
+  const match = id.match(/-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+  return match ? match[1].toLowerCase() : null;
+}
+
 async function fetchOLBook(olId: string): Promise<BookData | null> {
   try {
     const [workRes, editionsRes] = await Promise.all([
@@ -209,9 +217,34 @@ export default async function BookDetailPage({
   }
 
   let book: BookData | null = null;
+  const supabase = createAdminClient();
+  const FIELDS = "title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description";
+
+  // Try UUID direct lookup (bare UUID or slug-uuid format)
+  const uuid = UUID_RE.test(id) ? id : extractUUIDFromSlug(id);
+  if (uuid) {
+    const { data: byId } = await supabase
+      .from("books").select(FIELDS).eq("id", uuid).maybeSingle();
+    if (byId) {
+      book = {
+        title: byId.title,
+        author: byId.author,
+        cover_url: byId.cover_url,
+        open_library_id: byId.open_library_id,
+        total_pages: byId.total_pages,
+        description: byId.description,
+        subjects: [],
+        year: null,
+        isbn: byId.isbn,
+        publisher: byId.publisher,
+        published_year: byId.published_year,
+        language: (byId.language as string) ?? "id",
+      };
+    }
+  }
 
   // Try curated first (pure title slug match)
-  book = findCurated(id);
+  if (!book) book = findCurated(id);
 
   // Try "title-slug-ol26745w" format
   if (!book) {
@@ -223,7 +256,6 @@ export default async function BookDetailPage({
 
   // Try Supabase database (manual / locally-added books)
   if (!book) {
-    const supabase = createAdminClient();
     const approxTitle = id.replace(/-/g, " ");
     const words = approxTitle.split(" ").filter((w) => w.length > 1);
 
@@ -243,8 +275,6 @@ export default async function BookDetailPage({
         language: (matched.language as string) ?? "id",
       };
     }
-
-    const FIELDS = "title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description";
 
     // Strategy 1: word-by-word pattern — handles punctuation in titles (e.g. "Mikir!")
     const chainPattern = words.slice(0, 6).map((w) => `%${w}`).join("") + "%";

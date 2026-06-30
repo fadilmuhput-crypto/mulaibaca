@@ -37,7 +37,8 @@ function toSlug(s: string) {
 }
 
 function bookUrl(card: BookCard): string {
-  if (/^OL\d+/i.test(card.id)) {
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(card.id);
+  if (isUUID || /^OL\d+/i.test(card.id)) {
     return `/buku/${toSlug(card.title)}-${card.id.toLowerCase()}`;
   }
   return `/buku/${card.id}`;
