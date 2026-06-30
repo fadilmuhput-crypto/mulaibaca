@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Check, Flame, Target, AlertTriangle, X } from "lucide-react";
 import BookCover from "@/components/BookCover";
+import { trackEvent } from "@/lib/analytics";
 
 type Book = {
   id: string;
@@ -131,7 +132,14 @@ export default function LogClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      if (data.streak) setStreak(data.streak);
+      if (data.streak) {
+        setStreak(data.streak);
+        if (data.is_first_log) trackEvent("first_log", { method: "regular" });
+        if (data.streak.current_streak === 2) trackEvent("streak_started", { streak: 2 });
+        if ([7, 14, 21, 30, 60, 100].includes(data.streak.current_streak)) {
+          trackEvent("streak_milestone", { streak: data.streak.current_streak });
+        }
+      }
       setLastPages(pagesRead);
       setCelebrated(true);
       setFromPage(String(toNum));

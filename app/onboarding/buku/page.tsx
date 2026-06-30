@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Search, Loader2, BookOpen, ChevronRight } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import { BUKU_LOKAL, BUKU_ANAK } from "@/lib/curated-books";
+import { trackOnboarding } from "@/lib/analytics";
 
 type BookOption = {
   title: string;
@@ -47,6 +48,9 @@ function olToBook(doc: OLDoc): BookOption {
 export default function OnboardingBukuPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+
+  const trackedSkip = useRef(false);
+  useEffect(() => { trackOnboarding(1, "start"); }, []);
   const [curatedResults, setCuratedResults] = useState<BookOption[]>([]);
   const [olResults, setOlResults] = useState<BookOption[]>([]);
   const [olLoading, setOlLoading] = useState(false);
@@ -114,6 +118,7 @@ export default function OnboardingBukuPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Gagal menambahkan buku");
+      trackOnboarding(1, "complete");
       const params = new URLSearchParams({
         id: data.id,
         title: book.title,
@@ -258,12 +263,12 @@ export default function OnboardingBukuPage() {
       {/* Footer skip */}
       <div className="flex-shrink-0 px-4 pb-8 pt-4 border-t border-border bg-parchment">
         <div className="max-w-lg mx-auto text-center">
-          <Link
-            href="/dashboard"
+          <button
+            onClick={() => { trackOnboarding(1, "skip"); router.push("/dashboard"); }}
             className="text-sm text-ink-muted hover:text-ink transition-colors"
           >
             Lewati untuk sekarang →
-          </Link>
+          </button>
         </div>
       </div>
     </div>

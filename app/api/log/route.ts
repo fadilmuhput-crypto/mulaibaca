@@ -93,5 +93,11 @@ export async function POST(req: NextRequest) {
   const { data: streak } = await supabase
     .from("streaks").select("current_streak, longest_streak").eq("member_id", memberId).maybeSingle();
 
-  return NextResponse.json({ log, streak }, { status: 201 });
+  const { count } = await supabase
+    .from("reading_logs")
+    .select("id", { count: "exact", head: true })
+    .eq("member_id", memberId);
+  const isFirstLog = count === 1;
+
+  return NextResponse.json({ log, streak, is_first_log: isFirstLog }, { status: 201 });
 }

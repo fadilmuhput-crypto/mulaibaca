@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2, BookOpen, Minus, Plus } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import { Suspense } from "react";
+import { trackOnboarding, trackEvent } from "@/lib/analytics";
 
 function OnboardingLogContent() {
   const router = useRouter();
@@ -20,6 +21,7 @@ function OnboardingLogContent() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => { trackOnboarding(2, "start"); }, []);
 
   function adjust(delta: number) {
     setPages((p) => Math.max(0, p + delta));
@@ -38,6 +40,9 @@ function OnboardingLogContent() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Gagal menyimpan log");
+      trackOnboarding(2, "complete");
+      if (data.is_first_log) trackEvent("first_log", { method: "onboarding" });
+      if (data.streak?.current_streak === 1) trackEvent("streak_started", { streak: 1 });
       router.push("/dashboard?onboarding=done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan log");
@@ -173,12 +178,12 @@ function OnboardingLogContent() {
       {/* Footer skip */}
       <div className="flex-shrink-0 px-4 pb-8 pt-6 border-t border-border bg-parchment mt-6">
         <div className="max-w-lg mx-auto text-center">
-          <Link
-            href="/dashboard"
+          <button
+            onClick={() => { trackOnboarding(2, "skip"); router.push("/dashboard"); }}
             className="text-sm text-ink-muted hover:text-ink transition-colors"
           >
             Lewati untuk sekarang →
-          </Link>
+          </button>
         </div>
       </div>
     </div>
