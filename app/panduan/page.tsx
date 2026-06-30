@@ -70,13 +70,13 @@ const FALLBACK_GUIDES = [
 
 export default async function PanduanPage() {
   const admin = createAdminClient();
-  const { data } = await admin
+  const { data: dbGuides } = await admin
     .from("help_guides")
     .select("title, content")
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
 
-  const guides = (data ?? []).length > 0 ? data : FALLBACK_GUIDES;
+  const guides: { title: string; content: string | null }[] = dbGuides?.length ? dbGuides : FALLBACK_GUIDES;
 
   return (
     <div className="min-h-dvh bg-parchment">
