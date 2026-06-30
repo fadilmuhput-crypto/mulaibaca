@@ -1,7 +1,8 @@
 -- Migration: Notifications table
 -- Creates the notifications table for in-app notification bell
+-- Idempotent: safe to re-run
 
-create table notifications (
+create table if not exists notifications (
   id          uuid primary key default gen_random_uuid(),
   member_id   uuid not null references members(id) on delete cascade,
   title       text not null,
@@ -13,12 +14,13 @@ create table notifications (
 );
 
 -- Index for fast queries (member's notifications, ordered by date)
-create index idx_notifications_member on notifications (member_id, created_at desc);
+create index if not exists idx_notifications_member on notifications (member_id, created_at desc);
 
 -- Row Level Security
 alter table notifications enable row level security;
 
 -- Members can read their own notifications
+drop policy if exists "notifications_read_own" on notifications;
 create policy "notifications_read_own" on notifications
   for select using (
     member_id in (
@@ -27,5 +29,6 @@ create policy "notifications_read_own" on notifications
   );
 
 -- API routes use service_role key (bypasses RLS), but we keep the policy for direct client access safety
+drop policy if exists "notifications_write" on notifications;
 create policy "notifications_write" on notifications
   for all using (true);
