@@ -1,9 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
-import { createAdminClient } from "@/lib/supabase-route";
-
-export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Panduan — Mulaibaca",
@@ -21,23 +17,60 @@ export const metadata: Metadata = {
   },
 };
 
-type Guide = {
-  id: string;
-  title: string;
-  content: string | null;
-  image_url: string | null;
-};
+const GUIDES = [
+  {
+    title: "Apa itu Mulaibaca?",
+    content:
+      "Mulaibaca adalah aplikasi pencatat bacaan untuk keluarga. Setiap anggota keluarga punya rak buku sendiri, bisa mencatat progres baca harian, menjaga streak, dan saling memantau perkembangan literasi.\n\nTidak ada gangguan sosial, tidak ada notifikasi yang mengganggu. Mulaibaca fokus membantu kamu dan keluarga membangun kebiasaan membaca yang konsisten.",
+  },
+  {
+    title: "Daftar & Mulai",
+    content:
+      "Ada tiga cara memulai Mulaibaca:\n\n1. Daftar biasa — Buat akun di halaman Daftar. Masukkan nama, email, dan password. Setelah itu kamu bisa membuat ruang keluarga baru.\n\n2. Bergabung pakai kode undangan — Jika keluargamu sudah punya ruang di Mulaibaca, cukup masukkan kode undangan di halaman Bergabung. Kode bisa didapat dari anggota keluarga yang sudah terdaftar (bagikan dari dashboard). Link undangan juga bisa langsung dibagikan: mulaibaca.id/bergabung?code=KODE\n\n3. Coba dulu — Ingin eksplorasi dulu tanpa daftar? Buka halaman Coba, kamu akan langsung masuk ke dashboard dengan akun sementara.",
+  },
+  {
+    title: "Dashboard & Streak Bacaan",
+    content:
+      "Dashboard adalah halaman utama setelah login. Di sini kamu bisa melihat:\n\n- Api (streak) — jumlah hari berturut-turut kamu mencatat bacaan. Semakin panjang streak, semakin semangat!\n- Target mingguan — halaman yang ingin kamu capai dalam seminggu. Bisa diatur di halaman Profil.\n- Daftar periksa onboarding — panduan langkah awal jika baru pertama kali.\n- Sedang dibaca — buku yang sedang kamu baca, lengkap dengan progres halaman.\n- Anggota keluarga — foto profil anggota keluarga lain yang juga aktif.\n- Kode undangan — untuk mengajak anggota keluarga lain bergabung.",
+  },
+  {
+    title: "Rak Buku",
+    content:
+      "Setiap anggota punya rak buku pribadi dengan tiga tab:\n\n- Mau Baca — buku yang ingin kamu baca di lain waktu. Tekan Mulai Baca untuk memindahkan ke status Dibaca.\n- Dibaca — buku yang sedang kamu baca saat ini. Kamu bisa mengupdate halaman terakhir yang dibaca, menandai selesai, atau langsung mencatat log bacaan dari sini.\n- Selesai — buku yang sudah kamu tuntaskan. Dari sini kamu bisa langsung menulis review.\n\nUntuk menambah buku, buka halaman Jelajah atau Cari, atau tambah manual lewat Tambah Buku.",
+  },
+  {
+    title: "Catat Log Bacaan",
+    content:
+      "Setiap hari kamu bisa mencatat jumlah halaman yang sudah dibaca. Caranya:\n\n1. Buka halaman Log Baca (ikon pensil di navigasi bawah).\n2. Pilih buku yang sedang kamu baca.\n3. Masukkan jumlah halaman — bisa pakai tombol +10, preset (10/20/30/50), atau ketik manual.\n4. Tambahkan catatan (opsional) untuk mengingat momen atau kutipan menarik.\n\nLog hari ini akan otomatis memperpanjang streak bacaanmu. Kamu bisa melihat rivayat catatan di halaman Catatan.",
+  },
+  {
+    title: "Jelajah & Cari Buku",
+    content:
+      "Temukan buku baru lewat halaman Jelajah:\n\n- Rekomendasi personal — berdasarkan kategori buku yang ada di rakmu.\n- Sedang dibaca keluarga — lihat apa yang sedang dibaca anggota keluarga lain.\n- Sedang tren — buku yang paling banyak ditambah ke rak oleh pengguna Mulaibaca.\n- Bagian kurasi — koleksi buku yang dipilih oleh tim Mulaibaca.\n\nButuh buku tertentu? Gunakan halaman Cari untuk mencari dari database Mulaibaca atau langsung dari OpenLibrary. Jika tidak ditemukan, kamu bisa tambah buku secara manual.",
+  },
+  {
+    title: "Review Buku",
+    content:
+      "Setelah selesai membaca, kamu bisa menulis review untuk buku tersebut:\n\n- Beri rating bintang 1-5.\n- Jawab tiga pertanyaan: tentang apa buku ini, apa yang paling berkesan, dan untuk siapa buku ini cocok.\n- Atur visibilitas: Publik (bisa dilihat semua orang) atau Privat (hanya kamu).\n- Atur anonimitas: tampilkan nama atau sembunyikan sebagai Anonim.\n\nReview publik akan muncul di halaman Review dan bisa dibagikan. Pengaturan visibilitas bisa diubah kapan saja dari halaman detail review.",
+  },
+  {
+    title: "Keluarga & Pantau Progres",
+    content:
+      "Fitur keluarga memungkinkan kamu membuat ruang baca bersama:\n\n- Buat ruang keluarga saat mendaftar, lalu undang anggota lain lewat kode undangan.\n- Admin keluarga bisa menambah anggota dengan peran: Ayah, Ibu, Anak, atau Dewasa.\n- Untuk anak, bisa memasukkan tanggal lahir agar rekomendasi buku lebih sesuai.\n- Admin juga bisa switch akun untuk mengelola profil anggota lain.\n\nHalaman Keluarga menampilkan progres semua anggota: streak, halaman mingguan, buku yang sedang dibaca, dan peringkat — cocok untuk memotivasi satu sama lain.",
+  },
+  {
+    title: "Profil & Pengaturan",
+    content:
+      "Halaman Profil berisi:\n- Statistik bacaan: buku selesai, total halaman, streak terpanjang.\n- Edit identitas: nama, avatar, username (untuk profil publik).\n- Target mingguan: atur jumlah halaman yang ingin dicapai setiap minggu.\n- Informasi keluarga: nama keluarga, kode undangan.\n\nUsername bisa digunakan untuk membagikan profil publikmu: mulaibaca.id/u/namausername. Profil publik menampilkan statistik, rak buku, dan review yang bisa dilihat siapa saja.",
+  },
+  {
+    title: "Butuh Bantuan?",
+    content:
+      "Jika mengalami kendala atau punya pertanyaan:\n\n- Kunjungi halaman FAQ untuk pertanyaan yang sering diajukan.\n- Kirim pesan lewat halaman Bantuan — pilih kategori (Komplain, Pertanyaan, Saran, Lapor Bug, atau Lainnya) dan tim Mulaibaca akan merespon.\n\nMulaibaca masih terus berkembang. Masukan dari kamu sangat berarti untuk membuat aplikasi ini lebih baik.",
+  },
+];
 
-export default async function PanduanPage() {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("help_guides")
-    .select("id, title, content, image_url")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
-
-  const guides = (data ?? []) as Guide[];
-
+export default function PanduanPage() {
   return (
     <div className="min-h-dvh bg-parchment">
       <header className="bg-surface border-b border-border px-4 py-4">
@@ -53,42 +86,21 @@ export default async function PanduanPage() {
           <p className="text-sm text-ink-muted mt-1">Panduan lengkap menggunakan Mulaibaca bersama keluarga</p>
         </div>
 
-        {guides.length > 0 ? (
-          <div className="space-y-6">
-            {guides.map((guide, idx) => (
-              <section key={guide.id}>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="w-6 h-6 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                    {idx + 1}
-                  </span>
-                  <h2 className="text-h2">{guide.title}</h2>
-                </div>
-
-                {guide.image_url && (
-                  <div className="rounded-2xl overflow-hidden border border-border mb-4">
-                    <Image
-                      src={guide.image_url}
-                      alt={guide.title}
-                      width={600}
-                      height={300}
-                      className="w-full h-auto object-cover"
-                    />
-                  </div>
-                )}
-
-                {guide.content && (
-                  <div className="bg-surface rounded-xl border border-border p-4">
-                    <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap">{guide.content}</p>
-                  </div>
-                )}
-              </section>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border-2 border-dashed border-border py-12 text-center">
-            <p className="text-sm text-ink-muted">Panduan akan segera hadir.</p>
-          </div>
-        )}
+        <div className="space-y-6">
+          {GUIDES.map((guide, idx) => (
+            <section key={idx}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="w-6 h-6 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                  {idx + 1}
+                </span>
+                <h2 className="text-h2">{guide.title}</h2>
+              </div>
+              <div className="bg-surface rounded-xl border border-border p-4">
+                <p className="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap">{guide.content}</p>
+              </div>
+            </section>
+          ))}
+        </div>
 
         <div className="bg-amber-soft rounded-2xl border border-amber/30 p-5 text-center space-y-3">
           <p className="font-semibold text-ink">Masih punya pertanyaan?</p>
