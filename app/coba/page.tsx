@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
+import { trackSignup } from "@/lib/analytics";
 
 export default function CobaPage() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function CobaPage() {
           throw new Error(d.error ?? "Setup gagal");
         }
 
+        trackSignup("anonymous");
         router.replace("/dashboard");
       } catch (e) {
         setErrorMsg(e instanceof Error ? e.message : "Terjadi kesalahan");

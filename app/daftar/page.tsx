@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Loader2 } from "lucide-react";
+import { trackSignup, trackEvent } from "@/lib/analytics";
 
 const STEPS = ["Membuat akun…", "Menyiapkan profil…", "Mengalihkan…"];
 
@@ -27,6 +28,7 @@ export default function DaftarPage() {
     setLoading(true);
     setStep(0);
     try {
+      trackEvent("signup_started");
       setStep(1);
       const res = await fetch("/api/daftar", {
         method: "POST",
@@ -43,6 +45,7 @@ export default function DaftarPage() {
       if (loginErr) throw new Error(loginErr.message);
 
       setStep(2);
+      trackSignup("email");
       window.location.href = "/onboarding/buku";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");

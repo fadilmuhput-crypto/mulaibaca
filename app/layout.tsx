@@ -33,12 +33,14 @@ export const metadata: Metadata = {
     title: "Mulaibaca — Bangun Kebiasaan Membaca",
     description:
       "Bangun kebiasaan membaca dari satu halaman per hari. Catat progres, jaga streak, tulis review.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Mulaibaca — Bangun Kebiasaan Membaca",
     description:
       "Bangun kebiasaan membaca dari satu halaman per hari. Catat progres, jaga streak, tulis review.",
+    images: ["/opengraph-image"],
   },
   verification: {
     google: "iVM6wykx3g3g3pTQ86zRJ6ut6cjWYK5-detLwmk-dvM",

@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import { trackSignup } from "@/lib/analytics";
 
 function BergabungForm() {
   const router = useRouter();
@@ -70,6 +71,7 @@ function BergabungForm() {
       const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password });
       if (loginErr) throw new Error(loginErr.message);
 
+      trackSignup("invite");
       router.push("/dashboard");
       router.refresh();
     } catch (err) {

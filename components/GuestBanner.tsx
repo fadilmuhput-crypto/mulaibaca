@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Check, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase";
+import { trackUpgrade } from "@/lib/analytics";
 
 export default function GuestBanner() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function GuestBanner() {
       const supabase = createClient();
       await supabase.auth.signInWithPassword({ email, password });
 
+      trackUpgrade();
       setDone(true);
       setTimeout(() => {
         setModalOpen(false);
