@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
+import { createNotification } from "@/lib/notifications";
 
 function randomCode() {
   return "TAMU" + Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -25,15 +26,23 @@ export async function POST(req: NextRequest) {
   if (fErr) return NextResponse.json({ error: fErr.message }, { status: 500 });
 
   // Create a guest member
-  const { error: mErr } = await admin.from("members").insert({
+  const { data: member, error: mErr } = await admin.from("members").insert({
     auth_user_id: user.id,
     family_id: family.id,
     name: "Pembaca",
     role: "admin",
     member_type: "dewasa",
     avatar: "user",
-  });
+  }).select("id").single();
   if (mErr) return NextResponse.json({ error: mErr.message }, { status: 500 });
+
+  createNotification({
+    memberId: member.id,
+    title: "Selamat datang di mulaibaca 👋",
+    body: "Kamu siap membangun kebiasaan membaca? Mulai dengan menambahkan buku ke rak bacaanmu.",
+    type: "achievement",
+    link: "/jelajah",
+  }.catch(() => {});
 
   return NextResponse.json({ success: true });
 }

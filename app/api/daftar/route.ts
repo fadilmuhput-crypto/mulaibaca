@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-route";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   const { username, email, password } = await req.json();
@@ -75,6 +76,14 @@ export async function POST(req: NextRequest) {
       error: `Gagal membuat profil: ${memberErr?.message ?? "unknown"}`,
     }, { status: 500 });
   }
+
+  createNotification({
+    memberId: member.id,
+    title: "Selamat datang di mulaibaca 👋",
+    body: "Kamu siap membangun kebiasaan membaca? Mulai dengan menambahkan buku ke rak bacaanmu.",
+    type: "achievement",
+    link: "/jelajah",
+  }.catch(() => {});
 
   return NextResponse.json({ success: true, inviteCode: family.invite_code });
 }

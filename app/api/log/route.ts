@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient } from "@/lib/supabase-route";
 import { getEffectiveAuth } from "@/lib/effective-auth";
+import { createNotification } from "@/lib/notifications";
 
 async function getSelfAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -98,6 +99,27 @@ export async function POST(req: NextRequest) {
     .select("id", { count: "exact", head: true })
     .eq("member_id", memberId);
   const isFirstLog = count === 1;
+
+  if (isFirstLog) {
+    createNotification({
+      memberId,
+      title: "📖 Catatan bacaan pertama!",
+      body: "Kamu baru saja mencatat bacaan pertamamu. Tidak ada kata terlambat untuk memulai!",
+      type: "achievement",
+      link: "/log",
+    });
+  }
+
+  const streakVal = streak?.current_streak ?? 0;
+  if ([7, 14, 21, 30, 60, 100].includes(streakVal)) {
+    createNotification({
+      memberId,
+      title: `🔥 Streak ${streakVal} hari!`,
+      body: `Luar biasa! Kamu sudah membaca ${streakVal} hari berturut-turut. Terus pertahankan!`,
+      type: "achievement",
+      link: "/log",
+    });
+  }
 
   return NextResponse.json({ log, streak, is_first_log: isFirstLog }, { status: 201 });
 }

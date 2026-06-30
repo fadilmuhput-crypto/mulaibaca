@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-route";
+import { createNotification, notifyFamily } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   const { inviteCode, username, email, password } = await req.json();
@@ -83,6 +84,21 @@ export async function POST(req: NextRequest) {
       error: `Gagal bergabung: ${memberErr?.message ?? "unknown"}`,
     }, { status: 500 });
   }
+
+  createNotification({
+    memberId: member.id,
+    title: "Selamat datang di mulaibaca 👋",
+    body: "Kamu siap membangun kebiasaan membaca? Mulai dengan menambahkan buku ke rak bacaanmu.",
+    type: "achievement",
+    link: "/jelajah",
+  });
+
+  notifyFamily(family.id, {
+    title: `${memberName} bergabung ke keluarga`,
+    body: `Selamat datang! Sekarang ada ${(memberCount ?? 0) + 1} orang di keluarga.`,
+    type: "info",
+    link: "/keluarga",
+  }, member.id);
 
   return NextResponse.json({ success: true, familyName: family.name });
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
+import { notifyFamily } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
   // Get current member
   const { data: member } = await admin
     .from("members")
-    .select("id, family_id, role")
+    .select("id, family_id, role, name")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -64,6 +65,13 @@ export async function POST(req: NextRequest) {
 
   // Delete old family since member was the only one
   await admin.from("families").delete().eq("id", oldFamilyId);
+
+  notifyFamily(targetFamily.id, {
+    title: `${member.name} bergabung ke keluarga`,
+    body: `Selamat datang! Sekarang ada ${(targetCount ?? 0) + 1} orang di keluarga.`,
+    type: "info",
+    link: "/keluarga",
+  }, member.id);
 
   return NextResponse.json({ ok: true, familyName: targetFamily.name });
 }

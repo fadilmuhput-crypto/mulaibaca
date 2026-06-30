@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient } from "@/lib/supabase-route";
+import { notifyFamily } from "@/lib/notifications";
 
 async function getAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -75,6 +76,16 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Review tidak tersimpan" }, { status: 500 });
+
+  if (!existing) {
+    notifyFamily(familyId, {
+      title: `${memberName} nulis review ${bookTitle}`,
+      body: "Baca review-nya dan lihat apa kata mereka tentang buku ini.",
+      type: "info",
+      link: `/review/${data.slug}`,
+    }, memberId);
+  }
+
   return NextResponse.json(data, { status: 201 });
 }
 
