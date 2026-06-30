@@ -51,16 +51,17 @@ function inferCategories(olBook: OLBook): string[] {
   const subjects = new Set((olBook.subject ?? []).map(s => s.toLowerCase()));
   const categories: string[] = [];
 
-  if (subjects.has("fiction") || subjects.has("novels") || subjects.has("short stories")) {
+  // Map OpenLibrary subjects → CATEGORY_TREE.matchTags format
+  if (["fiction", "novels", "short stories"].some(s => subjects.has(s))) {
     categories.push("fiksi");
   }
   if (["biography", "autobiography", "memoirs"].some(s => subjects.has(s))) {
     categories.push("non-fiksi", "biografi");
   }
-  if (["self-help", "self-help publications", "personal development", "conduct of life"].some(s => subjects.has(s))) {
-    categories.push("non-fiksi", "pengembangan-diri");
+  if (["self-help", "self-help publications", "personal development", "conduct of life", "productivity"].some(s => subjects.has(s))) {
+    categories.push("non-fiksi", "pengembangan diri");
   }
-  if (["business", "economics", "management", "leadership", "finance"].some(s => subjects.has(s))) {
+  if (["business", "economics", "management", "leadership", "finance", "career"].some(s => subjects.has(s))) {
     categories.push("non-fiksi", "bisnis");
   }
   if (["psychology", "philosophy", "mental health"].some(s => subjects.has(s))) {
@@ -72,32 +73,47 @@ function inferCategories(olBook: OLBook): string[] {
   if (["science", "technology", "physics", "biology", "chemistry", "nature"].some(s => subjects.has(s))) {
     categories.push("non-fiksi", "sains");
   }
-  if (["religion", "spirituality", "islam", "buddhism", "christianity"].some(s => subjects.has(s))) {
+  if (["religion", "spirituality", "islam", "buddhism", "christianity", "faith"].some(s => subjects.has(s))) {
     categories.push("non-fiksi", "agama");
   }
-  if (["fantasy", "magic", "mythology", "dragons"].some(s => subjects.has(s))) {
+  if (["fantasy", "magic", "mythology", "dragons", "paranormal"].some(s => subjects.has(s))) {
     categories.push("fiksi", "fantasi");
   }
   if (["science fiction", "sci-fi", "dystopian", "time travel"].some(s => subjects.has(s))) {
-    categories.push("fiksi", "fiksi-ilmiah");
+    categories.push("fiksi", "fiksi ilmiah");
   }
   if (["romance", "love", "romance fiction"].some(s => subjects.has(s))) {
     categories.push("fiksi", "romance");
   }
-  if (["thriller", "mystery", "suspense", "detective", "crime", "horror"].some(s => subjects.has(s))) {
+  if (["thriller", "mystery", "suspense", "detective", "crime"].some(s => subjects.has(s))) {
     categories.push("fiksi", "thriller");
   }
-  if (["humor", "comedy", "wit"].some(s => subjects.has(s))) {
+  if (["horror"].some(s => subjects.has(s))) {
+    categories.push("fiksi", "horor");
+  }
+  if (["humor", "comedy", "wit", "satire"].some(s => subjects.has(s))) {
     categories.push("fiksi", "humor");
+  }
+  if (["historical fiction", "historical novels"].some(s => subjects.has(s))) {
+    categories.push("fiksi", "fiksi sejarah");
   }
   if (["young adult", "ya", "teen", "young adult fiction"].some(s => subjects.has(s))) {
     categories.push("remaja");
   }
-  if (["children", "juvenile", "picture books", "board books"].some(s => subjects.has(s))) {
+  if (["children", "juvenile", "picture books", "board books", "children's stories"].some(s => subjects.has(s))) {
     categories.push("anak-anak");
   }
-  if (["comics", "graphic novels", "manga", "comic books"].some(s => subjects.has(s))) {
-    categories.push("komik-grafis");
+  if (["comics", "graphic novels", "manga", "comic books", "webtoon"].some(s => subjects.has(s))) {
+    categories.push("komik");
+  }
+  if (["education", "study", "learning", "reference", "encyclopedia", "dictionary", "language"].some(s => subjects.has(s))) {
+    categories.push("pendidikan");
+  }
+  if (["cooking", "food", "recipes", "culinary"].some(s => subjects.has(s))) {
+    categories.push("masakan");
+  }
+  if (["travel", "voyages", "adventure"].some(s => subjects.has(s))) {
+    categories.push("perjalanan");
   }
 
   return categories.length > 0 ? categories : ["lainnya"];
@@ -150,6 +166,13 @@ export async function POST(req: NextRequest) {
 
       olBook = await fetchOLByTitle(book.title, book.author ?? undefined);
 
+      // Fetch existing book data to preserve manual entries
+      const { data: existingBook } = await admin
+        .from("books")
+        .select("categories, tags")
+        .eq("id", book.id)
+        .single();
+
       const updates: Record<string, unknown> = {
         enrichment_status: "enriched",
         updated_at: new Date().toISOString(),
@@ -171,7 +194,11 @@ export async function POST(req: NextRequest) {
         if (olBook.cover_i) {
           updates.cover_url = `https://covers.openlibrary.org/b/id/${olBook.cover_i}-M.jpg`;
         }
-        updates.categories = inferCategories(olBook);
+        // Only set categories if none exist yet
+        const existingCats = (existingBook?.categories as string[]) ?? [];
+        if (existingCats.length === 0 || existingCats.every((c: string) => c === "lainnya")) {
+          updates.categories = inferCategories(olBook);
+        }
         updates.tags = inferTags(olBook);
       }
 
