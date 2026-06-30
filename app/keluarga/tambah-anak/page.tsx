@@ -46,7 +46,7 @@ const MEMBER_TYPES = [
   { value: "anak", label: "Anak" },
   { value: "ayah", label: "Ayah" },
   { value: "ibu", label: "Ibu" },
-  { value: "dewasa", label: "Dewasa lainnya" },
+  { value: "dewasa", label: "Dewasa" },
 ];
 
 export default function TambahAnakPage() {

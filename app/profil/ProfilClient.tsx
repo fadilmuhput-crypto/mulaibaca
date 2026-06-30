@@ -10,10 +10,10 @@ import { Check, AlertTriangle, BookCheck, BookText, Flame, AtSign, Lock, Externa
 import Link from "next/link";
 
 const MEMBER_TYPES = [
-  { key: "ayah",   label: "Ayah", icon: User,     desc: "Ayah dari keluarga" },
-  { key: "ibu",    label: "Ibu",  icon: Heart,    desc: "Ibu dari keluarga" },
-  { key: "anak",   label: "Anak", icon: Baby,     desc: "Anak dalam keluarga" },
-  { key: "dewasa", label: "Lainnya", icon: Smile, desc: "Anggota keluarga lainnya" },
+  { key: "ayah",   label: "Ayah",   icon: User,  desc: "Ayah dari keluarga" },
+  { key: "ibu",    label: "Ibu",    icon: Heart, desc: "Ibu dari keluarga" },
+  { key: "anak",   label: "Anak",   icon: Baby,  desc: "Anak dalam keluarga" },
+  { key: "dewasa", label: "Dewasa", icon: Smile, desc: "Anggota dewasa lainnya di keluarga" },
 ] as const;
 
 export default function ProfilClient({
