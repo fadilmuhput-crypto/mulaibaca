@@ -47,11 +47,11 @@ async function fetchOLDescription(olId: string): Promise<string | null> {
   }
 }
 
-function inferCategories(olBook: OLBook): string[] {
-  const subjects = new Set((olBook.subject ?? []).map(s => s.toLowerCase()));
+function inferCategoriesFromSubjects(subjectList: string[]): string[] {
+  const subjects = new Set(subjectList.map(s => s.toLowerCase()));
+
   const categories: string[] = [];
 
-  // Map OpenLibrary subjects → CATEGORY_TREE.matchTags format
   if (["fiction", "novels", "short stories"].some(s => subjects.has(s))) {
     categories.push("fiksi");
   }
@@ -119,6 +119,10 @@ function inferCategories(olBook: OLBook): string[] {
   return categories.length > 0 ? categories : ["lainnya"];
 }
 
+function inferCategories(olBook: OLBook): string[] {
+  return inferCategoriesFromSubjects(olBook.subject ?? []);
+}
+
 function inferTags(olBook: OLBook): string[] {
   const tags = new Set<string>();
   (olBook.subject ?? []).forEach(s => {
@@ -157,19 +161,9 @@ export async function POST(req: NextRequest) {
 
   for (const book of books) {
     try {
-      let olBook: OLBook | null = null;
-      let description: string | null = null;
-
-      if (book.open_library_id) {
-        description = await fetchOLDescription(book.open_library_id);
-      }
-
-      olBook = await fetchOLByTitle(book.title, book.author ?? undefined);
-
-      // Fetch existing book data to preserve manual entries
-      const { data: existingBook } = await admin
+      const { data: existing } = await admin
         .from("books")
-        .select("categories, tags")
+        .select("total_pages, published_year, publisher, cover_url, description, categories, tags, open_library_id")
         .eq("id", book.id)
         .single();
 
@@ -178,32 +172,52 @@ export async function POST(req: NextRequest) {
         updated_at: new Date().toISOString(),
       };
 
-      if (olBook) {
-        if (!book.open_library_id && olBook.key) {
-          updates.open_library_id = olBook.key.replace("/works/", "");
+      // Strategy: only fill NULL/empty fields, never overwrite existing data
+      if (book.open_library_id) {
+        // Book has OL ID → fetch description + cover from that specific work
+        const desc = await fetchOLDescription(book.open_library_id);
+        if (!existing?.description && desc) {
+          updates.description = desc;
         }
-        if (olBook.number_of_pages_median) {
-          updates.total_pages = olBook.number_of_pages_median;
+        // Also fetch cover from the specific work
+        try {
+          const workRes = await fetch(`${OL_WORKS}/${book.open_library_id}.json`, { next: { revalidate: 86400 } });
+          if (workRes.ok) {
+            const work = await workRes.json();
+            if (!existing?.cover_url && work.covers?.[0]) {
+              updates.cover_url = `https://covers.openlibrary.org/b/id/${work.covers[0]}-L.jpg`;
+            }
+            if ((!existing?.categories || existing.categories.length === 0 || (existing.categories as string[]).every((c: string) => c === "lainnya")) && work.subjects) {
+              updates.categories = inferCategoriesFromSubjects(work.subjects);
+            }
+          }
+        } catch { /* skip cover/categories from work */ }
+      } else {
+        // No OL ID → search by title+author
+        const olBook = await fetchOLByTitle(book.title, book.author ?? undefined);
+        if (olBook) {
+          if (olBook.key) {
+            updates.open_library_id = olBook.key.replace("/works/", "");
+          }
+          if (!existing?.total_pages && olBook.number_of_pages_median) {
+            updates.total_pages = olBook.number_of_pages_median;
+          }
+          if (!existing?.published_year && olBook.first_publish_year) {
+            updates.published_year = olBook.first_publish_year;
+          }
+          if (!existing?.publisher && olBook.publisher && olBook.publisher.length > 0) {
+            updates.publisher = olBook.publisher[0];
+          }
+          if (!existing?.cover_url && olBook.cover_i) {
+            updates.cover_url = `https://covers.openlibrary.org/b/id/${olBook.cover_i}-M.jpg`;
+          }
+          if ((!existing?.categories || existing.categories.length === 0 || (existing.categories as string[]).every((c: string) => c === "lainnya"))) {
+            updates.categories = inferCategories(olBook);
+          }
+          if (!existing?.tags || (existing.tags as string[]).length === 0) {
+            updates.tags = inferTags(olBook);
+          }
         }
-        if (olBook.first_publish_year) {
-          updates.published_year = olBook.first_publish_year;
-        }
-        if (olBook.publisher && olBook.publisher.length > 0) {
-          updates.publisher = olBook.publisher[0];
-        }
-        if (olBook.cover_i) {
-          updates.cover_url = `https://covers.openlibrary.org/b/id/${olBook.cover_i}-M.jpg`;
-        }
-        // Only set categories if none exist yet
-        const existingCats = (existingBook?.categories as string[]) ?? [];
-        if (existingCats.length === 0 || existingCats.every((c: string) => c === "lainnya")) {
-          updates.categories = inferCategories(olBook);
-        }
-        updates.tags = inferTags(olBook);
-      }
-
-      if (description) {
-        updates.description = description;
       }
 
       const { error: updateErr } = await admin
