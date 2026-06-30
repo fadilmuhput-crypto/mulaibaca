@@ -49,7 +49,6 @@ export default function OnboardingBukuPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
 
-  const trackedSkip = useRef(false);
   useEffect(() => { trackOnboarding(1, "start"); }, []);
   const [curatedResults, setCuratedResults] = useState<BookOption[]>([]);
   const [olResults, setOlResults] = useState<BookOption[]>([]);
