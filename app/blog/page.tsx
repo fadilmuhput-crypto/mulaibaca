@@ -15,7 +15,10 @@ const CATEGORIES: Record<string, string> = {
 export const metadata: Metadata = {
   title: "Blog — Mulaibaca",
   description: "Inspirasi dan tips membangun kebiasaan membaca, review buku, dan cerita dari para pembaca yang memulai dari satu halaman.",
-  alternates: { canonical: "https://mulaibaca.id/blog" },
+  alternates: {
+    canonical: "https://mulaibaca.id/blog",
+    types: { "application/rss+xml": "https://mulaibaca.id/feed.xml" },
+  },
   openGraph: {
     title: "Blog — Mulaibaca",
     description: "Inspirasi dan tips membangun kebiasaan membaca.",
