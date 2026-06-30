@@ -171,7 +171,7 @@ export const CATEGORY_TREE: RootCategory[] = [
     key: "anak-anak",
     label: "Anak-Anak",
     matchTags: [
-      "anak", "balita", "cerita anak", "picture book", "board book",
+      "anak", "anak-anak", "balita", "cerita anak", "picture book", "board book",
       "children", "children's",
     ],
     children: [
