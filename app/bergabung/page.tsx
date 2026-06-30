@@ -41,35 +41,19 @@ export default function BergabungPage() {
     setError("");
     setLoading(true);
     try {
-      const supabase = createClient();
-
-      const { data: authData, error: authErr } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: `${location.origin}/auth/callback` },
-      });
-
-      if (authErr) {
-        if (authErr.message.toLowerCase().includes("already registered") ||
-            authErr.message.toLowerCase().includes("already exists")) {
-          throw new Error("Email ini sudah terdaftar. Coba masuk atau gunakan email lain.");
-        }
-        throw new Error(authErr.message);
-      }
-      if (!authData.user) throw new Error("Gagal membuat akun");
-
       const res = await fetch("/api/bergabung", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inviteCode,
-          username,
-          accessToken: authData.session!.access_token,
-        }),
+        body: JSON.stringify({ inviteCode, username, email, password }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+
+      // Log in to get a session
+      const supabase = createClient();
+      const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (loginErr) throw new Error(loginErr.message);
 
       router.push("/dashboard");
       router.refresh();

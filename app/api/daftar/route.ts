@@ -1,31 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-route";
-import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
-  const { username, accessToken } = await req.json();
+  const { username, email, password } = await req.json();
 
   if (!username?.trim()) {
     return NextResponse.json({ error: "Username tidak boleh kosong" }, { status: 400 });
   }
-  if (!accessToken) {
-    return NextResponse.json({ error: "Sesi tidak valid" }, { status: 401 });
+  if (!email?.trim()) {
+    return NextResponse.json({ error: "Email tidak boleh kosong" }, { status: 400 });
+  }
+  if (!password || password.length < 8) {
+    return NextResponse.json({ error: "Password minimal 8 karakter" }, { status: 400 });
   }
 
-  // Verify user identity from their token (anon client)
-  const anonClient = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { global: { headers: { Authorization: `Bearer ${accessToken}` } } }
-  );
-  const { data: { user } } = await anonClient.auth.getUser(accessToken);
-
-  if (!user) {
-    return NextResponse.json({ error: "Belum login" }, { status: 401 });
-  }
-
-  // Use admin client to bypass RLS for insert
   const supabase = createAdminClient();
+
+  // Create auth user via admin API — bypasses email confirmation
+  const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
+    email: email.trim().toLowerCase(),
+    password,
+    email_confirm: true,
+  });
+
+  if (authErr || !authData.user) {
+    return NextResponse.json({
+      error: authErr?.message ?? "Gagal membuat akun",
+    }, { status: 500 });
+  }
+
+  const user = authData.user;
 
   const { data: existing } = await supabase
     .from("members")
@@ -44,6 +48,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (familyErr || !family) {
+    await supabase.auth.admin.deleteUser(user.id);
     return NextResponse.json({
       error: `Gagal membuat ruang keluarga: ${familyErr?.message ?? "unknown"}`,
     }, { status: 500 });
@@ -65,6 +70,7 @@ export async function POST(req: NextRequest) {
 
   if (memberErr || !member) {
     await supabase.from("families").delete().eq("id", family.id);
+    await supabase.auth.admin.deleteUser(user.id);
     return NextResponse.json({
       error: `Gagal membuat profil: ${memberErr?.message ?? "unknown"}`,
     }, { status: 500 });

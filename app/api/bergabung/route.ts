@@ -1,31 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-route";
-import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
-  const { inviteCode, username, accessToken } = await req.json();
+  const { inviteCode, username, email, password } = await req.json();
   const memberName = username?.trim();
 
   if (!inviteCode || !memberName) {
     return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
   }
-  if (!accessToken) {
-    return NextResponse.json({ error: "Sesi tidak valid" }, { status: 401 });
+  if (!email?.trim()) {
+    return NextResponse.json({ error: "Email tidak boleh kosong" }, { status: 400 });
   }
-
-  // Verify user identity from their token
-  const anonClient = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { global: { headers: { Authorization: `Bearer ${accessToken}` } } }
-  );
-  const { data: { user } } = await anonClient.auth.getUser(accessToken);
-
-  if (!user) {
-    return NextResponse.json({ error: "Belum login" }, { status: 401 });
+  if (!password || password.length < 8) {
+    return NextResponse.json({ error: "Password minimal 8 karakter" }, { status: 400 });
   }
 
   const supabase = createAdminClient();
+
+  // Create auth user via admin API — bypasses email confirmation
+  const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
+    email: email.trim().toLowerCase(),
+    password,
+    email_confirm: true,
+  });
+
+  if (authErr || !authData.user) {
+    return NextResponse.json({
+      error: authErr?.message ?? "Gagal membuat akun",
+    }, { status: 500 });
+  }
+
+  const user = authData.user;
 
   const { data: existing } = await supabase
     .from("members")
@@ -44,6 +49,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (familyErr || !family) {
+    await supabase.auth.admin.deleteUser(user.id);
     return NextResponse.json({ error: "Kode undangan tidak valid" }, { status: 404 });
   }
 
@@ -53,6 +59,7 @@ export async function POST(req: NextRequest) {
     .eq("family_id", family.id);
 
   if ((memberCount ?? 0) >= 8) {
+    await supabase.auth.admin.deleteUser(user.id);
     return NextResponse.json({ error: "Keluarga ini sudah penuh (maks. 8 anggota)" }, { status: 409 });
   }
 
@@ -71,6 +78,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (memberErr || !member) {
+    await supabase.auth.admin.deleteUser(user.id);
     return NextResponse.json({
       error: `Gagal bergabung: ${memberErr?.message ?? "unknown"}`,
     }, { status: 500 });

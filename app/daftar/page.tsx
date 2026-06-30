@@ -27,31 +27,20 @@ export default function DaftarPage() {
     setLoading(true);
     setStep(0);
     try {
-      const supabase = createClient();
-      const { data: authData, error: authErr } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: `${location.origin}/auth/callback` },
-      });
-
-      if (authErr) {
-        if (authErr.message.toLowerCase().includes("already registered") ||
-            authErr.message.toLowerCase().includes("already exists")) {
-          throw new Error("Email ini sudah terdaftar. Coba masuk atau gunakan email lain.");
-        }
-        throw new Error(authErr.message);
-      }
-      if (!authData.user) throw new Error("Gagal membuat akun");
-
       setStep(1);
       const res = await fetch("/api/daftar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, accessToken: authData.session!.access_token }),
+        body: JSON.stringify({ username, email, password }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+
+      // Log in to get a session
+      const supabase = createClient();
+      const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (loginErr) throw new Error(loginErr.message);
 
       setStep(2);
       window.location.href = "/onboarding/buku";
