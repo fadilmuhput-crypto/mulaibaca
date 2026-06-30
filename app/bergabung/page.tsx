@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 
 export default function BergabungPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<1 | 2>(1);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -16,6 +17,20 @@ export default function BergabungPage() {
   const [error, setError] = useState("");
   const [step1Error, setStep1Error] = useState("");
   const [previewFamilyName, setPreviewFamilyName] = useState("");
+
+  // Auto-fill invite code from URL ?code=
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (code && code.length >= 4) {
+      setInviteCode(code.toUpperCase());
+      // Auto-validate after brief delay
+      const timer = setTimeout(() => {
+        const btn = document.getElementById("check-code-btn");
+        btn?.click();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   async function handleCheckCode() {
     setStep1Error("");
@@ -99,6 +114,7 @@ export default function BergabungPage() {
                   </p>
                 )}
                 <button
+                  id="check-code-btn"
                   onClick={handleCheckCode}
                   disabled={inviteCode.length < 6 || loading}
                   className="btn-primary-full-lg"
