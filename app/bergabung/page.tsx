@@ -86,7 +86,7 @@ export default function BergabungPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
-          <p className="mt-2 text-ink-secondary text-sm">Bergabung ke ruang baca keluarga</p>
+          <p className="mt-2 text-ink-secondary text-sm">Gabung ke ruang baca</p>
         </div>
 
         <div className="card-elevated p-8">
@@ -99,7 +99,7 @@ export default function BergabungPage() {
           {step === 1 && (
             <div>
               <h1 className="text-h2 mb-1">Masukkan kode undangan</h1>
-              <p className="text-ink-muted text-sm mb-6">Minta kode dari admin keluargamu</p>
+              <p className="text-ink-muted text-sm mb-6">Minta kode dari admin</p>
               <div className="space-y-4">
                 <input
                   type="text"
@@ -132,7 +132,7 @@ export default function BergabungPage() {
               <p className="text-ink-muted text-sm mb-1">Daftarkan dirimu untuk bergabung</p>
               {previewFamilyName && (
                 <p className="text-xs font-medium text-forest bg-forest/8 rounded-lg px-3 py-2 mb-5">
-                  Bergabung ke keluarga: <span className="font-bold">{previewFamilyName}</span>
+                  Gabung ke grup: <span className="font-bold">{previewFamilyName}</span>
                 </p>
               )}
               <div className="space-y-4">
@@ -141,7 +141,7 @@ export default function BergabungPage() {
                   <input
                     id="username"
                     type="text"
-                    placeholder="Nama kamu di keluarga"
+                    placeholder="Nama kamu"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="input"
@@ -185,7 +185,7 @@ export default function BergabungPage() {
                   disabled={loading || !username.trim() || !email || password.length < 8}
                   className="btn-primary-full-lg"
                 >
-                  {loading ? "Bergabung…" : "Bergabung →"}
+                  {loading ? "Gabung…" : "Gabung →"}
                 </button>
                 <button
                   type="button"
@@ -201,7 +201,7 @@ export default function BergabungPage() {
 
         <p className="text-center text-sm text-ink-muted mt-6">
           Belum punya kode undangan?{" "}
-          <Link href="/daftar" className="text-amber hover:text-amber-hover font-medium">Buat keluarga baru</Link>
+          <Link href="/daftar" className="text-amber hover:text-amber-hover font-medium">Buat grup baru</Link>
         </p>
       </div>
     </div>

@@ -69,7 +69,7 @@ export default function DaftarPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
-          <p className="mt-2 text-ink-secondary text-sm">Buat akun untuk mulai membaca bersama keluarga</p>
+          <p className="mt-2 text-ink-secondary text-sm">Buat akun untuk mulai membaca</p>
         </div>
 
         <div className="card-elevated overflow-hidden">
@@ -90,7 +90,7 @@ export default function DaftarPage() {
                 <input
                   id="username"
                   type="text"
-                  placeholder="Nama kamu di keluarga"
+                  placeholder="Nama kamu"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="input"
@@ -156,7 +156,7 @@ export default function DaftarPage() {
           </p>
           <p>
             Punya kode undangan?{" "}
-            <Link href="/bergabung" className="text-amber hover:text-amber-hover font-medium">Bergabung ke keluarga</Link>
+            <Link href="/bergabung" className="text-amber hover:text-amber-hover font-medium">            Gabung dengan kode</Link>
           </p>
           <div className="flex items-center justify-center gap-3 pt-3 text-xs">
             <Link href="/bantuan" className="hover:text-ink transition-colors">Bantuan</Link>

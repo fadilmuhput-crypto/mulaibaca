@@ -55,13 +55,13 @@ export default function SetupProfilPage() {
               onClick={() => setMode("new")}
               className="btn-primary-full-lg flex items-center justify-center gap-2"
             >
-              <Home size={18} strokeWidth={2} /> Buat ruang keluarga baru
+              <Home size={18} strokeWidth={2} /> Buat ruang baca baru
             </button>
             <button
               onClick={() => setMode("join")}
               className="btn-secondary-full flex items-center justify-center gap-2"
             >
-              <LinkIcon size={18} strokeWidth={2} /> Punya kode undangan? Bergabung
+              <LinkIcon size={18} strokeWidth={2} /> Punya kode undangan? Gabung
             </button>
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function SetupProfilPage() {
         </div>
         <div className="card-elevated p-8">
           <h1 className="text-h2 mb-6">
-            {mode === "new" ? "Buat ruang keluarga" : "Bergabung ke keluarga"}
+            {mode === "new" ? "Buat ruang baca" : "Gabung"}
           </h1>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -108,7 +108,7 @@ export default function SetupProfilPage() {
               <input
                 id="memberName"
                 type="text"
-                placeholder="cth: Ayah Budi"
+                placeholder="cth: Budi"
                 value={memberName}
                 onChange={(e) => setMemberName(e.target.value)}
                 autoFocus
@@ -118,11 +118,11 @@ export default function SetupProfilPage() {
 
             {mode === "new" ? (
               <div>
-                <label htmlFor="familyName" className="input-label">Nama keluarga <span className="text-error">*</span></label>
+                <label htmlFor="familyName" className="input-label">Nama grup <span className="text-error">*</span></label>
                 <input
                   id="familyName"
                   type="text"
-                  placeholder="cth: Keluarga Budi"
+                  placeholder="cth: Grup Budi"
                   value={familyName}
                   onChange={(e) => setFamilyName(e.target.value)}
                   className="input mt-1"

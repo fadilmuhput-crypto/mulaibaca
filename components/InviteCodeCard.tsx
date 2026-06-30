@@ -31,10 +31,10 @@ export default function InviteCodeCard({
   return (
     <section className="bg-forest rounded-2xl p-5 text-white">
       <p className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-1">
-        Undang anggota keluarga
+        Undang anggota
       </p>
       <p className="text-sm text-white/80 mb-4">
-        Bagikan kode ini agar keluargamu bisa bergabung ke {familyName}
+        Bagikan kode ini agar mereka bisa bergabung ke {familyName}
       </p>
 
       {/* Code display */}
@@ -55,7 +55,7 @@ export default function InviteCodeCard({
         onClick={handleShare}
         className="w-full bg-amber text-white font-medium rounded-xl min-h-[44px] text-sm hover:bg-amber-hover transition-colors"
       >
-        Bagikan ke Keluarga →
+        Bagikan ke Teman →
       </button>
 
       <p className="text-xs text-white/50 text-center mt-3">

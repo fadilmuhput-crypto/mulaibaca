@@ -499,7 +499,7 @@ export default function JelajahClient({
             {/* Family reading */}
             {familyBooks.length > 0 && (
               <section>
-                <SectionLabel>Sedang dibaca keluarga</SectionLabel>
+                <SectionLabel>Sedang dibaca bersama</SectionLabel>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
                   {familyBooks.map((fb, i) => (
                     <div key={i} className="flex-shrink-0 w-24">
