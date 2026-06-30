@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, Users, Globe, Flame } from "lucide-react";
 import LandingDemo from "@/components/LandingDemo";
+import TrackedLink from "@/components/TrackedLink";
 
 const features = [
   {
@@ -60,7 +61,7 @@ export default function LandingPage() {
             <Link href="/masuk" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
               Masuk
             </Link>
-            <Link href="/daftar" style={{
+            <TrackedLink href="/daftar" eventLabel="navbar_mulai_gratis" style={{
               display: "inline-flex", alignItems: "center",
               padding: "0.5rem 1rem",
               backgroundColor: INK, color: PARCHMENT,
@@ -71,7 +72,7 @@ export default function LandingPage() {
               textDecoration: "none",
             }}>
               Mulai Gratis →
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </nav>
@@ -126,7 +127,7 @@ export default function LandingPage() {
             </p>
 
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const, marginBottom: "0.875rem" }}>
-              <Link href="/daftar" style={{
+              <TrackedLink href="/daftar" eventLabel="hero_mulai_gratis" style={{
                 display: "inline-flex", alignItems: "center",
                 padding: "0.875rem 1.5rem",
                 backgroundColor: AMBER, color: "#fff",
@@ -137,8 +138,8 @@ export default function LandingPage() {
                 textDecoration: "none",
               }}>
                 Mulai Gratis →
-              </Link>
-              <Link href="/coba" style={{
+              </TrackedLink>
+              <TrackedLink href="/coba" eventLabel="hero_coba_tanpa_daftar" style={{
                 display: "inline-flex", alignItems: "center",
                 padding: "0.875rem 1.5rem",
                 backgroundColor: "transparent", color: INK,
@@ -148,7 +149,7 @@ export default function LandingPage() {
                 textDecoration: "none",
               }}>
                 Coba tanpa daftar
-              </Link>
+              </TrackedLink>
             </div>
             <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>
               Gratis selamanya · Tidak perlu kartu kredit
@@ -286,7 +287,7 @@ export default function LandingPage() {
           <p style={{ fontSize: "0.9375rem", color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: "440px", margin: "0 auto 2rem" }}>
             Artikel seputar kebiasaan membaca, tips memilih buku, dan cerita dari para pembaca yang memulai dari satu halaman.
           </p>
-          <Link href="/blog" style={{
+          <TrackedLink href="/blog" eventLabel="jelajahi_blog" style={{
             display: "inline-flex", alignItems: "center",
             padding: "0.75rem 1.5rem",
             backgroundColor: LIME, color: INK,
@@ -297,7 +298,7 @@ export default function LandingPage() {
             textDecoration: "none",
           }}>
             Jelajahi Blog →
-          </Link>
+          </TrackedLink>
         </div>
       </section>
 
@@ -349,7 +350,7 @@ export default function LandingPage() {
             Kebiasaan membaca dimulai dari dirimu. Satu halaman hari ini, esok satu halaman lagi. Sebelum kamu sadari, orang-orang terdekatmu ikut membaca.
           </p>
           <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "12px" }}>
-            <Link href="/daftar" style={{
+            <TrackedLink href="/daftar" eventLabel="bottom_mulai_sekarang" style={{
               display: "inline-flex", alignItems: "center",
               padding: "1rem 2rem",
               backgroundColor: INK, color: PARCHMENT,
@@ -360,15 +361,15 @@ export default function LandingPage() {
               textDecoration: "none",
             }}>
               Mulai Sekarang, Gratis →
-            </Link>
-            <Link href="/coba" style={{
+            </TrackedLink>
+            <TrackedLink href="/coba" eventLabel="bottom_coba_dulu" style={{
               fontSize: "0.875rem",
               color: "#3D4E45",
               textDecoration: "underline",
               textDecorationStyle: "dotted" as const,
             }}>
               atau coba dulu tanpa daftar
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </section>
