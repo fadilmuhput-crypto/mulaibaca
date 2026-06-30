@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import BookCover from "@/components/BookCover";
-import { BookOpen, Bookmark, Trophy, Sparkles, Check, PenLine, Eye, EyeOff, User, UserX } from "lucide-react";
+import { BookOpen, Bookmark, Trophy, Sparkles, Check, PenLine } from "lucide-react";
 
 type Book = {
   title: string;
@@ -43,21 +43,6 @@ function bookUrl(book: Book): string {
   }
   return `/buku/${toSlug(book.title)}`;
 }
-
-type Visibility = "public" | "anonymous" | "private";
-
-function getVisibility(r: ReviewInfo): Visibility {
-  if (!r.is_public) return "private";
-  if (r.is_anonymous) return "anonymous";
-  return "public";
-}
-
-const VISIBILITY_LABELS: Record<Visibility, { label: string; icon: React.ReactNode }> = {
-  public:    { label: "Publik",  icon: <Eye size={10} strokeWidth={2.5} /> },
-  anonymous: { label: "Anonim", icon: <UserX size={10} strokeWidth={2.5} /> },
-  private:   { label: "Privat", icon: <EyeOff size={10} strokeWidth={2.5} /> },
-};
-
 
 export default function ShelfClient({
   initialShelf,
@@ -184,7 +169,7 @@ export default function ShelfClient({
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-5">
+      <div className="flex gap-2 mb-5 overflow-x-auto no-scrollbar flex-nowrap">
         {TABS.map((t) => {
           const count = counts[t.key];
           const Icon = t.icon;
@@ -192,7 +177,7 @@ export default function ShelfClient({
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1.5 flex-shrink-0 min-h-[44px] px-3 sm:px-4 rounded-xl text-sm font-semibold transition-all ${
                 tab === t.key
                   ? "bg-ink text-surface brutal-border brutal-shadow-xs"
                   : "bg-surface brutal-border text-ink-secondary hover:border-amber/50"
@@ -416,36 +401,16 @@ export default function ShelfClient({
               if (!book) return null;
               const url = bookUrl(book);
               const review = getReview(item.id);
-              const vis = review ? getVisibility(review) : null;
-              const visInfo = vis ? VISIBILITY_LABELS[vis] : null;
 
               return (
                 <div key={item.id} className="flex flex-col">
                   <div className="relative">
                     <Link href={url}>
-                      <BookCover src={book.cover_url} title={book.title} className="w-full h-[140px] sm:h-[120px] rounded-xl" />
+                      <BookCover src={book.cover_url} title={book.title} className="w-full h-[120px] rounded-xl" />
                     </Link>
-                    {/* Selesai badge */}
                     <div className="absolute top-1.5 right-1.5 w-6 h-6 bg-forest rounded-full flex items-center justify-center">
                       <Check size={12} strokeWidth={3} className="text-white" />
                     </div>
-                    {/* Visibility badge — shown on cover, links to review page */}
-                    {review?.slug && visInfo && (
-                      <Link
-                        href={`/review/${review.slug}`}
-                        title={`Visibilitas: ${vis}`}
-                        className={`absolute bottom-1.5 left-1.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                          vis === "public"
-                            ? "bg-forest text-white"
-                            : vis === "anonymous"
-                            ? "bg-amber text-white"
-                            : "bg-ink/60 text-white"
-                        }`}
-                      >
-                        {visInfo.icon}
-                        {visInfo.label}
-                      </Link>
-                    )}
                   </div>
                   <Link href={url} className="hover:text-amber transition-colors">
                     <p className="text-[11px] font-medium text-ink line-clamp-2 leading-snug mt-1.5 mb-1">{book.title}</p>
@@ -454,7 +419,7 @@ export default function ShelfClient({
                   {review?.slug ? (
                     <Link
                       href={`/review/${review.slug}`}
-                      className="mt-auto w-full min-h-[36px] rounded-lg bg-forest/10 text-[11px] font-semibold text-forest text-center hover:bg-forest/20 transition-colors flex items-center justify-center gap-1"
+                      className="mt-auto w-full min-h-[36px] py-1 rounded-lg brutal-border text-[11px] font-semibold text-forest hover:bg-forest/8 hover:border-forest/50 transition-colors flex items-center justify-center gap-1"
                     >
                       <Check size={10} strokeWidth={3} />
                       Lihat Review

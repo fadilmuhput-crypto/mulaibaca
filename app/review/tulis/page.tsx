@@ -122,22 +122,30 @@ function TulisForm() {
       </div>
 
       {/* Visibility toggle */}
-      <div className="flex items-center justify-between bg-surface rounded-xl border border-border px-4 py-3">
-        <div>
-          <p className="text-sm font-medium text-ink">Review publik</p>
-          <p className="text-xs text-ink-muted">Bisa dilihat dan dishare siapa saja</p>
+      <div className="bg-surface rounded-xl border border-border px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-ink">Review publik</p>
+            <p className="text-xs text-ink-muted">Bisa dilihat dan dishare siapa saja</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPublic(!isPublic)}
+            className={`w-11 h-6 rounded-full transition-colors relative ${
+              isPublic ? "bg-amber" : "bg-border"
+            }`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+              isPublic ? "translate-x-5" : "translate-x-0.5"
+            }`} />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsPublic(!isPublic)}
-          className={`w-11 h-6 rounded-full transition-colors relative ${
-            isPublic ? "bg-amber" : "bg-border"
-          }`}
-        >
-          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-            isPublic ? "translate-x-5" : "translate-x-0.5"
-          }`} />
-        </button>
+        <div className="group relative mt-2 border-t border-border pt-2">
+          <p className="text-xs text-ink-muted flex items-center gap-1">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Setelah dipublikasi, kamu bisa atur tampilan nama atau anonim di halaman review
+          </p>
+        </div>
       </div>
 
       {error && (

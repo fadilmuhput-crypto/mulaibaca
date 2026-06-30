@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import AvatarIcon from "@/components/AvatarIcon";
 import { BookOpen } from "lucide-react";
 import BookCover from "@/components/BookCover";
+import ReviewSettings from "@/components/ReviewSettings";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -174,9 +175,16 @@ export default async function PublicReviewPage({
           )}
         </div>
 
+        {/* Settings — only for the review owner */}
+        {session && session.memberId === review.member_id && (
+          <div className="mt-6">
+            <ReviewSettings slug={review.slug} initialPublic={review.is_public} initialAnonymous={review.is_anonymous} />
+          </div>
+        )}
+
         {/* CTA */}
         {session ? (
-          <div className="mt-8 flex flex-col gap-3">
+          <div className="mt-6 flex flex-col gap-3">
             <Link href="/dashboard" className="btn-primary-lg w-full text-center">
               ← Kembali ke Dashboard
             </Link>
@@ -185,7 +193,7 @@ export default async function PublicReviewPage({
             </Link>
           </div>
         ) : (
-          <div className="mt-8 bg-forest rounded-2xl p-6 text-center">
+          <div className="mt-6 bg-forest rounded-2xl p-6 text-center">
             <p className="text-white font-display font-bold text-lg mb-1">
               Mulai bangun kebiasaan membaca
             </p>
