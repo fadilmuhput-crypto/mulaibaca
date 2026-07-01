@@ -3,6 +3,8 @@ import { Geist } from "next/font/google";
 import { Fraunces } from "next/font/google";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import AnalyticsWithConsent from "@/components/AnalyticsWithConsent";
+import ReadingModeProvider from "@/components/ReadingModeProvider";
+import ReadingModeToggle from "@/components/ReadingModeToggle";
 import "./globals.css";
 
 const geist = Geist({
@@ -54,9 +56,12 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${geist.variable} ${fraunces.variable}`}>
       <body className="min-h-screen antialiased">
-        {children}
-        <CookieConsentBanner />
-        <AnalyticsWithConsent />
+        <ReadingModeProvider>
+          {children}
+          <ReadingModeToggle />
+          <CookieConsentBanner />
+          <AnalyticsWithConsent />
+        </ReadingModeProvider>
       </body>
     </html>
   );
