@@ -118,7 +118,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
           ← Kembali ke Blog
         </Link>
 
-        <article>
+        <article className="reading-content-area">
           {post.cover_image && (
             <div className="rounded-2xl overflow-hidden mb-6 aspect-[2/1] bg-parchment">
               <img

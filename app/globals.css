@@ -345,6 +345,48 @@
 /* ━━━ SAFE AREA (iOS notch / gesture bar) ━━━ */
 .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
 
+/* ━━━ READING MODE ━━━ */
+[data-reading-mode="eye-friendly"] {
+  --content-bg: #F5EDE0;
+  --content-text: #1A1A1A;
+  --content-text-secondary: #2D2D2D;
+  --content-font-size: 1.125rem;
+  --content-line-height: 1.8;
+  --content-article-bg: #F5EDE0;
+}
+
+[data-reading-mode="eye-friendly"] .prose-blog {
+  background: var(--content-article-bg);
+}
+
+[data-reading-mode="eye-friendly"] .prose-blog h2,
+[data-reading-mode="eye-friendly"] .prose-blog h3,
+[data-reading-mode="eye-friendly"] .prose-blog strong {
+  color: var(--content-text);
+}
+
+[data-reading-mode="eye-friendly"] .prose-blog p,
+[data-reading-mode="eye-friendly"] .prose-blog li {
+  color: var(--content-text-secondary);
+  font-size: var(--content-font-size);
+  line-height: var(--content-line-height);
+}
+
+[data-reading-mode="eye-friendly"] .prose-blog a {
+  color: #B8651A;
+  text-decoration: underline;
+}
+
+[data-reading-mode="eye-friendly"] .prose-blog img {
+  border-color: #C4A882;
+}
+
+[data-reading-mode="eye-friendly"] .reading-content-area {
+  background: var(--content-article-bg);
+  padding: 1.5rem 1.5rem 2rem;
+  border-radius: 0.75rem;
+}
+
 /* ━━━ BLOG PROSE ━━━ */
 .prose-blog h2 {
   font-size: var(--text-lg);
