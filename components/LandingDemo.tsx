@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const INK = "#0C0C0A";
 const FOREST = "#1E4530";
 const AMBER = "#C26E2A";
 const PARCHMENT = "#FAF7F2";
+
+const STORAGE_KEY = "mulaibaca_demo";
 
 const BOOKS = [
   { id: 1, title: "Laskar Pelangi", author: "Andrea Hirata", pages: 529, spine: FOREST, accent: "#BFE040" },
@@ -24,10 +28,36 @@ export default function LandingDemo() {
 
   const pct = selected ? Math.min(Math.round((pagesInput / selected.pages) * 100), 100) : 0;
 
+  // Restore demo state from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const { step: s, bookId, pages } = JSON.parse(saved);
+        if (s >= 1 && s <= 3) setStep(s);
+        const book = BOOKS.find((b) => b.id === bookId);
+        if (book) setSelected(book);
+        if (typeof pages === "number" && pages > 0) setPagesInput(pages);
+      }
+    } catch {}
+  }, []);
+
+  // Persist state to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        step,
+        bookId: selected?.id ?? null,
+        pages: pagesInput,
+      }));
+    } catch {}
+  }, [step, selected, pagesInput]);
+
   function reset() {
     setStep(1);
     setSelected(null);
     setPagesInput(20);
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
   }
 
   return (
@@ -93,7 +123,7 @@ export default function LandingDemo() {
             ))}
           </div>
           <p style={{ fontSize: "0.68rem", color: "#7A8E83", textAlign: "center", marginTop: "1rem" }}>
-            Ini hanya simulasi · tidak ada data yang disimpan
+            Simulasi · progres tersimpan di perangkat ini
           </p>
         </div>
       )}
@@ -170,6 +200,9 @@ export default function LandingDemo() {
           <button onClick={reset} style={{ display: "block", width: "100%", marginTop: "10px", padding: "8px", background: "none", border: "none", color: "#7A8E83", fontSize: "0.75rem", cursor: "pointer" }}>
             ← Ganti buku
           </button>
+          <p style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)", textAlign: "center", marginTop: "0.75rem" }}>
+            Simulasi · progres tersimpan di perangkat ini
+          </p>
         </div>
       )}
 
@@ -234,6 +267,9 @@ export default function LandingDemo() {
             <button onClick={reset} style={{ display: "block", width: "100%", padding: "8px", background: "none", border: "none", color: "#7A8E83", fontSize: "0.75rem", cursor: "pointer" }}>
               Coba lagi
             </button>
+            <p style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)", textAlign: "center", marginTop: "0.5rem" }}>
+              Simulasi · progres tersimpan di perangkat ini
+            </p>
           </div>
         </div>
       )}

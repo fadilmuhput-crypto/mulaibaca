@@ -34,7 +34,7 @@ const FALLBACK_GUIDES = [
   {
     title: "Dashboard & Streak Bacaan",
     content:
-      "Dashboard adalah halaman utama setelah login. Di sini kamu bisa melihat:\n\n- Api (streak) — jumlah hari berturut-turut kamu mencatat bacaan.\n- Target mingguan — halaman yang ingin kamu capai dalam seminggu.\n- Daftar periksa onboarding — panduan langkah awal jika baru pertama kali.\n- Sedang dibaca — buku yang sedang kamu baca, lengkap dengan progres halaman.\n- Anggota keluarga — foto profil anggota keluarga lain yang juga aktif.\n- Kode undangan — untuk mengajak anggota keluarga lain bergabung.",
+      "Dashboard adalah halaman utama setelah login. Di sini kamu bisa melihat:\n\n- Streak — jumlah hari berturut-turut kamu mencatat bacaan.\n- Target mingguan — halaman yang ingin kamu capai dalam seminggu.\n- Daftar periksa onboarding — panduan langkah awal jika baru pertama kali.\n- Sedang dibaca — buku yang sedang kamu baca, lengkap dengan progres halaman.\n- Anggota keluarga — foto profil anggota keluarga lain yang juga aktif.\n- Kode undangan — untuk mengajak anggota keluarga lain bergabung.",
   },
   {
     title: "Rak Buku",

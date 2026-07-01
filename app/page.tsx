@@ -121,8 +121,7 @@ export default function LandingPage() {
               color: "#3D4E45",
               marginBottom: "2rem",
             }}>
-              Setiap kebiasaan membaca dimulai dari satu halaman, satu orang. 
-              Mulaibaca membantu kamu membangun kebiasaan itu — dengan catatan harian, 
+              Mulaibaca membantu kamu membangun kebiasaan membaca — dengan catatan harian, 
               streak yang menemani, dan ruang untuk bertumbuh bersama orang-orang terdekat.
             </p>
 
@@ -347,7 +346,7 @@ export default function LandingPage() {
             Satu halaman<br />bisa jadi awal
           </h2>
           <p style={{ fontSize: "1rem", color: "#3D4E45", lineHeight: 1.65, maxWidth: "440px", margin: "0 auto 2.25rem" }}>
-            Kebiasaan membaca dimulai dari dirimu. Satu halaman hari ini, esok satu halaman lagi. Sebelum kamu sadari, orang-orang terdekatmu ikut membaca.
+            Mulai dari satu halaman hari ini, esok satu halaman lagi. Sebelum kamu sadari, orang-orang terdekatmu ikut membaca.
           </p>
           <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "12px" }}>
             <TrackedLink href="/daftar" eventLabel="bottom_mulai_sekarang" style={{
