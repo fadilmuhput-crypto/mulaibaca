@@ -20,6 +20,8 @@ type OLAuthor = {
 };
 
 type BookData = {
+  slug: string;
+  id: string;
   title: string;
   author: string | null;
   cover_url: string | null;
@@ -100,6 +102,8 @@ async function fetchOLBook(olId: string): Promise<BookData | null> {
     }
 
     return {
+      slug: `${toSlug(work.title ?? "")}-${olId.toLowerCase()}`,
+      id: olId,
       title: work.title ?? "Tanpa Judul",
       author,
       cover_url,
@@ -123,6 +127,8 @@ function findCurated(slug: string): BookData | null {
   const book = all.find((b) => toSlug(b.title) === slug || b.open_library_id === slug);
   if (!book) return null;
   return {
+    slug: `${toSlug(book.title)}-${book.open_library_id?.toLowerCase() ?? toSlug(book.title)}`,
+    id: book.open_library_id ?? toSlug(book.title),
     title: book.title,
     author: book.author,
     cover_url: book.cover_url,
@@ -149,23 +155,18 @@ type ReviewRow = {
 
 type LikeState = Record<string, { liked: boolean; count: number }>;
 
-async function fetchBookReviews(olId: string | null, title: string): Promise<ReviewRow[]> {
+async function fetchBookReviews(bookId: string, olId: string | null, title: string): Promise<ReviewRow[]> {
   const supabase = createAdminClient();
   try {
-    // Find book IDs by OL ID or exact title
-    const bookQuery = supabase.from("books").select("id");
+    const q = supabase.from("books").select("id");
     const { data: books } = olId
-      ? await bookQuery.eq("open_library_id", olId)
-      : await bookQuery.ilike("title", title);
-
+      ? await q.eq("open_library_id", olId).limit(1)
+      : bookId ? await q.eq("id", bookId).limit(1)
+      : await q.ilike("title", title).limit(1);
     if (!books?.length) return [];
-
-    const bookIds = books.map((b: { id: string }) => b.id);
     const { data: shelfItems } = await supabase
-      .from("shelf_items").select("id").in("book_id", bookIds);
-
+      .from("shelf_items").select("id").eq("book_id", books[0].id);
     if (!shelfItems?.length) return [];
-
     const shelfIds = shelfItems.map((s: { id: string }) => s.id);
     const { data: reviews } = await supabase
       .from("reviews")
@@ -174,7 +175,6 @@ async function fetchBookReviews(olId: string | null, title: string): Promise<Rev
       .eq("is_public", true)
       .order("published_at", { ascending: false })
       .limit(10);
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (reviews ?? []) as unknown as ReviewRow[];
   } catch {
@@ -184,25 +184,29 @@ async function fetchBookReviews(olId: string | null, title: string): Promise<Rev
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const supabase = createAdminClient();
+  const { data: b } = await supabase
+    .from("books").select("slug, title, description").eq("slug", id).maybeSingle();
+  if (b) {
+    const url = `https://mulaibaca.id/buku/${b.slug}`;
+    return {
+      title: `${b.title} — Mulaibaca`,
+      description: b.description ?? `Detail buku ${b.title} di Mulaibaca.`,
+      alternates: { canonical: url },
+      openGraph: { title: `${b.title} — Mulaibaca`, description: b.description ?? "", url, type: "book" },
+      twitter: { card: "summary", title: `${b.title} — Mulaibaca`, description: b.description ?? "" },
+    };
+  }
   const curated = findCurated(id);
   const title = curated?.title ?? id.replace(/-ol\w+$/i, "").replace(/-/g, " ");
   const description = curated?.description ?? `Detail buku ${title} di Mulaibaca — baca, track progres, dan tulis review.`;
-  const url = `https://mulaibaca.id/buku/${id}`;
+  const url = `https://mulaibaca.id/buku/${curated?.slug ?? id}`;
   return {
     title: `${title} — Mulaibaca`,
     description,
     alternates: { canonical: url },
-    openGraph: {
-      title: `${title} — Mulaibaca`,
-      description,
-      url,
-      type: "book",
-    },
-    twitter: {
-      card: "summary",
-      title: `${title} — Mulaibaca`,
-      description,
-    },
+    openGraph: { title, description, url, type: "book" },
+    twitter: { card: "summary", title, description },
   };
 }
 
@@ -212,82 +216,77 @@ export default async function BookDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const supabase = createAdminClient();
+  const FIELDS = "slug, id, title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description";
 
-  // Bare OL ID (e.g. OL26745W) → fetch title → redirect to SEO slug
-  if (isOLId(id)) {
-    const book = await fetchOLBook(id);
-    if (!book) notFound();
-    const seoSlug = `${toSlug(book.title)}-${id.toLowerCase()}`;
-    permanentRedirect(`/buku/${seoSlug}`);
+  function mapBook(matched: Record<string, unknown>): BookData {
+    return {
+      slug: (matched.slug as string) ?? toSlug(matched.title as string),
+      id: matched.id as string,
+      title: matched.title as string,
+      author: matched.author as string | null,
+      cover_url: matched.cover_url as string | null,
+      open_library_id: matched.open_library_id as string | null,
+      total_pages: matched.total_pages as number | null,
+      description: matched.description as string | null,
+      subjects: [],
+      year: null,
+      isbn: matched.isbn as string | null,
+      publisher: matched.publisher as string | null,
+      published_year: matched.published_year as number | null,
+      language: (matched.language as string) ?? "id",
+    };
   }
 
-  let book: BookData | null = null;
-  const supabase = createAdminClient();
-  const FIELDS = "title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description";
+  // Strategy 1: Slug lookup (canonical format /buku/{slug})
+  const { data: bySlug } = await supabase
+    .from("books").select(FIELDS).eq("slug", id).maybeSingle();
+  let book: BookData | null = bySlug ? mapBook(bySlug as Record<string, unknown>) : null;
 
-  // Try UUID direct lookup (bare UUID or slug-uuid format)
-  const uuid = UUID_RE.test(id) ? id : extractUUIDFromSlug(id);
-  if (uuid) {
-    const { data: byId } = await supabase
-      .from("books").select(FIELDS).eq("id", uuid).maybeSingle();
-    if (byId) {
-      book = {
-        title: byId.title,
-        author: byId.author,
-        cover_url: byId.cover_url,
-        open_library_id: byId.open_library_id,
-        total_pages: byId.total_pages,
-        description: byId.description,
-        subjects: [],
-        year: null,
-        isbn: byId.isbn,
-        publisher: byId.publisher,
-        published_year: byId.published_year,
-        language: (byId.language as string) ?? "id",
-      };
+  // Strategy 2: UUID (bare or from slug-uuid format) → redirect to canonical slug
+  if (!book) {
+    const uuid = UUID_RE.test(id) ? id : extractUUIDFromSlug(id);
+    if (uuid) {
+      const { data: byId } = await supabase
+        .from("books").select(FIELDS).eq("id", uuid).maybeSingle();
+      if (byId) {
+        book = mapBook(byId as Record<string, unknown>);
+        permanentRedirect(`/buku/${book.slug}`);
+      }
     }
   }
 
-  // Try curated first (pure title slug match)
+  // Strategy 3: Bare OL ID → check DB first, then fetch OL → redirect to canonical
+  if (!book && isOLId(id)) {
+    const { data: dbMatch } = await supabase.from("books").select(FIELDS).eq("open_library_id", id).maybeSingle();
+    if (dbMatch) { book = mapBook(dbMatch as Record<string, unknown>); permanentRedirect(`/buku/${book.slug}`); }
+    book = await fetchOLBook(id);
+    if (book) permanentRedirect(`/buku/${book.slug}`);
+  }
+
+  // Strategy 4: Curated books (pure title slug)
   if (!book) book = findCurated(id);
 
-  // Try "title-slug-ol26745w" format
+  // Strategy 5: slug-ol26745w format → canonical for non-DB OL books
   if (!book) {
     const olId = extractOLIdFromSlug(id);
     if (olId) {
+      const { data: dbMatch } = await supabase.from("books").select(FIELDS).eq("open_library_id", olId).maybeSingle();
+      if (dbMatch) { book = mapBook(dbMatch as Record<string, unknown>); permanentRedirect(`/buku/${book.slug}`); }
       book = await fetchOLBook(olId);
     }
   }
 
-  // Try Supabase database (manual / locally-added books)
+  // Strategy 6: Fuzzy title search in DB
   if (!book) {
     const approxTitle = id.replace(/-/g, " ");
     const words = approxTitle.split(" ").filter((w) => w.length > 1);
 
-    function mapBook(matched: Record<string, unknown>): BookData {
-      return {
-        title: matched.title as string,
-        author: matched.author as string | null,
-        cover_url: matched.cover_url as string | null,
-        open_library_id: matched.open_library_id as string | null,
-        total_pages: matched.total_pages as number | null,
-        description: matched.description as string | null,
-        subjects: [],
-        year: null,
-        isbn: matched.isbn as string | null,
-        publisher: matched.publisher as string | null,
-        published_year: matched.published_year as number | null,
-        language: (matched.language as string) ?? "id",
-      };
-    }
-
-    // Strategy 1: word-by-word pattern — handles punctuation in titles (e.g. "Mikir!")
     const chainPattern = words.slice(0, 6).map((w) => `%${w}`).join("") + "%";
     const { data: byChain } = await supabase.from("books").select(FIELDS).ilike("title", chainPattern).limit(30);
     const matchedChain = (byChain ?? []).find((b: { title: string }) => toSlug(b.title) === id);
     if (matchedChain) { book = mapBook(matchedChain as Record<string, unknown>); }
 
-    // Strategy 2 fallback: longest word anchor — catches edge cases where word order differs
     if (!book) {
       const anchor = words.reduce((a, b) => (b.length > a.length ? b : a), words[0] ?? "");
       if (anchor.length > 2) {
@@ -302,7 +301,7 @@ export default async function BookDetailPage({
 
   const session = await getSession();
   const [reviews] = await Promise.all([
-    fetchBookReviews(book.open_library_id, book.title),
+    fetchBookReviews(book.id, book.open_library_id, book.title),
   ]);
 
   // Fetch likes for all reviews (2 queries total, no N+1)
@@ -344,7 +343,7 @@ export default async function BookDetailPage({
     author: book.author ? { "@type": "Person", name: book.author } : undefined,
     numberOfPages: book.total_pages ?? undefined,
     description: book.description ?? undefined,
-    url: `https://mulaibaca.id/buku/${id}`,
+    url: `https://mulaibaca.id/buku/${book.slug}`,
     image: book.cover_url ?? undefined,
     inLanguage: book.language === "en" ? "en" : "id",
     isbn: book.isbn ?? undefined,
