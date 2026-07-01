@@ -7,6 +7,7 @@ import AvatarIcon from "@/components/AvatarIcon";
 import { BookOpen } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import ReviewSettings from "@/components/ReviewSettings";
+import LikeButton from "@/components/LikeButton";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -76,6 +77,17 @@ export default async function PublicReviewPage({
     .maybeSingle();
 
   if (!review) notFound();
+
+  // Fetch likes
+  const likeMemberId = session?.memberId;
+  const [likeCountResult, userLikeResult] = await Promise.all([
+    supabase.from("review_likes").select("id", { count: "exact", head: true }).eq("review_id", review.id),
+    likeMemberId
+      ? supabase.from("review_likes").select("id").eq("review_id", review.id).eq("member_id", likeMemberId).maybeSingle()
+      : Promise.resolve(null),
+  ]);
+  const likesCount = likeCountResult.count ?? 0;
+  const userLike = likeMemberId ? !!userLikeResult : false;
 
   const book = (review.shelf_items as { books: { title: string; author: string | null; cover_url: string | null; total_pages: number | null } | null } | null)?.books;
   const member = review.members as { name: string; avatar: string } | null;
@@ -175,12 +187,13 @@ export default async function PublicReviewPage({
           )}
         </div>
 
-        {/* Settings — only for the review owner */}
-        {session && session.memberId === review.member_id && (
-          <div className="mt-6">
+        {/* Like & Settings */}
+        <div className="mt-6 flex items-center justify-between">
+          <LikeButton slug={review.slug} initialLiked={userLike} initialCount={likesCount} />
+          {session && session.memberId === review.member_id && (
             <ReviewSettings slug={review.slug} initialPublic={review.is_public} initialAnonymous={review.is_anonymous} />
-          </div>
-        )}
+          )}
+        </div>
 
         {/* CTA */}
         {session ? (

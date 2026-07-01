@@ -35,48 +35,54 @@ export default function ReviewSettings({
   }
 
   return (
-    <div className="bg-surface rounded-xl border border-border p-4 space-y-3">
-      <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
-        <Info size={12} strokeWidth={2} />
-        Pengaturan Review
-      </p>
+    <div className="bg-surface rounded-xl border-2 border-border p-4 space-y-4">
+      <div className="flex items-center gap-1.5">
+        <Info size={12} strokeWidth={2} className="text-ink-muted" />
+        <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">
+          Pengaturan Review
+        </p>
+      </div>
 
       {/* Public toggle */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {isPublic ? <Eye size={14} strokeWidth={1.75} className="text-forest" /> : <EyeOff size={14} strokeWidth={1.75} className="text-ink-muted" />}
+        <div className="flex items-center gap-2.5">
+          <span className={`p-1.5 rounded-lg ${isPublic ? "bg-forest/10 text-forest" : "bg-border/50 text-ink-muted"}`}>
+            {isPublic ? <Eye size={14} strokeWidth={1.75} /> : <EyeOff size={14} strokeWidth={1.75} />}
+          </span>
           <div>
             <p className="text-sm font-medium text-ink">{isPublic ? "Publik" : "Privat"}</p>
-            <p className="text-xs text-ink-muted">{isPublic ? "Semua orang bisa melihat" : "Hanya kamu yang bisa lihat"}</p>
+            <p className="text-xs text-ink-muted leading-tight">{isPublic ? "Semua orang bisa melihat review ini" : "Hanya kamu yang bisa melihatnya"}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => update("is_public", !isPublic)}
           disabled={saving}
-          className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${isPublic ? "bg-forest" : "bg-border"}`}
+          className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isPublic ? "bg-forest" : "bg-border"}`}
         >
-          <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isPublic ? "translate-x-[22px]" : "translate-x-[2px]"}`} />
+          <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isPublic ? "translate-x-[24px]" : "translate-x-[2px]"}`} />
         </button>
       </div>
 
-      {/* Anonymous toggle — only when public */}
+      {/* Anonymous toggle */}
       {isPublic && (
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <div className="flex items-center gap-2">
-            {isAnonymous ? <UserX size={14} strokeWidth={1.75} className="text-amber" /> : <User size={14} strokeWidth={1.75} className="text-ink-muted" />}
+        <div className="flex items-center justify-between pt-3 border-t border-border/60">
+          <div className="flex items-center gap-2.5">
+            <span className={`p-1.5 rounded-lg ${isAnonymous ? "bg-amber/10 text-amber" : "bg-border/50 text-ink-muted"}`}>
+              {isAnonymous ? <UserX size={14} strokeWidth={1.75} /> : <User size={14} strokeWidth={1.75} />}
+            </span>
             <div>
-              <p className="text-sm font-medium text-ink">{isAnonymous ? "Anonim" : "Tampilkan nama"}</p>
-              <p className="text-xs text-ink-muted">{isAnonymous ? "Namamu tidak ditampilkan" : "Review atas namamu"}</p>
+              <p className="text-sm font-medium text-ink">{isAnonymous ? "Sembunyikan nama" : "Tampilkan nama"}</p>
+              <p className="text-xs text-ink-muted leading-tight">{isAnonymous ? "Review tampil sebagai Anonim" : "Review atas namamu sendiri"}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => update("is_anonymous", !isAnonymous)}
             disabled={saving}
-            className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${isAnonymous ? "bg-amber" : "bg-border"}`}
+            className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isAnonymous ? "bg-amber" : "bg-border"}`}
           >
-            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isAnonymous ? "translate-x-[22px]" : "translate-x-[2px]"}`} />
+            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isAnonymous ? "translate-x-[24px]" : "translate-x-[2px]"}`} />
           </button>
         </div>
       )}

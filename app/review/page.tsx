@@ -34,12 +34,12 @@ export default async function ReviewPage() {
     const [{ data: reviews }, { data: doneShelf }] = await Promise.all([
       supabase
         .from("reviews")
-        .select("*, shelf_items(books(title, author, cover_url))")
+        .select("*, shelf_items(books(id, title, author, cover_url))")
         .eq("member_id", session.memberId)
         .order("published_at", { ascending: false }),
       supabase
         .from("shelf_items")
-        .select("id, books(title, author, cover_url)")
+        .select("id, book_id, books(id, title, author, cover_url)")
         .eq("member_id", session.memberId)
         .eq("status", "done"),
     ]);
@@ -63,21 +63,24 @@ export default async function ReviewPage() {
               </h2>
               <div className="space-y-2">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {(unreviewed as any[]).map((item: { id: string; books: { title: string; author: string | null; cover_url: string | null } | null }) => {
+                {(unreviewed as any[]).map((item: { id: string; book_id: string | null; books: { id: string; title: string; author: string | null; cover_url: string | null } | null }) => {
                   const book = item.books;
                   return (
-                    <Link
+                    <div
                       key={item.id}
-                      href={`/review/tulis?shelf=${item.id}`}
                       className="flex gap-3 items-center bg-surface rounded-2xl border border-border p-3 hover:border-amber/50 transition-colors"
                     >
-                      <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
+                      <Link href={`/buku/${book?.id ?? item.book_id}`}>
+                        <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
+                      </Link>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-ink truncate">{book?.title}</p>
+                        <Link href={`/buku/${book?.id ?? item.book_id}`}>
+                          <p className="font-medium text-sm text-ink truncate hover:text-amber transition-colors">{book?.title}</p>
+                        </Link>
                         {book?.author && <p className="text-xs text-ink-muted">{book.author}</p>}
                       </div>
-                      <span className="btn-primary-sm flex-shrink-0">Tulis →</span>
-                    </Link>
+                      <Link href={`/review/tulis?shelf=${item.id}`} className="btn-primary-sm flex-shrink-0">Tulis →</Link>
+                    </div>
                   );
                 })}
               </div>
@@ -96,15 +99,19 @@ export default async function ReviewPage() {
                   slug: string | null;
                   rating: number;
                   q_about: string | null;
-                  shelf_items: { books: { title: string; author: string | null; cover_url: string | null } | null } | null;
+                  shelf_items: { books: { id: string; title: string; author: string | null; cover_url: string | null } | null } | null;
                 }) => {
                   const book = review.shelf_items?.books;
                   return (
                     <div key={review.id} className="bg-surface rounded-2xl border border-border p-4">
                       <div className="flex gap-3">
-                        <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
+                        <Link href={`/buku/${book?.id}`}>
+                          <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
+                        </Link>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm text-ink">{book?.title}</p>
+                          <Link href={`/buku/${book?.id}`}>
+                            <p className="font-medium text-sm text-ink hover:text-amber transition-colors">{book?.title}</p>
+                          </Link>
                           <div className="flex gap-0.5 mt-1">
                             {STARS.map((s) => (
                               <span key={s} className={`text-sm ${s <= review.rating ? "text-amber" : "text-border"}`}>★</span>
@@ -148,7 +155,7 @@ export default async function ReviewPage() {
   );
   const { data: publicReviews } = await supabase
     .from("reviews")
-    .select("slug, rating, q_about, published_at, members(name, avatar), shelf_items(books(title, author, cover_url))")
+    .select("slug, rating, q_about, published_at, members(name, avatar), shelf_items(books(id, title, author, cover_url))")
     .eq("is_public", true)
     .order("published_at", { ascending: false })
     .limit(50);
@@ -177,15 +184,17 @@ export default async function ReviewPage() {
               const book = review.shelf_items?.books;
               if (!review.slug) return null;
               return (
-                <Link
-                  key={review.slug}
-                  href={`/review/${review.slug}`}
+                <div
                   className="bg-surface rounded-2xl border border-border p-4 hover:border-amber/50 hover:shadow-sm transition-all"
                 >
                   <div className="flex gap-3 mb-3">
-                    <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
+                    <Link href={`/buku/${book?.id}`}>
+                      <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-10 h-14 rounded-lg" />
+                    </Link>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-ink truncate">{book?.title}</p>
+                      <Link href={`/buku/${book?.id}`} className="font-semibold text-sm text-ink truncate hover:text-amber transition-colors block">
+                        {book?.title}
+                      </Link>
                       {book?.author && <p className="text-xs text-ink-muted truncate">{book.author}</p>}
                       <div className="flex gap-0.5 mt-1">
                         {STARS.map((s) => (
@@ -195,10 +204,14 @@ export default async function ReviewPage() {
                     </div>
                   </div>
                   {review.q_about && (
-                    <p className="text-xs text-ink-secondary line-clamp-2 mb-3">{review.q_about}</p>
+                    <Link href={`/review/${review.slug}`} className="block">
+                      <p className="text-xs text-ink-secondary line-clamp-2 mb-3 hover:text-amber transition-colors">{review.q_about}</p>
+                    </Link>
                   )}
-                  <p className="text-xs text-ink-muted">{review.members?.name}</p>
-                </Link>
+                  <Link href={`/review/${review.slug}`} className="text-xs text-ink-muted hover:text-amber transition-colors block">
+                    {review.members?.name}
+                  </Link>
+                </div>
               );
             })}
           </div>
