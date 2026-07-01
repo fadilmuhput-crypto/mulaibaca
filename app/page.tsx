@@ -381,12 +381,19 @@ export default function LandingPage() {
             <img src="/logo.png" alt="Mulaibaca" width={28} height={28} style={{ borderRadius: "50%" }} />
             <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.125rem", color: INK, letterSpacing: "-0.025em" }}>mulaibaca</span>
           </div>
-          <div style={{ display: "flex", gap: "1rem", marginTop: "0.25rem" }}>
-            <a href="https://www.instagram.com/mulai_baca.id" target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.72rem", color: "#7A8E83", textDecoration: "underline", textDecorationStyle: "dotted" }}>
-              Instagram
+          <div style={{ display: "flex", gap: "1rem", marginTop: "0.25rem", alignItems: "center" }}>
+            <a href="https://www.instagram.com/mulai_baca.id" target="_blank" rel="noopener noreferrer" style={{ color: "#7A8E83", display: "flex" }} aria-label="Instagram">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+              </svg>
             </a>
-            <a href="https://www.threads.net/@mulai_baca.id" target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.72rem", color: "#7A8E83", textDecoration: "underline", textDecorationStyle: "dotted" }}>
-              Threads
+            <a href="https://www.threads.net/@mulai_baca.id" target="_blank" rel="noopener noreferrer" style={{ color: "#7A8E83", display: "flex" }} aria-label="Threads">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M9.5 9c.8-.8 2-1.2 3.5-1 2 .3 2.5 2 2.5 4s-.5 4-3 4c-2.5 0-3-1.5-2.5-3s1.5-2.5 3-2"/>
+              </svg>
             </a>
             <span style={{ fontSize: "0.72rem", color: "#7A8E83" }}>·</span>
             <Link href="/kebijakan-privasi" style={{ fontSize: "0.72rem", color: "#7A8E83", textDecoration: "underline", textDecorationStyle: "dotted" }}>
