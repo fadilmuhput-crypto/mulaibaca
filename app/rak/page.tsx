@@ -16,7 +16,7 @@ export default async function RakPage({
   const supabase = await createClient();
   const params = await searchParams;
   const initialTab =
-    params.tab === "reading" ? "reading" : params.tab === "done" ? "done" : "want";
+    params.tab === "want" ? "want" : params.tab === "done" ? "done" : "reading";
 
   const [{ data: shelf }, { data: reviews }] = await Promise.all([
     supabase

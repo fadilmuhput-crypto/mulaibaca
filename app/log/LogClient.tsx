@@ -440,6 +440,15 @@ export default function LogClient({
         </section>
       )}
 
+      {/* ── SEMUA CATATAN LINK ── */}
+      <a
+        href="/catatan"
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl brutal-border text-sm font-semibold text-ink-secondary hover:text-amber hover:border-amber/40 transition-colors"
+      >
+        <BookOpen size={14} strokeWidth={2} />
+        Semua catatan bacaan →
+      </a>
+
       {/* ── TODAY'S LOGS ── */}
       {todayLogs.length > 0 && (
         <section>
@@ -450,9 +459,6 @@ export default function LogClient({
                 +{todayPages} hal
               </span>
             </h2>
-            <a href="/catatan" className="text-xs text-amber font-semibold hover:text-amber/80 transition-colors">
-              Semua catatan →
-            </a>
           </div>
           <div className="space-y-2">
             {todayLogs.map((log) => {

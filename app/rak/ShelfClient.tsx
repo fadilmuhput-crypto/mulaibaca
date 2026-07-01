@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import BookCover from "@/components/BookCover";
-import { BookOpen, Bookmark, Trophy, Sparkles, Check, PenLine } from "lucide-react";
+import { BookOpen, Bookmark, Trophy, Sparkles, Check, PenLine, ArrowUpDown } from "lucide-react";
 
 type Book = {
   title: string;
@@ -47,11 +47,11 @@ function bookUrl(book: Book): string {
 export default function ShelfClient({
   initialShelf,
   reviews: initialReviews,
-  initialTab = "want",
+  initialTab = "reading",
 }: {
   initialShelf: ShelfItem[];
   reviews: ReviewInfo[];
-  initialTab?: "reading" | "want" | "done";
+  initialTab?: "want" | "reading" | "done";
 }) {
   const [tab, setTab] = useState<"reading" | "want" | "done">(initialTab);
   const [shelf, setShelf] = useState(initialShelf);
@@ -61,8 +61,28 @@ export default function ShelfClient({
   const [justFinished, setJustFinished] = useState<{ id: string; title: string } | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string>("newest");
 
-  const filtered = shelf.filter((i) => i.status === tab);
+  const sortOptions = tab === "reading"
+    ? [{ value: "newest", label: "Terbaru" }, { value: "a-z", label: "A-Z" }, { value: "z-a", label: "Z-A" }, { value: "progress", label: "Progres" }]
+    : [{ value: "newest", label: "Terbaru" }, { value: "a-z", label: "A-Z" }, { value: "z-a", label: "Z-A" }];
+
+  const filtered = useMemo(() => {
+    let items = shelf.filter((i) => i.status === tab);
+    if (sortBy === "a-z") {
+      items.sort((a, b) => (a.books?.title ?? "").localeCompare(b.books?.title ?? ""));
+    } else if (sortBy === "z-a") {
+      items.sort((a, b) => (b.books?.title ?? "").localeCompare(a.books?.title ?? ""));
+    } else if (sortBy === "progress") {
+      items.sort((a, b) => {
+        const pA = a.books?.total_pages ? (a.current_page / a.books.total_pages) : 0;
+        const pB = b.books?.total_pages ? (b.current_page / b.books.total_pages) : 0;
+        return pB - pA;
+      });
+    }
+    return items;
+  }, [shelf, tab, sortBy]);
+
   const readingCount = shelf.filter((i) => i.status === "reading").length;
   const wantCount    = shelf.filter((i) => i.status === "want").length;
   const doneCount    = shelf.filter((i) => i.status === "done").length;
@@ -196,6 +216,26 @@ export default function ShelfClient({
           );
         })}
       </div>
+
+      {/* Sort */}
+      {filtered.length > 0 && (
+        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto no-scrollbar">
+          <ArrowUpDown size={12} strokeWidth={2} className="text-ink-muted flex-shrink-0" />
+          {sortOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSortBy(opt.value)}
+              className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all min-h-[32px] ${
+                sortBy === opt.value
+                  ? "bg-ink text-surface"
+                  : "bg-surface text-ink-secondary brutal-border hover:border-amber/50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Just finished banner */}
       {justFinished && tab === "done" && (

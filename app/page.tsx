@@ -382,6 +382,14 @@ export default function LandingPage() {
             <img src="/logo.png" alt="Mulaibaca" width={28} height={28} style={{ borderRadius: "50%" }} />
             <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.125rem", color: INK, letterSpacing: "-0.025em" }}>mulaibaca</span>
           </div>
+          <div style={{ display: "flex", gap: "1rem", marginTop: "0.25rem" }}>
+            <a href="https://www.instagram.com/mulai_baca.id" target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.72rem", color: "#7A8E83", textDecoration: "underline", textDecorationStyle: "dotted" }}>
+              Instagram
+            </a>
+            <a href="https://www.threads.net/@mulai_baca.id" target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.72rem", color: "#7A8E83", textDecoration: "underline", textDecorationStyle: "dotted" }}>
+              Threads
+            </a>
+          </div>
           <p style={{ fontSize: "0.75rem", color: "#7A8E83" }}>Bangun kebiasaan membaca, mulai dari satu halaman · mulaibaca.id</p>
           <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>© 2026 Mulaibaca</p>
         </div>
