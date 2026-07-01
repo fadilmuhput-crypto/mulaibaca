@@ -389,6 +389,13 @@ export default function LandingPage() {
             <a href="https://www.threads.net/@mulai_baca.id" target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.72rem", color: "#7A8E83", textDecoration: "underline", textDecorationStyle: "dotted" }}>
               Threads
             </a>
+            <span style={{ fontSize: "0.72rem", color: "#7A8E83" }}>·</span>
+            <Link href="/kebijakan-privasi" style={{ fontSize: "0.72rem", color: "#7A8E83", textDecoration: "underline", textDecorationStyle: "dotted" }}>
+              Kebijakan Privasi
+            </Link>
+            <Link href="/syarat-ketentuan" style={{ fontSize: "0.72rem", color: "#7A8E83", textDecoration: "underline", textDecorationStyle: "dotted" }}>
+              Syarat Ketentuan
+            </Link>
           </div>
           <p style={{ fontSize: "0.75rem", color: "#7A8E83" }}>Bangun kebiasaan membaca, mulai dari satu halaman · mulaibaca.id</p>
           <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>© 2026 Mulaibaca</p>
