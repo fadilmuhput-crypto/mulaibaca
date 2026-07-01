@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { dataClient: supabase, memberId } = auth;
 
-  const { shelfItemId, pagesRead, durationMinutes, note, logDate, endPage } = await req.json();
+  const { shelfItemId, pagesRead, durationMinutes, note, logDate, endPage, images } = await req.json();
 
   if (!shelfItemId || pagesRead == null) {
     return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
         pages_read: (existing.pages_read ?? 0) + pagesRead,
         duration_minutes: durationMinutes ?? null,
         note: note ?? null,
+        images: images ?? null,
       })
       .eq("id", existing.id)
       .select()
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
         pages_read: pagesRead,
         duration_minutes: durationMinutes ?? null,
         note: note ?? null,
+        images: images ?? null,
       })
       .select()
       .single();

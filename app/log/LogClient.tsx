@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Check, Flame, Target, AlertTriangle, X } from "lucide-react";
+import { BookOpen, Check, Flame, Target, AlertTriangle, X, ImagePlus } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import { trackEvent } from "@/lib/analytics";
+import { createClient } from "@/lib/supabase";
 
 type Book = {
   id: string;
@@ -38,6 +39,7 @@ type TodayLog = {
   pages_read: number;
   duration_minutes: number | null;
   note: string | null;
+  images: string[] | null;
   shelf_items: { books: { title: string; cover_url: string | null } | null } | null;
 };
 
@@ -91,6 +93,8 @@ export default function LogClient({
   const [streak, setStreak] = useState(initialStreak);
   const [celebrated, setCelebrated] = useState(false);
   const [lastPages, setLastPages] = useState(0);
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const weekDays = buildWeekDays(today);
   const todayPages = todayLogs.reduce((s, l) => s + l.pages_read, 0);
@@ -103,6 +107,33 @@ export default function LogClient({
   const toNum = parseInt(toPage) || 0;
   const pagesRead = toNum > fromNum ? toNum - fromNum : 0;
   const isValid = selected && toNum > fromNum;
+
+  function removeImage(url: string) {
+    setImages((prev) => prev.filter((u) => u !== url));
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files?.length || !selected) return;
+    setUploading(true);
+    const supabase = createClient();
+    const newUrls: string[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const filePath = `notes/${selected.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { data, error } = await supabase.storage
+        .from("note-images")
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
+      if (error) { console.error("Upload error:", error); continue; }
+      const { data: { publicUrl } } = supabase.storage
+        .from("note-images")
+        .getPublicUrl(data.path);
+      newUrls.push(publicUrl);
+    }
+    setImages((prev) => [...prev, ...newUrls]);
+    setUploading(false);
+    e.target.value = "";
+  }
 
   function selectBook(item: ShelfItem) {
     setSelected(item);
@@ -127,6 +158,7 @@ export default function LogClient({
           endPage: toNum,
           durationMinutes: duration ? parseInt(duration) : null,
           note: note.trim() || null,
+          images: images.length > 0 ? images : null,
         }),
       });
       const data = await res.json();
@@ -146,6 +178,7 @@ export default function LogClient({
       setToPage("");
       setDuration("");
       setNote("");
+      setImages([]);
       if (shelf.length > 1) setSelected(null);
       router.refresh();
       setTimeout(() => setCelebrated(false), 3000);
@@ -426,6 +459,43 @@ export default function LogClient({
                 />
               </div>
 
+              {/* Image upload */}
+              <div>
+                <label className="input-label mb-1 block">
+                  Gambar <span className="text-ink-muted font-normal">(opsional)</span>
+                </label>
+                {images.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {images.map((url) => (
+                      <div key={url} className="relative group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(url)}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Hapus gambar"
+                        >
+                          <X size={10} strokeWidth={3} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <label className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed border-border text-sm cursor-pointer transition-colors ${uploading ? "opacity-50 pointer-events-none" : "hover:border-amber/40 hover:text-amber"}`}>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    multiple
+                    onChange={handleImageUpload}
+                    disabled={uploading || !selected}
+                    className="sr-only"
+                  />
+                  <ImagePlus size={16} strokeWidth={1.75} />
+                  {uploading ? "Mengupload…" : "Tambah gambar"}
+                </label>
+              </div>
+
               {error && <p className="text-error text-xs text-center bg-error-soft rounded-xl px-3 py-2">{error}</p>}
 
               <button
@@ -471,6 +541,23 @@ export default function LogClient({
                     {log.note && (
                       <p className="text-xs text-ink-secondary mt-1 leading-relaxed">{log.note}</p>
                     )}
+                    {(() => {
+                      const imgs = log.images ?? [];
+                      if (imgs.length === 0) return null;
+                      return (
+                        <div className="flex gap-1.5 mt-1.5">
+                          {imgs.slice(0, 3).map((url, i) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img key={i} src={url} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
+                          ))}
+                          {imgs.length > 3 && (
+                            <span className="w-10 h-10 rounded-lg bg-parchment border border-border flex items-center justify-center text-[10px] font-semibold text-ink-muted">
+                              +{imgs.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-bold text-amber">+{log.pages_read} hal</p>

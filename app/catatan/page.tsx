@@ -24,6 +24,7 @@ type NoteLog = {
   id: string;
   note: string;
   pages_read: number;
+  images: string[] | null;
   log_date: string | null;
   created_at: string;
   shelf_items: {
@@ -56,7 +57,7 @@ export default async function CatatanPage() {
 
   const { data: rawNotes } = await supabase
     .from("reading_logs")
-    .select("id, note, pages_read, log_date, created_at, shelf_items(book_id, books(id, title, cover_url, open_library_id, author))")
+    .select("id, note, pages_read, images, log_date, created_at, shelf_items(book_id, books(id, title, cover_url, open_library_id, author))")
     .eq("member_id", session.memberId)
     .not("note", "is", null)
     .order("created_at", { ascending: false })
@@ -158,6 +159,18 @@ export default async function CatatanPage() {
                         <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap">
                           {log.note}
                         </p>
+                        {(() => {
+                          const imgs = log.images ?? [];
+                          if (imgs.length === 0) return null;
+                          return (
+                            <div className="flex gap-1.5 flex-wrap">
+                              {imgs.map((url, i) => (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img key={i} src={url} alt="" className="w-20 h-20 rounded-lg object-cover border border-border" />
+                              ))}
+                            </div>
+                          );
+                        })()}
                         <div className="flex items-center justify-between text-xs text-ink-muted pt-1 border-t border-border">
                           <span>{dateLabel}</span>
                           <span className="font-semibold text-amber">+{log.pages_read} hal</span>
