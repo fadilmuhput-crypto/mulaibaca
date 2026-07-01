@@ -4,6 +4,8 @@ import { BUKU_ANAK, BUKU_LOKAL } from "@/lib/curated-books";
 import AddToShelfButtons from "./AddToShelfButtons";
 import BookCover from "@/components/BookCover";
 import { createAdminClient } from "@/lib/supabase-route";
+import { getSession } from "@/lib/session";
+import LikeButton from "@/components/LikeButton";
 
 type OLWork = {
   title?: string;
@@ -137,12 +139,15 @@ function findCurated(slug: string): BookData | null {
 }
 
 type ReviewRow = {
+  id: string;
   slug: string;
   rating: number;
   q_about: string | null;
   published_at: string;
   members: { name: string; avatar: string } | null;
 };
+
+type LikeState = Record<string, { liked: boolean; count: number }>;
 
 async function fetchBookReviews(olId: string | null, title: string): Promise<ReviewRow[]> {
   const supabase = createAdminClient();
@@ -164,7 +169,7 @@ async function fetchBookReviews(olId: string | null, title: string): Promise<Rev
     const shelfIds = shelfItems.map((s: { id: string }) => s.id);
     const { data: reviews } = await supabase
       .from("reviews")
-      .select("slug, rating, q_about, published_at, members(name, avatar)")
+      .select("id, slug, rating, q_about, published_at, members(name, avatar)")
       .in("shelf_item_id", shelfIds)
       .eq("is_public", true)
       .order("published_at", { ascending: false })
@@ -295,9 +300,31 @@ export default async function BookDetailPage({
 
   if (!book) notFound();
 
+  const session = await getSession();
   const [reviews] = await Promise.all([
     fetchBookReviews(book.open_library_id, book.title),
   ]);
+
+  // Fetch likes for all reviews (2 queries total, no N+1)
+  const supabase2 = createAdminClient();
+  const reviewIds = reviews.map((r) => r.id);
+  const likeData: LikeState = {};
+  if (reviewIds.length > 0) {
+    const [allLikesRes, myLikesRes] = await Promise.all([
+      supabase2.from("review_likes").select("review_id").in("review_id", reviewIds),
+      session?.memberId
+        ? supabase2.from("review_likes").select("review_id").in("review_id", reviewIds).eq("member_id", session.memberId)
+        : Promise.resolve({ data: [] }),
+    ]);
+    const allLikes = allLikesRes.data ?? [];
+    const myLikes = myLikesRes.data ?? [];
+    const countMap: Record<string, number> = {};
+    allLikes.forEach((l: { review_id: string }) => { countMap[l.review_id] = (countMap[l.review_id] ?? 0) + 1; });
+    const myLikeSet = new Set(myLikes.map((l: { review_id: string }) => l.review_id));
+    reviewIds.forEach((id) => {
+      likeData[id] = { liked: myLikeSet.has(id), count: countMap[id] ?? 0 };
+    });
+  }
 
   const bookPayload = {
     title: book.title,
@@ -396,26 +423,35 @@ export default async function BookDetailPage({
             <section>
               <h2 className="text-h3 mb-4">Review dari Pembaca</h2>
               <div className="space-y-3">
-                {reviews.map((review) => (
-                  <Link
-                    key={review.slug}
-                    href={`/review/${review.slug}`}
-                    className="block bg-surface rounded-2xl border border-border p-4 hover:border-amber/50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <p className="font-medium text-sm text-ink">{review.members?.name}</p>
-                      <div className="flex gap-0.5 flex-shrink-0">
-                        {STARS.map((s) => (
-                          <span key={s} className={`text-sm ${s <= review.rating ? "text-amber" : "text-border"}`}>★</span>
-                        ))}
-                      </div>
+                {reviews.map((review) => {
+                  const like = likeData[review.id];
+                  return (
+                    <div
+                      key={review.slug}
+                      className="bg-surface rounded-2xl border border-border p-4 hover:border-amber/50 transition-colors"
+                    >
+                      <Link href={`/review/${review.slug}`} className="block">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <p className="font-medium text-sm text-ink">{review.members?.name}</p>
+                          <div className="flex gap-0.5 flex-shrink-0">
+                            {STARS.map((s) => (
+                              <span key={s} className={`text-sm ${s <= review.rating ? "text-amber" : "text-border"}`}>★</span>
+                            ))}
+                          </div>
+                        </div>
+                        {review.q_about && (
+                          <p className="text-xs text-ink-secondary line-clamp-3">{review.q_about}</p>
+                        )}
+                        <p className="text-xs text-amber font-medium mt-2">Baca review lengkap →</p>
+                      </Link>
+                      {like && (
+                        <div className="mt-2 pt-2 border-t border-border/60">
+                          <LikeButton slug={review.slug} initialLiked={like.liked} initialCount={like.count} />
+                        </div>
+                      )}
                     </div>
-                    {review.q_about && (
-                      <p className="text-xs text-ink-secondary line-clamp-3">{review.q_about}</p>
-                    )}
-                    <p className="text-xs text-amber font-medium mt-2">Baca review lengkap →</p>
-                  </Link>
-                ))}
+                  );
+                })}
               </div>
             </section>
           </>
