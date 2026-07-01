@@ -48,34 +48,34 @@ export default function RichEditor({ value, onChange }: Props) {
   return (
     <div className="space-y-2">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 flex-wrap bg-surface border border-border rounded-xl px-2 py-1.5">
-        <button type="button" onClick={() => exec("bold")} className={TOOLBAR_BTN} title="Tebal">
+      <div className="flex items-center gap-1 flex-wrap bg-surface border border-border rounded-xl px-2 py-1.5" role="toolbar" aria-label="Format teks">
+        <button type="button" onClick={() => exec("bold")} className={TOOLBAR_BTN} aria-label="Tebal">
           <Bold size={16} strokeWidth={1.75} />
         </button>
-        <button type="button" onClick={() => exec("italic")} className={TOOLBAR_BTN} title="Miring">
+        <button type="button" onClick={() => exec("italic")} className={TOOLBAR_BTN} aria-label="Miring">
           <Italic size={16} strokeWidth={1.75} />
         </button>
-        <span className="w-px h-6 bg-border mx-1" />
-        <button type="button" onClick={() => exec("formatBlock", "h2")} className={TOOLBAR_BTN} title="Heading 2">
+        <span className="w-px h-6 bg-border mx-1" role="separator" />
+        <button type="button" onClick={() => exec("formatBlock", "h2")} className={TOOLBAR_BTN} aria-label="Heading 2">
           <Heading size={16} strokeWidth={1.75} />
         </button>
-        <button type="button" onClick={() => exec("formatBlock", "h3")} className={TOOLBAR_BTN} title="Heading 3">
+        <button type="button" onClick={() => exec("formatBlock", "h3")} className={TOOLBAR_BTN} aria-label="Heading 3">
           <span className="text-xs font-bold">H3</span>
         </button>
-        <span className="w-px h-6 bg-border mx-1" />
-        <button type="button" onClick={() => exec("insertUnorderedList")} className={TOOLBAR_BTN} title="List">
+        <span className="w-px h-6 bg-border mx-1" role="separator" />
+        <button type="button" onClick={() => exec("insertUnorderedList")} className={TOOLBAR_BTN} aria-label="Daftar tidak berurutan">
           <List size={16} strokeWidth={1.75} />
         </button>
-        <button type="button" onClick={() => exec("insertOrderedList")} className={TOOLBAR_BTN} title="List nomor">
+        <button type="button" onClick={() => exec("insertOrderedList")} className={TOOLBAR_BTN} aria-label="Daftar berurutan">
           <ListOrdered size={16} strokeWidth={1.75} />
         </button>
-        <span className="w-px h-6 bg-border mx-1" />
+        <span className="w-px h-6 bg-border mx-1" role="separator" />
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
           className={TOOLBAR_BTN}
-          title="Upload gambar"
+          aria-label="Upload gambar"
         >
           <Image size={16} strokeWidth={1.75} />
         </button>
@@ -85,13 +85,15 @@ export default function RichEditor({ value, onChange }: Props) {
           accept="image/*"
           onChange={handleImageUpload}
           className="hidden"
+          aria-hidden="true"
+          tabIndex={-1}
         />
         <div className="flex-1" />
         <button
           type="button"
           onClick={() => setShowPreview(!showPreview)}
           className={TOOLBAR_BTN}
-          title={showPreview ? "Edit" : "Preview"}
+          aria-label={showPreview ? "Mode edit" : "Mode pratinjau"}
         >
           {showPreview ? <EyeOff size={16} strokeWidth={1.75} /> : <Eye size={16} strokeWidth={1.75} />}
         </button>
@@ -111,6 +113,9 @@ export default function RichEditor({ value, onChange }: Props) {
           onInput={handleEditorInput}
           className="input w-full min-h-[16rem] overflow-auto focus:outline-none cursor-text"
           style={{ whiteSpace: "pre-wrap" }}
+          role="textbox"
+          aria-label="Konten artikel"
+          aria-multiline="true"
           dangerouslySetInnerHTML={{ __html: value }}
         />
       )}

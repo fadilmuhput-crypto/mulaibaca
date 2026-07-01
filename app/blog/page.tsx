@@ -56,13 +56,26 @@ export default async function BlogPage(props: { searchParams?: Promise<{ categor
 
   const { data: posts } = await query.order("published_at", { ascending: false });
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Blog — Mulaibaca",
+    description: "Inspirasi dan tips membangun kebiasaan membaca, review buku, dan cerita dari para pembaca.",
+    url: "https://mulaibaca.id/blog",
+    mainEntity: {
+      "@type": "Blog",
+      name: "Blog Mulaibaca",
+    },
+  };
+
   return (
     <div className="min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <header className="bg-surface/80 backdrop-blur-md border-b border-border/60 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
-        <Link href="/" className="text-lg font-display font-bold text-forest tracking-tight">mulaibaca</Link>
-        <div className="flex items-center gap-3">
-          <Link href="/daftar" className="btn-primary-sm">Mulai Gratis</Link>
-        </div>
+        <Link href="/" className="text-lg font-display font-bold text-forest tracking-tight" aria-label="Beranda">mulaibaca</Link>
+        <nav className="flex items-center gap-3" aria-label="Navigasi">
+          <Link href="/daftar" className="btn-primary-sm" aria-label="Daftar gratis">Mulai Gratis</Link>
+        </nav>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8">
@@ -72,7 +85,7 @@ export default async function BlogPage(props: { searchParams?: Promise<{ categor
         </p>
 
         {/* Category filter */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <nav className="flex flex-wrap gap-2 mb-8" aria-label="Filter kategori">
           <Link
             href="/blog"
             className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
@@ -80,6 +93,7 @@ export default async function BlogPage(props: { searchParams?: Promise<{ categor
                 ? "bg-ink text-parchment border-ink"
                 : "bg-surface text-ink-secondary border-border hover:border-ink/30"
             }`}
+            aria-current={!activeCategory ? "page" : undefined}
           >
             Semua
           </Link>
@@ -92,14 +106,15 @@ export default async function BlogPage(props: { searchParams?: Promise<{ categor
                   ? "bg-ink text-parchment border-ink"
                   : "bg-surface text-ink-secondary border-border hover:border-ink/30"
               }`}
+              aria-current={activeCategory === key ? "page" : undefined}
             >
               {label}
             </Link>
           ))}
-        </div>
+        </nav>
 
         {(posts ?? []).length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-16" role="status">
             <p className="text-ink-secondary">Belum ada artikel di kategori ini.</p>
             {activeCategory && (
               <Link href="/blog" className="text-sm text-amber font-medium hover:underline mt-2 inline-block">
@@ -110,11 +125,15 @@ export default async function BlogPage(props: { searchParams?: Promise<{ categor
         ) : (
           <div className="grid gap-6">
             {posts?.map((post) => (
-              <Link
+              <article
                 key={post.id}
-                href={`/blog/${post.slug}`}
-                className="bg-surface rounded-2xl border border-border p-5 hover:border-amber/50 hover:shadow-sm transition-all block"
+                className="bg-surface rounded-2xl border border-border p-5 hover:border-amber/50 hover:shadow-sm transition-all"
               >
+                <Link
+                href={`/blog/${post.slug}`}
+                className="block"
+                aria-label={`Baca artikel: ${post.title}`}
+                >
                 {post.cover_image && (
                   <div className="rounded-xl overflow-hidden mb-4 aspect-[2/1] bg-parchment">
                     <img
@@ -145,6 +164,7 @@ export default async function BlogPage(props: { searchParams?: Promise<{ categor
                   <span>{post.published_at ? formatDate(post.published_at) : ""}</span>
                 </div>
               </Link>
+              </article>
             ))}
           </div>
         )}
