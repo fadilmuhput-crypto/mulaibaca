@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mulaibaca — Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0C0C0A;
+  --forest:#1E4530;
+  --amber:#C26E2A;
+  --parchment:#FAF7F2;
+  --lime:#BFE040;
+  --ink-secondary:#3D4E45;
+  --ink-muted:#7A8E83;
+  --surface:#FAF7F2;
+  --border:#0C0C0A;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--parchment);
+  color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.slide{
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:clamp(2rem,5vw,4rem) clamp(1.25rem,4vw,3rem);
+  border-bottom:2px solid var(--ink);
+  position:relative;
+  overflow:hidden;
+}
+.slide:last-child{border-bottom:none}
+.container{max-width:960px;margin:0 auto;width:100%}
+
+/* Typography */
+.h-deck{
+  font-family:'Inter',sans-serif;
+  font-weight:900;
+  letter-spacing:-0.04em;
+  line-height:0.95;
+}
+.label{
+  font-size:clamp(0.6rem,1.2vw,0.7rem);
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--ink-muted);
+  margin-bottom:1rem;
+}
+
+/* Slide 1 — Cover */
+.cover{background:var(--ink);color:var(--parchment);justify-content:center}
+.cover-badge{
+  display:inline-flex;align-items:center;
+  padding:4px 10px;
+  border:1.5px solid rgba(255,255,255,0.2);
+  border-radius:3px;
+  font-size:0.65rem;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:rgba(255,255,255,0.5);
+  margin-bottom:2rem;
+}
+.cover h1{
+  font-family:'Playfair Display',serif;
+  font-weight:700;
+  font-style:italic;
+  font-size:clamp(4rem,12vw,8rem);
+  line-height:0.9;
+  letter-spacing:-0.04em;
+  color:var(--parchment);
+  margin-bottom:0.5rem;
+}
+.cover h1 span{color:var(--lime)}
+.cover-sub{
+  font-size:clamp(1.1rem,2.5vw,1.75rem);
+  color:rgba(255,255,255,0.6);
+  max-width:480px;
+  line-height:1.5;
+  margin-bottom:2.5rem;
+}
+.cover-meta{
+  display:flex;gap:1.5rem;flex-wrap:wrap;
+  font-size:0.8rem;
+  color:rgba(255,255,255,0.35);
+}
+.cover-meta span{display:flex;align-items:center;gap:0.4rem}
+.cover-meta .dot{width:4px;height:4px;border-radius:50%;background:var(--lime);display:inline-block}
+
+/* Slide 2 — Problem */
+.problem-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1rem;
+  margin-top:2rem;
+}
+.stat-card{
+  background:var(--surface);
+  border:1.5px solid var(--ink);
+  border-radius:8px;
+  padding:1.5rem;
+  box-shadow:3px 3px 0 var(--ink);
+}
+.stat-card .num{
+  font-size:clamp(2rem,4vw,3rem);
+  font-weight:900;
+  color:var(--amber);
+  line-height:1;
+  margin-bottom:0.25rem;
+}
+.stat-card .desc{
+  font-size:0.8rem;
+  color:var(--ink-secondary);
+  line-height:1.5;
+}
+
+/* Slide 3 — Solution */
+.solution-quote{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.5rem,3.5vw,2.5rem);
+  line-height:1.2;
+  color:var(--forest);
+  margin:1.5rem 0;
+  max-width:700px;
+}
+
+/* Slide 4 — How it works */
+.steps{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1.5rem;
+  margin-top:2rem;
+}
+.step{border-left:2px solid var(--ink);padding-left:1.25rem}
+.step .num{
+  font-size:2.5rem;
+  font-weight:900;
+  color:var(--amber);
+  line-height:1;
+  margin-bottom:0.75rem;
+}
+.step h3{font-size:1rem;font-weight:700;margin-bottom:0.4rem}
+.step p{font-size:0.85rem;color:var(--ink-secondary);line-height:1.6}
+
+/* Slide 5 — Features */
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:1rem;
+  margin-top:2rem;
+}
+.feature-card{
+  border:1.5px solid var(--ink);
+  border-radius:8px;
+  padding:1.25rem;
+  transition:box-shadow .15s;
+}
+.feature-card:nth-child(1){background:#FFF8E7;box-shadow:2px 2px 0 var(--amber)}
+.feature-card:nth-child(2){background:#E8F5E9;box-shadow:2px 2px 0 var(--forest)}
+.feature-card:nth-child(3){background:#FFF3E0;box-shadow:2px 2px 0 var(--amber)}
+.feature-card:nth-child(4){background:#F3E5F5;box-shadow:2px 2px 0 var(--ink)}
+.feature-card .icon{font-size:1.5rem;margin-bottom:0.5rem}
+.feature-card h3{font-size:0.9rem;font-weight:700;margin-bottom:0.3rem}
+.feature-card p{font-size:0.78rem;color:var(--ink-secondary);line-height:1.5}
+
+/* Slide 6 — Why */
+.why-list{list-style:none;margin-top:2rem}
+.why-list li{
+  display:flex;align-items:flex-start;gap:0.75rem;
+  padding:1rem 0;
+  border-bottom:1px solid rgba(12,12,10,0.08);
+}
+.why-list li:last-child{border-bottom:none}
+.why-list .check{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--lime);border:1.5px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:2px;
+}
+.why-list .check svg{width:10px;height:10px}
+.why-list strong{display:block;font-size:0.95rem;margin-bottom:0.15rem}
+.why-list span{font-size:0.82rem;color:var(--ink-secondary);line-height:1.5}
+
+/* Slide 7 — Audience */
+.audience-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1rem;
+  margin-top:2rem;
+}
+.audience-card{
+  text-align:center;
+  border:1.5px solid var(--ink);
+  border-radius:8px;
+  padding:2rem 1rem;
+  background:var(--surface);
+}
+.audience-card .emoji{font-size:2.5rem;margin-bottom:0.75rem}
+.audience-card h3{font-size:0.9rem;font-weight:700;margin-bottom:0.3rem}
+.audience-card p{font-size:0.78rem;color:var(--ink-secondary);line-height:1.5}
+
+/* Slide 8 — Traction */
+.traction-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:1rem;
+  margin-top:2rem;
+}
+.traction-item{
+  text-align:center;
+  border:1.5px solid var(--ink);
+  border-radius:8px;
+  padding:1.5rem 1rem;
+  background:var(--surface);
+  box-shadow:2px 2px 0 var(--ink);
+}
+.traction-item .num{
+  font-size:clamp(1.5rem,3vw,2.25rem);
+  font-weight:900;
+  color:var(--forest);
+  line-height:1;
+  margin-bottom:0.3rem;
+}
+.traction-item .desc{font-size:0.75rem;color:var(--ink-secondary)}
+
+/* Slide 9 — Vision */
+.vision-block{
+  background:var(--forest);
+  border:2px solid var(--ink);
+  border-radius:12px;
+  padding:clamp(1.5rem,4vw,2.5rem);
+  margin-top:2rem;
+  box-shadow:6px 6px 0 var(--ink);
+}
+.vision-block h3{
+  font-family:'Inter',sans-serif;
+  font-weight:800;
+  font-size:clamp(1.1rem,2vw,1.5rem);
+  color:var(--parchment);
+  margin-bottom:0.75rem;
+}
+.vision-block p{
+  color:rgba(255,255,255,0.7);
+  font-size:0.9rem;
+  line-height:1.7;
+  margin-bottom:1.5rem;
+}
+.vision-block p:last-child{margin-bottom:0}
+.vision-block .roadmap{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:1rem;
+  border-top:1px solid rgba(255,255,255,0.15);
+  padding-top:1.5rem;
+  margin-top:1.5rem;
+}
+.vision-block .rm-item{
+  font-size:0.82rem;
+  color:rgba(255,255,255,0.55);
+}
+.vision-block .rm-item strong{
+  display:block;
+  color:var(--lime);
+  font-size:0.9rem;
+  margin-bottom:0.2rem;
+}
+
+/* Slide 10 — CTA */
+.cta-section{text-align:center;align-items:center}
+.cta-section .cta-links{
+  display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;
+  margin-top:2rem;
+}
+.cta-btn{
+  display:inline-flex;align-items:center;
+  padding:0.875rem 2rem;
+  font-weight:700;font-size:1rem;
+  border:1.5px solid var(--ink);
+  border-radius:6px;
+  text-decoration:none;
+  transition:all .1s;
+}
+.cta-btn:hover{transform:translate(-1px,-1px)}
+.cta-btn.primary{background:var(--amber);color:#fff;box-shadow:3px 3px 0 var(--ink)}
+.cta-btn.primary:hover{box-shadow:4px 4px 0 var(--ink)}
+.cta-btn.secondary{background:transparent;color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.cta-btn.secondary:hover{box-shadow:3px 3px 0 var(--ink)}
+
+/* Navigation dots */
+.nav-dots{
+  position:fixed;
+  right:1rem;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  flex-direction:column;
+  gap:0.5rem;
+  z-index:100;
+}
+.nav-dots a{
+  width:10px;height:10px;
+  border-radius:50%;
+  border:1.5px solid var(--ink);
+  background:transparent;
+  transition:all .15s;
+}
+.nav-dots a:hover,.nav-dots a.active{background:var(--ink)}
+
+/* Responsive */
+@media(max-width:640px){
+  .nav-dots{display:none}
+  .slide{padding:3rem 1rem}
+  .cover h1{font-size:clamp(2.5rem,15vw,4rem)}
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation dots -->
+<nav class="nav-dots" aria-label="Navigasi slide">
+  <a href="#slide-1" aria-label="Cover"></a>
+  <a href="#slide-2" aria-label="Problem"></a>
+  <a href="#slide-3" aria-label="Solution"></a>
+  <a href="#slide-4" aria-label="How it works"></a>
+  <a href="#slide-5" aria-label="Features"></a>
+  <a href="#slide-6" aria-label="Why"></a>
+  <a href="#slide-7" aria-label="Audience"></a>
+  <a href="#slide-8" aria-label="Traction"></a>
+  <a href="#slide-9" aria-label="Vision"></a>
+  <a href="#slide-10" aria-label="CTA"></a>
+</nav>
+
+<!-- 1. Cover -->
+<section class="slide cover" id="slide-1">
+  <div class="container">
+    <div class="cover-badge">Brand Manifesto</div>
+    <h1>Mulai dari<br><span>satu halaman.</span></h1>
+    <p class="cover-sub" style="font-size:clamp(1rem,2.5vw,1.35rem)">
+      Satu halaman. Satu orang. Lalu bertumbuh bersama.
+    </p>
+    <p style="font-size:clamp(0.8rem,1.5vw,0.95rem);color:rgba(255,255,255,0.5);max-width:500px;line-height:1.6">
+      Budaya membaca tidak dibangun dari banyaknya buku yang dimiliki.<br>
+      Ia selalu dimulai dari satu orang yang memilih membuka satu halaman hari ini.
+    </p>
+    <div class="cover-meta" style="margin-top:2.5rem">
+      <span><span class="dot"></span> mulaibaca.id</span>
+      <span><span class="dot"></span> Habit companion</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Problem -->
+<section class="slide" id="slide-2">
+  <div class="container">
+    <div class="label">The Problem</div>
+    <h2 class="h-deck" style="font-size:clamp(1.75rem,4vw,3rem);margin-bottom:0.75rem">
+      Banyak yang ingin membaca,<br><span style="color:var(--forest)">tapi belum jadi kebiasaan</span>
+    </h2>
+    <p style="font-size:0.9rem;color:var(--ink-secondary);max-width:600px;line-height:1.7">
+      Minat baca tinggi — buku dibeli, dikoleksi, dikutip, difoto. Tapi kebiasaan membacanya belum terbentuk. Platform digital masih berfokus pada kuantitas dan konten, bukan pada konsistensi dan manusianya.
+    </p>
+    <div class="problem-grid">
+      <div class="stat-card">
+        <div class="num">?&nbsp;rb</div>
+        <div class="desc">Orang membeli buku setiap bulan — tapi berapa yang selesai membacanya?</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">Sendiri</div>
+        <div class="desc">Membaca masih dilakukan sendiri. Tidak ada ruang untuk berbagi progres dan saling support.</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">FOMO</div>
+        <div class="desc">Tekanan untuk terlihat banyak baca, bukan benar-benar menikmati proses membacanya.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Solution -->
+<section class="slide" id="slide-3">
+  <div class="container">
+    <div class="label">The Solution</div>
+    <h2 class="h-deck" style="font-size:clamp(1.75rem,4vw,3rem);margin-bottom:0.5rem">
+      Bukan sekadar <span style="color:var(--amber);font-style:italic">tracker buku</span>
+    </h2>
+    <p style="font-size:0.9rem;color:var(--ink-secondary);max-width:550px;line-height:1.7">
+      Mulaibaca adalah habit companion — bukan sekadar catalog. Kami membantu pengguna membangun kebiasaan membaca <strong>konsisten</strong> dengan sistem yang sederhana, tanpa tekanan.
+    </p>
+    <div class="solution-quote">
+      &ldquo;Cukup satu halaman, asal konsisten.&rdquo;
+    </div>
+    <p style="font-size:0.85rem;color:var(--ink-muted);max-width:500px;line-height:1.6">
+      Pendekatan berbasis behavioral design: friction minim, streak sebagai pengingat positif, dan dukungan sosial via keluarga/teman.
+    </p>
+  </div>
+</section>
+
+<!-- 4. How it works -->
+<section class="slide" id="slide-4">
+  <div class="container">
+    <div class="label">How It Works</div>
+    <h2 class="h-deck" style="font-size:clamp(1.75rem,4vw,2.5rem);margin-bottom:0.5rem">
+      3 langkah mulai <span style="color:var(--forest)">membaca rutin</span>
+    </h2>
+    <div class="steps">
+      <div class="step">
+        <div class="num">01</div>
+        <h3>Mulai Catat</h3>
+        <p>Baca buku apa pun yang kamu suka. Catat halaman yang sudah dibaca — cukup 10 detik. Tidak perlu menyelesaikan buku untuk mulai.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h3>Jaga Streak</h3>
+        <p>Konsisten setiap hari, walau hanya satu halaman. Streak tumbuh sebagai bukti bahwa kebiasaan sedang terbentuk — tanpa tekanan kompetisi.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Ajak Orang Terdekat</h3>
+        <p>Undang pasangan, saudara, atau teman dalam satu keluarga. Lihat progres satu sama lain, saling menyemangati, dan rayakan pencapaian bersama.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Features -->
+<section class="slide" id="slide-5">
+  <div class="container">
+    <div class="label">Key Features</div>
+    <h2 class="h-deck" style="font-size:clamp(1.75rem,4vw,2.5rem);margin-bottom:0.5rem">
+      Sederhana, <span style="color:var(--amber)">tapi cukup</span>
+    </h2>
+    <p style="font-size:0.85rem;color:var(--ink-secondary);max-width:500px;line-height:1.6;margin-bottom:0.5rem">
+      Setiap fitur harus menjawab pertanyaan: "Apakah ini membantu seseorang membuka halaman berikutnya?" Jika tidak, fitur itu tidak perlu dibuat.
+    </p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon">📖</div>
+        <h3>Daily Reading Log</h3>
+        <p>Catat progres dalam 10 detik. Input halaman, durasi, dan catatan pribadi untuk setiap sesi membaca. Lengkap dengan upload gambar.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔥</div>
+        <h3>Streak System</h3>
+        <p>Konsistensi dirayakan, bukan kecepatan. Streak muncul sebagai reward alami — bukan beban psikologis atau tekanan kompetisi.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">👨‍👩‍👧‍👦</div>
+        <h3>Keluarga</h3>
+        <p>Bergabung dalam satu keluarga. Lihat progres anggota lain, saling support, dan bangun budaya membaca dari unit terkecil: keluarga.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📚</div>
+        <h3>Rak Buku & Catatan</h3>
+        <p>Atur bacaan (Mau Baca → Dibaca → Selesai). Catat kutipan favorit, poin penting, dan semuanya terkelompok per buku.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Brand Values -->
+<section class="slide" id="slide-6">
+  <div class="container">
+    <div class="label">Brand Values</div>
+    <h2 class="h-deck" style="font-size:clamp(1.75rem,4vw,2.5rem);margin-bottom:0.5rem">
+      Yang kami <span style="color:var(--amber)">percayai</span>
+    </h2>
+    <ul class="why-list">
+      <li>
+        <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <strong>Start Small</strong>
+          <span>Tidak perlu langsung satu buku. Satu halaman pun berarti. Kebiasaan kecil lebih kuat daripada motivasi sesaat.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <strong>Consistency</strong>
+          <span>Yang penting bukan cepat. Tetapi terus kembali. Membaca bukan perlombaan dan bukan tentang terlihat pintar.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <strong>Together</strong>
+          <span>Kebiasaan baik akan lebih mudah bertahan ketika dilakukan bersama. Budaya membaca tumbuh melalui contoh, bukan paksaan.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <strong>Curiosity</strong>
+          <span>Membaca adalah cara kita memahami dunia. Setiap halaman adalah undangan untuk terus belajar dan bertanya.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <strong>Kindness</strong>
+          <span>Kami tidak menghakimi. Kami menemani. Tidak ada kata terlambat untuk membangun kebiasaan membaca.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- 7. Target Audience -->
+<section class="slide" id="slide-7">
+  <div class="container">
+    <div class="label">Target Audience</div>
+    <h2 class="h-deck" style="font-size:clamp(1.75rem,4vw,2.5rem);margin-bottom:0.5rem">
+      Untuk <span style="color:var(--amber)">siapa</span> Mulaibaca?
+    </h2>
+    <div class="audience-grid">
+      <div class="audience-card" style="border-color:var(--amber);box-shadow:3px 3px 0 var(--amber)">
+        <div class="emoji">👤</div>
+        <h3>Primary</h3>
+        <p>Individu 18–45 tahun yang ingin mulai atau kembali membangun kebiasaan membaca. Baru mulai, sedang slump, atau ingin lebih konsisten.</p>
+      </div>
+      <div class="audience-card">
+        <div class="emoji">👨‍👩‍👧‍👦</div>
+        <h3>Secondary</h3>
+        <p>Orang yang ingin membawa kebiasaan membaca ke lingkungan terdekat — pasangan, keluarga, saudara, sahabat, atau komunitas baca.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Perjalanan -->
+<section class="slide" id="slide-8">
+  <div class="container">
+    <div class="label">Perjalanan</div>
+    <h2 class="h-deck" style="font-size:clamp(1.75rem,4vw,2.5rem);margin-bottom:0.5rem">
+      Tumbuh dari <span style="color:var(--forest)">satu halaman</span>
+    </h2>
+    <p style="font-size:0.85rem;color:var(--ink-secondary);max-width:500px;line-height:1.6">
+      Dalam masa pengembangan, Mulaibaca telah menunjukkan tanda awal bahwa pendekatan sederhana ini berhasil membangun kebiasaan membaca.
+    </p>
+    <div class="traction-grid">
+      <div class="traction-item">
+        <div class="num">&gt;1M</div>
+        <div class="desc">Halaman tercatat</div>
+      </div>
+      <div class="traction-item">
+        <div class="num">Ribuan</div>
+        <div class="desc">Sesi baca harian</div>
+      </div>
+      <div class="traction-item">
+        <div class="num">~60%</div>
+        <div class="desc">Retensi mingguan</div>
+      </div>
+      <div class="traction-item">
+        <div class="num">100+</div>
+        <div class="desc">Streak &gt;30 hari</div>
+      </div>
+      <div class="traction-item">
+        <div class="num">50+</div>
+        <div class="desc">Keluarga aktif</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. Vision & Roadmap -->
+<section class="slide" id="slide-9">
+  <div class="container">
+    <div class="label">Vision &amp; Roadmap</div>
+    <h2 class="h-deck" style="font-size:clamp(1.75rem,4vw,2.5rem);margin-bottom:0.75rem">
+      Menumbuhkan <span style="color:var(--lime)">budaya membaca</span>
+    </h2>
+    <div class="vision-block">
+      <h3>Visi</h3>
+      <p>Menumbuhkan budaya membaca yang dimulai dari individu dan bertumbuh bersama orang-orang terdekat.</p>
+      <h3>Misi</h3>
+      <p>Membantu siapa pun membangun kebiasaan membaca yang sederhana, menyenangkan, dan berkelanjutan. Kami percaya ketika satu orang mulai membaca, dampaknya dapat meluas ke rumah, keluarga, dan komunitas di sekitarnya.</p>
+      <div class="roadmap">
+        <div class="rm-item">
+          <strong>Sekarang</strong>
+          Daily log · Streak · Rak Buku · Catatan + Gambar · Keluarga
+        </div>
+        <div class="rm-item">
+          <strong>Selanjutnya</strong>
+          Reading insights · Target pribadi · Eksplorasi buku · Profil publik
+        </div>
+        <div class="rm-item">
+          <strong>Nanti</strong>
+          Tantangan komunitas · Integrasi e-reader · Data insights
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. CTA -->
+<section class="slide cta-section" id="slide-10">
+  <div class="container">
+    <div class="cover-badge" style="border-color:var(--ink);color:var(--ink-muted);margin:0 auto 2rem">Mulai dari kamu</div>
+    <h2 class="h-deck" style="font-size:clamp(2.5rem,6vw,4.5rem);margin-bottom:1rem">
+      Satu halaman<br><span style="color:var(--forest)">bisa jadi awal</span>
+    </h2>
+    <p style="font-size:1rem;color:var(--ink-secondary);max-width:500px;margin:0 auto 1.5rem;line-height:1.8">
+      Semua perubahan besar selalu dimulai dari seseorang.<br>
+      Semua kebiasaan besar selalu dimulai dari satu langkah kecil.<br>
+      Semua budaya besar selalu dimulai dari rumah.
+    </p>
+    <p style="font-size:0.85rem;color:var(--ink-muted);max-width:400px;margin:0 auto 2rem">
+      Dan semuanya bisa dimulai hari ini.
+    </p>
+    <div class="cta-links">
+      <a href="https://www.mulaibaca.id" class="cta-btn primary" target="_blank">Mulai dari satu halaman →</a>
+      <a href="mailto:hello@mulaibaca.id" class="cta-btn secondary">hello@mulaibaca.id</a>
+    </div>
+    <p style="margin-top:3rem;font-size:0.7rem;color:var(--ink-muted)">mulaibaca.id</p>
+  </div>
+</section>
+
+<!-- Active dot highlight -->
+<script>
+const sections = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.nav-dots a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      dots.forEach(d => {
+        d.classList.toggle('active', d.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { threshold: 0.5 });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

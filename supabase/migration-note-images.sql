@@ -8,12 +8,14 @@ select 'note-images', 'note-images', true, 5242880, array['image/jpeg', 'image/p
 where not exists (select 1 from storage.buckets where id = 'note-images');
 
 -- 2. Storage RLS: authenticated users can upload
-create policy if not exists "Authenticated users can upload note images"
+drop policy if exists "Authenticated users can upload note images" on storage.objects;
+create policy "Authenticated users can upload note images"
   on storage.objects for insert
   with check (bucket_id = 'note-images' and auth.role() = 'authenticated');
 
 -- 3. Storage RLS: anyone can view note images
-create policy if not exists "Anyone can view note images"
+drop policy if exists "Anyone can view note images" on storage.objects;
+create policy "Anyone can view note images"
   on storage.objects for select
   using (bucket_id = 'note-images');
 
