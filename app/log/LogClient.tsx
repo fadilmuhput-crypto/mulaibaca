@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Check, Flame, Target, AlertTriangle, X, ImagePlus } from "lucide-react";
 import BookCover from "@/components/BookCover";
+import BookTimer from "@/components/BookTimer";
+import ImageLightbox from "@/components/ImageLightbox";
 import { trackEvent } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase";
 
@@ -37,6 +39,8 @@ type ShelfItem = {
 type TodayLog = {
   id: string;
   pages_read: number;
+  from_page: number | null;
+  to_page: number | null;
   duration_minutes: number | null;
   note: string | null;
   images: string[] | null;
@@ -95,6 +99,7 @@ export default function LogClient({
   const [lastPages, setLastPages] = useState(0);
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   const weekDays = buildWeekDays(today);
   const todayPages = todayLogs.reduce((s, l) => s + l.pages_read, 0);
@@ -156,6 +161,8 @@ export default function LogClient({
           shelfItemId: selected!.id,
           pagesRead,
           endPage: toNum,
+          fromPage: fromNum,
+          toPage: toNum,
           durationMinutes: duration ? parseInt(duration) : null,
           note: note.trim() || null,
           images: images.length > 0 ? images : null,
@@ -380,6 +387,11 @@ export default function LogClient({
             </div>
           )}
 
+          {/* Book Timer */}
+          {selected && (
+            <BookTimer onDuration={(m) => setDuration(String(m))} />
+          )}
+
           {/* Input form — shown when a book is selected (or single book) */}
           {selected && (
             <form onSubmit={handleSubmit} className="bg-surface rounded-2xl brutal-border brutal-shadow-xs p-4 space-y-4">
@@ -468,8 +480,10 @@ export default function LogClient({
                   <div className="flex gap-2 flex-wrap mb-2">
                     {images.map((url) => (
                       <div key={url} className="relative group">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border" />
+                        <button type="button" onClick={() => setLightboxImage(url)} className="block">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => removeImage(url)}
@@ -534,10 +548,15 @@ export default function LogClient({
             {todayLogs.map((log) => {
               const book = log.shelf_items?.books;
               return (
-                <div key={log.id} className="flex gap-3 items-start bg-surface rounded-xl brutal-border p-3">
+                  <div key={log.id} className="flex gap-3 items-start bg-surface rounded-xl brutal-border p-3">
                   <BookCover src={book?.cover_url ?? null} title={book?.title ?? ""} className="w-8 h-11 rounded-lg flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-ink truncate">{book?.title ?? "Buku"}</p>
+                    {log.from_page != null && log.to_page != null && (
+                      <p className="text-[10px] font-semibold text-forest mt-0.5">
+                        Hal {log.from_page} → {log.to_page}
+                      </p>
+                    )}
                     {log.note && (
                       <p className="text-xs text-ink-secondary mt-1 leading-relaxed">{log.note}</p>
                     )}
@@ -547,8 +566,10 @@ export default function LogClient({
                       return (
                         <div className="flex gap-1.5 mt-1.5">
                           {imgs.slice(0, 3).map((url, i) => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img key={i} src={url} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
+                            <button key={i} type="button" onClick={() => setLightboxImage(url)}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={url} alt="" className="w-10 h-10 rounded-lg object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity" />
+                            </button>
                           ))}
                           {imgs.length > 3 && (
                             <span className="w-10 h-10 rounded-lg bg-parchment border border-border flex items-center justify-center text-[10px] font-semibold text-ink-muted">
@@ -570,6 +591,11 @@ export default function LogClient({
             })}
           </div>
         </section>
+      )}
+
+      {/* Lightbox */}
+      {lightboxImage && (
+        <ImageLightbox imageUrl={lightboxImage} onClose={() => setLightboxImage(null)} />
       )}
     </div>
   );

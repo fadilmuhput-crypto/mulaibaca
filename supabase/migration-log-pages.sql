@@ -1,0 +1,2 @@
+ALTER TABLE reading_logs ADD COLUMN IF NOT EXISTS from_page INT;
+ALTER TABLE reading_logs ADD COLUMN IF NOT EXISTS to_page INT;
