@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-route";
 import JelajahClient from "./JelajahClient";
 import type { Book } from "@/lib/books";
 import type { JelajahSection } from "@/lib/jelajah-sections";
+import type { Metadata } from "next";
 
 export type FamilyBook = {
   memberName: string;
@@ -13,44 +13,70 @@ export type FamilyBook = {
   author: string;
 };
 
+export const metadata: Metadata = {
+  title: "Jelajah Buku — Mulaibaca",
+  description: "Temukan dan jelajahi ribuan buku untuk dibaca bersama keluarga. Rekomendasi buku anak, buku lokal Indonesia, dan berbagai kategori.",
+  openGraph: {
+    title: "Jelajah Buku — Mulaibaca",
+    description: "Temukan buku baru untuk dibaca bersama keluarga.",
+    url: "https://mulaibaca.id/jelajah",
+    locale: "id_ID",
+  },
+  twitter: {
+    card: "summary",
+    title: "Jelajah Buku — Mulaibaca",
+    description: "Temukan buku baru untuk dibaca bersama keluarga.",
+  },
+};
+
 export default async function JelajahPage() {
   const session = await getSession();
-  if (!session) redirect("/masuk");
 
-  const supabase = await createClient();
-
-  const { data: otherMembers } = await supabase
-    .from("members")
-    .select("id, name")
-    .eq("family_id", session.familyId)
-    .neq("id", session.memberId);
-
-  const otherIds = (otherMembers ?? []).map((m: { id: string }) => m.id);
   let familyBooks: FamilyBook[] = [];
+  let myShelf: { book_id: string }[] = [];
 
-  if (otherIds.length > 0) {
-    const { data: familyReading } = await supabase
+  if (session) {
+    const supabase = await createClient();
+    const { data: otherMembers } = await supabase
+      .from("members")
+      .select("id, name")
+      .eq("family_id", session.familyId)
+      .neq("id", session.memberId);
+
+    const otherIds = (otherMembers ?? []).map((m: { id: string }) => m.id);
+
+    if (otherIds.length > 0) {
+      const { data: familyReading } = await supabase
+        .from("shelf_items")
+        .select("member_id, books(title, cover_url, author)")
+        .in("member_id", otherIds)
+        .eq("status", "reading")
+        .limit(6);
+
+      const memberMap = Object.fromEntries(
+        (otherMembers ?? []).map((m: { id: string; name: string }) => [m.id, m.name])
+      );
+
+      familyBooks = (familyReading ?? [])
+        .filter((item: { books: unknown }) => item.books)
+        .map((item: { member_id: string; books: unknown }) => {
+          const b = item.books as { title: string; cover_url: string | null; author: string | null };
+          return {
+            memberName: memberMap[item.member_id] ?? "Anggota",
+            title: b.title,
+            coverUrl: b.cover_url,
+            author: b.author ?? "",
+          };
+        });
+    }
+
+    const { data: shelfData } = await supabase
       .from("shelf_items")
-      .select("member_id, books(title, cover_url, author)")
-      .in("member_id", otherIds)
-      .eq("status", "reading")
-      .limit(6);
+      .select("book_id")
+      .eq("member_id", session.memberId)
+      .in("status", ["reading", "want"]);
 
-    const memberMap = Object.fromEntries(
-      (otherMembers ?? []).map((m: { id: string; name: string }) => [m.id, m.name])
-    );
-
-    familyBooks = (familyReading ?? [])
-      .filter((item: { books: unknown }) => item.books)
-      .map((item: { member_id: string; books: unknown }) => {
-        const b = item.books as { title: string; cover_url: string | null; author: string | null };
-        return {
-          memberName: memberMap[item.member_id] ?? "Anggota",
-          title: b.title,
-          coverUrl: b.cover_url,
-          author: b.author ?? "",
-        };
-      });
+    myShelf = (shelfData ?? []) as { book_id: string }[];
   }
 
   const adminClient = createAdminClient();
@@ -59,7 +85,6 @@ export default async function JelajahPage() {
     { data: sectionRows },
     { data: linkRows },
     { data: trendingRows },
-    { data: myShelf },
   ] = await Promise.all([
     adminClient
       .from("books")
@@ -81,11 +106,6 @@ export default async function JelajahPage() {
       .select("book_id")
       .not("book_id", "is", null)
       .gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString()),
-    supabase
-      .from("shelf_items")
-      .select("book_id")
-      .eq("member_id", session.memberId)
-      .in("status", ["reading", "want"]),
   ]);
 
   const allBooks = (bookRows ?? []) as Book[];
@@ -137,9 +157,9 @@ export default async function JelajahPage() {
       sections={sections}
       trendingBooks={trendingBooks}
       personalBooks={personalBooks}
-      memberType={session.memberType}
-      memberAge={session.memberAge}
-      memberName={session.memberName}
+      memberType={session?.memberType ?? "dewasa"}
+      memberAge={session?.memberAge ?? null}
+      memberName={session?.memberName ?? "Pengunjung"}
     />
   );
 }

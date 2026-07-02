@@ -49,5 +49,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // blog table may not exist yet in some environments
   }
 
-  return [...staticUrls, ...bookUrls, ...blogUrls];
+  let reviewUrls: MetadataRoute.Sitemap = [];
+  let dbBookUrls: MetadataRoute.Sitemap = [];
+  try {
+    const admin = createAdminClient();
+    const [{ data: reviews }, { data: dbBooks }] = await Promise.all([
+      admin.from("reviews").select("slug, updated_at").eq("is_draft", false),
+      admin.from("books").select("slug, updated_at").eq("is_active", true).not("slug", "is", null),
+    ]);
+    if (reviews) {
+      reviewUrls = reviews.map((r) => ({
+        url: `${baseUrl}/review/${r.slug}`,
+        lastModified: r.updated_at ? new Date(r.updated_at) : new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      }));
+    }
+    if (dbBooks) {
+      dbBookUrls = dbBooks.map((b) => ({
+        url: `${baseUrl}/buku/${b.slug}`,
+        lastModified: b.updated_at ? new Date(b.updated_at) : new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      }));
+    }
+  } catch {
+    // tables may not exist yet
+  }
+
+  return [...staticUrls, ...bookUrls, ...blogUrls, ...reviewUrls, ...dbBookUrls];
 }
