@@ -100,6 +100,7 @@ export default function LogClient({
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [doneShelfId, setDoneShelfId] = useState<string | null>(null);
 
   const weekDays = buildWeekDays(today);
   const todayPages = todayLogs.reduce((s, l) => s + l.pages_read, 0);
@@ -186,6 +187,11 @@ export default function LogClient({
       setDuration("");
       setNote("");
       setImages([]);
+      const doneItem = shelf.find((s) => s.id === selected!.id);
+      const totalPages = doneItem?.books?.total_pages;
+      if (totalPages && toNum >= totalPages) {
+        setDoneShelfId(selected!.id);
+      }
       if (shelf.length > 1) setSelected(null);
       router.refresh();
       setTimeout(() => setCelebrated(false), 3000);
@@ -270,6 +276,33 @@ export default function LogClient({
               ? `🔥 Streak ${streak.current_streak} hari! Terus pertahankan!`
               : "Bacaan hari ini tercatat. Keep going!"}
           </p>
+        </div>
+      )}
+
+      {/* ── BOOK DONE CONFIRMATION ── */}
+      {doneShelfId && (
+        <div className="rounded-2xl p-4 bg-amber-soft border border-amber/30">
+          <p className="font-display font-bold text-ink text-lg mb-1">
+            🎉 Selesai baca buku ini!
+          </p>
+          <p className="text-sm text-ink-secondary mb-3">
+            Mau tulis review-nya? Atau lanjut baca buku lain dulu.
+          </p>
+          <div className="flex gap-2">
+            <Link
+              href={`/review/tulis?shelf=${doneShelfId}`}
+              className="btn-primary-sm flex-1 text-center"
+            >
+              Tulis Review
+            </Link>
+            <button
+              type="button"
+              onClick={() => setDoneShelfId(null)}
+              className="btn-ghost-ink flex-1 text-center text-sm"
+            >
+              Nanti
+            </button>
+          </div>
         </div>
       )}
 

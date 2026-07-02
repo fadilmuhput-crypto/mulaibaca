@@ -392,9 +392,13 @@ export default async function BookDetailPage({
 
         {/* Description */}
         {book.description && (
-          <section className="mb-5">
-            <h2 className="text-h3 mb-2">Tentang Buku Ini</h2>
-            <p className="text-body text-ink-secondary leading-relaxed">{book.description}</p>
+          <section className="mb-8">
+            <h2 className="text-h3 mb-3">Tentang Buku Ini</h2>
+            <div className="bg-surface rounded-2xl border border-border p-5">
+              <p className="text-sm text-ink-secondary leading-[1.8] whitespace-pre-line">
+                {book.description}
+              </p>
+            </div>
           </section>
         )}
 

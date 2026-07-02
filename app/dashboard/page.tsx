@@ -360,13 +360,10 @@ export default async function DashboardPage() {
             : (
               <section className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
                 <p className="text-overline mb-2">Kode undangan</p>
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3">
                   <span className="font-mono text-xl font-bold text-ink tracking-widest uppercase">
                     {session.inviteCode}
                   </span>
-                  <Link href="/profil" className="section-link text-xs">
-                    Kelola →
-                  </Link>
                 </div>
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(`Ayo gabung ke "${session.familyName}" di mulaibaca! 📚\n\nKlik link ini langsung:\nhttps://mulaibaca.id/bergabung?code=${session.inviteCode.toUpperCase()}`)}`}
