@@ -29,6 +29,8 @@ type BookData = {
   total_pages: number | null;
   description: string | null;
   subjects: string[];
+  categories: string[];
+  tags: string[];
   year: string | null;
   isbn: string | null;
   publisher: string | null;
@@ -111,6 +113,8 @@ async function fetchOLBook(olId: string): Promise<BookData | null> {
       total_pages,
       description,
       subjects: (work.subjects ?? []).slice(0, 8),
+      categories: [],
+      tags: [],
       year: work.first_publish_date ?? null,
       isbn: null,
       publisher: null,
@@ -136,6 +140,8 @@ function findCurated(slug: string): BookData | null {
     total_pages: book.total_pages,
     description: book.description,
     subjects: book.tags,
+    categories: [],
+    tags: book.tags,
     year: null,
     isbn: "isbn" in book ? (book as Record<string, string | null>).isbn : null,
     publisher: "publisher" in book ? (book as Record<string, string | null>).publisher : null,
@@ -217,7 +223,7 @@ export default async function BookDetailPage({
 }) {
   const { id } = await params;
   const supabase = createAdminClient();
-  const FIELDS = "slug, id, title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description";
+  const FIELDS = "slug, id, title, author, cover_url, open_library_id, total_pages, isbn, publisher, published_year, language, description, categories, tags";
 
   function mapBook(matched: Record<string, unknown>): BookData {
     return {
@@ -230,6 +236,8 @@ export default async function BookDetailPage({
       total_pages: matched.total_pages as number | null,
       description: matched.description as string | null,
       subjects: [],
+      categories: (matched.categories as string[]) ?? [],
+      tags: (matched.tags as string[]) ?? [],
       year: null,
       isbn: matched.isbn as string | null,
       publisher: matched.publisher as string | null,
@@ -402,12 +410,15 @@ export default async function BookDetailPage({
           </section>
         )}
 
-        {/* Subjects */}
-        {book.subjects.length > 0 && (
+        {/* Categories & Tags */}
+        {(book.categories.length > 0 || book.tags.length > 0 || book.subjects.length > 0) && (
           <section className="mb-6">
             <h2 className="text-h3 mb-2">Kategori</h2>
             <div className="flex gap-1.5 flex-wrap">
-              {book.subjects.map((s) => (
+              {[...book.categories, ...book.tags, ...book.subjects]
+                .filter((s, i, a) => a.indexOf(s) === i)
+                .filter(Boolean)
+                .map((s) => (
                 <span key={s} className="badge">{s}</span>
               ))}
             </div>

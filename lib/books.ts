@@ -16,4 +16,7 @@ export type Book = {
   enrichment_status?: string;
   is_active?: boolean;
   sort_order?: number;
+  rating_avg?: number | null;
+  rating_count?: number | null;
+  shelf_count?: number | null;
 };

@@ -85,6 +85,8 @@ export default async function JelajahPage() {
     { data: sectionRows },
     { data: linkRows },
     { data: trendingRows },
+    { data: shelfCountRows },
+    { data: reviewStatsRows },
   ] = await Promise.all([
     adminClient
       .from("books")
@@ -106,10 +108,47 @@ export default async function JelajahPage() {
       .select("book_id")
       .not("book_id", "is", null)
       .gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString()),
+    adminClient
+      .from("shelf_items")
+      .select("book_id")
+      .not("book_id", "is", null),
+    adminClient
+      .from("reviews")
+      .select("shelf_item_id, rating, shelf_items!inner(book_id)")
+      .not("rating", "is", null),
   ]);
 
   const allBooks = (bookRows ?? []) as Book[];
-  const bookMap = new Map(allBooks.map((b) => [b.id, b]));
+  const bookIds = allBooks.map((b) => b.id).filter(Boolean) as string[];
+
+  // Enrich with shelf counts (total readers per book)
+  const shelfCountMap: Record<string, number> = {};
+  for (const row of shelfCountRows ?? []) {
+    if (row.book_id) shelfCountMap[row.book_id] = (shelfCountMap[row.book_id] ?? 0) + 1;
+  }
+
+  // Enrich with review stats (avg rating + review count per book)
+  const reviewStatsMap: Record<string, { sum: number; count: number }> = {};
+  for (const row of reviewStatsRows ?? []) {
+    const r = row as { rating: number; shelf_items: { book_id: string }[] };
+    const bookId = r.shelf_items?.[0]?.book_id;
+    if (!bookId) continue;
+    if (!reviewStatsMap[bookId]) reviewStatsMap[bookId] = { sum: 0, count: 0 };
+    reviewStatsMap[bookId].sum += r.rating;
+    reviewStatsMap[bookId].count += 1;
+  }
+
+  // Merge enrichment into book objects
+  const enrichedBooks: Book[] = allBooks.map((b) => {
+    const stats = b.id ? reviewStatsMap[b.id] : undefined;
+    return {
+      ...b,
+      shelf_count: b.id ? (shelfCountMap[b.id] ?? 0) : 0,
+      rating_avg: stats && stats.count > 0 ? Math.round((stats.sum / stats.count) * 10) / 10 : null,
+      rating_count: stats?.count ?? 0,
+    };
+  });
+  const bookMap = new Map(enrichedBooks.map((b) => [b.id, b]));
 
   // Pasangkan buku ke masing-masing section
   const sections: JelajahSection[] = (sectionRows ?? []).map((s) => {
@@ -145,7 +184,7 @@ export default async function JelajahPage() {
     .map(([tag]) => tag);
 
   const personalBooks = topTags.length > 0
-    ? allBooks
+    ? enrichedBooks
         .filter((b: Book) => !myBookIds.includes(b.id ?? "") && (b.tags ?? []).some((t) => topTags.includes(t)))
         .slice(0, 10)
     : [];
@@ -153,7 +192,7 @@ export default async function JelajahPage() {
   return (
     <JelajahClient
       familyBooks={familyBooks}
-      allBooks={allBooks}
+      allBooks={enrichedBooks}
       sections={sections}
       trendingBooks={trendingBooks}
       personalBooks={personalBooks}

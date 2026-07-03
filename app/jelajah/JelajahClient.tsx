@@ -30,6 +30,11 @@ type BookCard = {
   description: string;
   tags: string[];
   isLokal: boolean;
+  publisher: string | null;
+  published_year: number | null;
+  rating_avg: number | null;
+  rating_count: number;
+  shelf_count: number;
 };
 
 function toSlug(s: string) {
@@ -59,6 +64,11 @@ function fromBook(b: Book): BookCard {
     description: b.description,
     tags: allTags,
     isLokal: false,
+    publisher: b.publisher ?? null,
+    published_year: b.published_year ?? null,
+    rating_avg: b.rating_avg ?? null,
+    rating_count: b.rating_count ?? 0,
+    shelf_count: b.shelf_count ?? 0,
   };
 }
 
@@ -76,6 +86,11 @@ function fromOL(b: OLBook): BookCard {
     description: "",
     tags: [],
     isLokal: false,
+    publisher: null,
+    published_year: null,
+    rating_avg: null,
+    rating_count: 0,
+    shelf_count: 0,
   };
 }
 
@@ -238,6 +253,9 @@ export default function JelajahClient({
         (b) =>
           b.title.toLowerCase().includes(qLow) ||
           b.author.toLowerCase().includes(qLow) ||
+          (b.publisher ?? "").toLowerCase().includes(qLow) ||
+          (b.isbn ?? "").toLowerCase().includes(qLow) ||
+          b.description.toLowerCase().includes(qLow) ||
           b.tags.some((t) => t.toLowerCase().includes(qLow))
       )
       .map(fromBook);
@@ -979,6 +997,18 @@ function SectionLabel({ children, className = "" }: { children: React.ReactNode;
   );
 }
 
+function StarDisplay({ rating, count }: { rating: number | null; count: number }) {
+  if (rating === null || rating === 0) return null;
+  const full = Math.floor(rating);
+  const half = rating - full >= 0.5;
+  return (
+    <span className="inline-flex items-center gap-0.5" title={`${rating} dari 5 bintang`}>
+      <span className="text-[10px] text-amber leading-none">{'★'.repeat(full)}{half ? '½' : ''}</span>
+      <span className="text-[9px] text-ink-muted ml-0.5">({count})</span>
+    </span>
+  );
+}
+
 function FeaturedCard({
   card,
   adding,
@@ -1005,7 +1035,13 @@ function FeaturedCard({
         <Link href={bookUrl(card)} className="hover:text-amber transition-colors">
           <p className="font-display font-bold text-ink text-base leading-snug line-clamp-2">{card.title}</p>
         </Link>
-        <p className="text-xs text-ink-muted mt-0.5 mb-2">{card.author}</p>
+        <p className="text-xs text-ink-muted mt-0.5 mb-1">{card.author}</p>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-2">
+          <StarDisplay rating={card.rating_avg} count={card.rating_count} />
+          {card.total_pages && <span className="text-[10px] text-ink-muted/70">{card.total_pages} hlm</span>}
+          {card.publisher && <span className="text-[10px] text-ink-muted/70">{card.publisher}</span>}
+          {card.published_year && <span className="text-[10px] text-ink-muted/70">{card.published_year}</span>}
+        </div>
         {card.description && (
           <p className="text-xs text-ink-secondary leading-relaxed line-clamp-3 mb-3">{card.description}</p>
         )}
@@ -1056,7 +1092,18 @@ function ShelfBookCard({
       <Link href={bookUrl(card)} className="hover:text-amber transition-colors">
         <p className="text-[11px] font-semibold text-ink line-clamp-2 leading-snug mt-1.5">{card.title}</p>
       </Link>
-      <p className="text-[10px] text-ink-muted truncate mt-0.5 mb-1.5">{card.author}</p>
+      <p className="text-[10px] text-ink-muted truncate mt-0.5">{card.author}</p>
+      <StarDisplay rating={card.rating_avg} count={card.rating_count} />
+      {card.total_pages && (
+        <p className="text-[9px] text-ink-muted/70 mt-0.5">{card.total_pages} hlm</p>
+      )}
+      {card.tags.length > 0 && (
+        <div className="flex gap-1 mt-0.5 flex-wrap mb-1">
+          {card.tags.filter(t => t !== "anak").slice(0, 2).map((tag) => (
+            <span key={tag} className="text-[8px] bg-parchment text-ink-muted px-1 py-0.5 rounded-full leading-none">{tag}</span>
+          ))}
+        </div>
+      )}
       <button
         onClick={() => onAdd(card, "want")}
         disabled={!!isAdding}
@@ -1082,7 +1129,7 @@ function SearchResultCard({
     <div className="bg-surface rounded-2xl border border-border p-3">
       <div className="flex gap-3">
         <Link href={bookUrl(card)} className="flex-shrink-0">
-          <BookCover src={card.cover_url} title={card.title} className="w-12 h-16 rounded-lg" />
+          <BookCover src={card.cover_url} title={card.title} className="w-14 h-[76px] rounded-lg" />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-start gap-2">
@@ -1094,6 +1141,12 @@ function SearchResultCard({
             )}
           </div>
           <p className="text-xs text-ink-muted mt-0.5">{card.author}</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+            <StarDisplay rating={card.rating_avg} count={card.rating_count} />
+            {card.total_pages && <span className="text-[10px] text-ink-muted/70">{card.total_pages} hlm</span>}
+            {card.publisher && <span className="text-[10px] text-ink-muted/70">{card.publisher}</span>}
+            {card.published_year && <span className="text-[10px] text-ink-muted/70">{card.published_year}</span>}
+          </div>
           {card.description && (
             <p className="text-xs text-ink-secondary mt-1 line-clamp-2 leading-relaxed">{card.description}</p>
           )}
