@@ -1109,11 +1109,20 @@ function ExploreView({ onSave }: { onSave: (q: string, theme: string, audience: 
 function InsightView({ discussions }: { discussions: Discussion[] }) {
   const withConvs = discussions.filter((d) => d.conversations.length > 0);
   const [selectedId, setSelectedId] = useState(withConvs[0]?.id || "");
+  const [audience, setAudience] = useState<Audience>(
+    withConvs[0]?.audience ?? "keluarga"
+  );
   const [insight, setInsight] = useState<InsightResult | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
 
   const selected = withConvs.find((d) => d.id === selectedId);
+
+  const selectDiscussion = (id: string) => {
+    setSelectedId(id);
+    const d = withConvs.find((x) => x.id === id);
+    if (d?.audience) setAudience(d.audience);
+  };
 
   const generate = async () => {
     if (!selected) return;
@@ -1129,7 +1138,7 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
           data: {
             question: selected.question,
             conversations: selected.conversations,
-            audience: selected.audience,
+            audience,
           },
         }),
       });
@@ -1187,7 +1196,7 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
               </label>
               <select
                 value={selectedId}
-                onChange={(e) => setSelectedId(e.target.value)}
+                onChange={(e) => selectDiscussion(e.target.value)}
                 className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber"
               >
                 {withConvs.map((d) => (
@@ -1197,16 +1206,36 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
                 ))}
               </select>
               {selected && (
-                <p className="text-xs text-ink-muted mt-1.5 flex items-center gap-1.5 flex-wrap">
-                  <span className="font-bold px-1.5 py-0.5 rounded-full bg-amber/10 text-amber text-[10px]">
-                    {AUDIENCE_CONFIG[selected.audience ?? "keluarga"].emoji}{" "}
-                    {AUDIENCE_CONFIG[selected.audience ?? "keluarga"].label}
-                  </span>
+                <p className="text-xs text-ink-muted mt-1.5">
                   {selected.conversations.length} percakapan ·{" "}
                   {selected.conversations.reduce((acc, c) => acc + c.messages.length, 0)} pesan total
-                  — konten akan disesuaikan dengan audience ini
                 </p>
               )}
+            </div>
+            <div>
+              <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">
+                Konten untuk Audience
+              </label>
+              <div className="flex gap-2">
+                {(Object.keys(AUDIENCE_CONFIG) as Audience[]).map((a) => (
+                  <button
+                    key={a}
+                    onClick={() => setAudience(a)}
+                    className={`flex-1 flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                      audience === a
+                        ? "border-amber bg-amber/10 text-amber"
+                        : "border-border text-ink-secondary hover:border-ink/30"
+                    }`}
+                  >
+                    {AUDIENCE_CONFIG[a].emoji} {AUDIENCE_CONFIG[a].label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-ink-muted mt-1.5">
+                {audience === "individu"
+                  ? "Insight & konten ditulis untuk pembaca individu yang membangun kebiasaan baca sendiri."
+                  : "Insight & konten ditulis untuk konteks keluarga / parenting."}
+              </p>
             </div>
             <button
               onClick={generate}
