@@ -58,15 +58,22 @@ export async function POST(request: Request) {
   let maxTokens = 500;
 
   if (type === "questions") {
-    const { theme } = data as { theme: string };
-    userPrompt = `Buatkan 5 pertanyaan untuk di-posting di Threads yang akan memancing percakapan organik dari orang tua Indonesia.
+    const { theme, audience } = data as { theme: string; audience?: string };
+    const persona =
+      audience === "individu"
+        ? `Target: individu Indonesia (usia 18-35) yang lagi membangun kebiasaan baca — reading slump, susah konsisten, TBR numpuk, gampang ke-distract HP. Mereka baca untuk diri sendiri, bukan untuk anak.`
+        : `Target: orang tua / keluarga Indonesia yang ingin menumbuhkan kebiasaan baca bersama anak di rumah.`;
+
+    userPrompt = `Buatkan 5 pertanyaan untuk di-posting di Threads yang akan memancing percakapan organik.
+
+${persona}
 
 Tema: ${theme}
 
 Kriteria:
 - Mengundang cerita personal, bukan pendapat umum
 - Mudah dijawab dalam 1-2 kalimat
-- Relatable untuk orang tua Indonesia
+- Relatable untuk target di atas — pakai bahasa dan situasi sehari-hari mereka
 - Tidak terkesan berjualan
 - Punya angle emosional, nostalgia, humor, atau praktis
 
@@ -76,12 +83,17 @@ Mulai langsung dengan karakter [ dan akhiri dengan ].
     maxTokens = 800;
 
   } else if (type === "response") {
-    const { question, messages, stage } = data as {
+    const { question, messages, stage, audience } = data as {
       question: string;
       messages: Array<{ sender: string; text: string }>;
       stage: string;
+      audience?: string;
     };
     const stageCtx = STAGE_CONTEXT[stage] || STAGE_CONTEXT.chatting;
+    const pitch =
+      audience === "individu"
+        ? "platform buat bangun kebiasaan baca — bisa log bacaan harian, pasang target mingguan, gratis"
+        : "platform buat keluarga yang baca bareng, bisa log bacaan harian, gratis";
     const history = messages
       .map((m) => `${m.sender === "audience" ? "AUDIENS" : "BRAND"}: ${m.text}`)
       .join("\n");
@@ -98,7 +110,7 @@ Tulis SATU balasan singkat untuk pesan terakhir audiens.
 - 1-2 kalimat AJA, kayak reply Threads beneran
 - ${stageCtx}
 - Reaksi dulu, lalu 1 pertanyaan follow-up ringan (kecuali stage sudah pitched)
-- Jika stage "ready", selipkan mulaibaca sambil lalu: platform buat keluarga yang baca bareng, bisa log bacaan harian, gratis — jangan kedengeran kayak iklan
+- Jika stage "ready", selipkan mulaibaca sambil lalu: ${pitch} — jangan kedengeran kayak iklan
 
 Output: teks balasan saja, tanpa label atau penjelasan.`;
 

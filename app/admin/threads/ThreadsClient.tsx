@@ -41,6 +41,7 @@ interface Discussion {
   id: string;
   question: string;
   theme: string;
+  audience?: Audience;
   status: "draft" | "active" | "closed";
   createdAt: string;
   conversations: Conversation[];
@@ -82,16 +83,35 @@ const STAGE_CONFIG: Record<Stage, { label: string; color: string; bg: string; bo
 
 const ALL_STAGES: Stage[] = ["new", "chatting", "warm", "ready", "pitched", "converted", "cold"];
 
-const THEMES = [
-  "Membaca bersama anak",
-  "Buku favorit keluarga",
-  "Membangun kebiasaan baca",
-  "Rekomendasi buku anak",
-  "Pengalaman pertama membaca",
-  "Tantangan membaca buku",
-  "Reading habits keluarga",
-  "Perpustakaan rumah",
-];
+type Audience = "individu" | "keluarga";
+
+const AUDIENCE_CONFIG: Record<Audience, { label: string; emoji: string }> = {
+  individu: { label: "Individu", emoji: "🙋" },
+  keluarga: { label: "Keluarga", emoji: "👨‍👩‍👧" },
+};
+
+const THEMES_BY_AUDIENCE: Record<Audience, string[]> = {
+  individu: [
+    "Membangun kebiasaan baca",
+    "Reading slump & cara keluar",
+    "Konsistensi baca di tengah kesibukan",
+    "TBR numpuk vs realita",
+    "Buku yang mengubah hidup",
+    "Baca buku vs scroll HP",
+    "Ritual & waktu favorit membaca",
+    "Buku pertama yang bikin jatuh cinta baca",
+  ],
+  keluarga: [
+    "Membaca bersama anak",
+    "Buku favorit keluarga",
+    "Membangun kebiasaan baca anak",
+    "Rekomendasi buku anak",
+    "Pengalaman pertama membaca",
+    "Tantangan membaca buku",
+    "Reading habits keluarga",
+    "Perpustakaan rumah",
+  ],
+};
 
 const SAMPLE_DATA: Discussion[] = [
   {
@@ -461,6 +481,11 @@ function QuestionsView({
                     }`}>
                       {d.status === "active" ? "● Aktif" : d.status === "draft" ? "Draft" : "Selesai"}
                     </span>
+                    {d.audience && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber/10 text-amber">
+                        {AUDIENCE_CONFIG[d.audience].emoji} {AUDIENCE_CONFIG[d.audience].label}
+                      </span>
+                    )}
                     <span className="text-xs text-ink-muted">{d.theme}</span>
                     <span className="text-xs text-ink-muted">·</span>
                     <span className="text-xs text-ink-muted">{d.conversations.length} percakapan</span>
@@ -682,6 +707,7 @@ function ConversationView({
             question: discussion.question,
             messages: conversation.messages,
             stage: conversation.stage,
+            audience: discussion.audience,
           },
         }),
       });
@@ -898,8 +924,9 @@ function ConversationView({
 
 // ── Explore ────────────────────────────────────────────────────────────
 
-function ExploreView({ onSave }: { onSave: (q: string, theme: string) => void }) {
-  const [theme, setTheme] = useState(THEMES[0]);
+function ExploreView({ onSave }: { onSave: (q: string, theme: string, audience: Audience) => void }) {
+  const [audience, setAudience] = useState<Audience>("keluarga");
+  const [theme, setTheme] = useState(THEMES_BY_AUDIENCE.keluarga[0]);
   const [custom, setCustom] = useState("");
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -924,7 +951,7 @@ function ExploreView({ onSave }: { onSave: (q: string, theme: string) => void })
       const res = await fetch("/api/admin/threads-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "questions", data: { theme: effectiveTheme } }),
+        body: JSON.stringify({ type: "questions", data: { theme: effectiveTheme, audience } }),
       });
       const data = await res.json();
       if (data.error) { setError(data.error); return; }
@@ -954,6 +981,35 @@ function ExploreView({ onSave }: { onSave: (q: string, theme: string) => void })
       <div className="bg-surface border border-border rounded-xl p-4 space-y-4">
         <div>
           <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">
+            Target Audience
+          </label>
+          <div className="flex gap-2">
+            {(Object.keys(AUDIENCE_CONFIG) as Audience[]).map((a) => (
+              <button
+                key={a}
+                onClick={() => {
+                  setAudience(a);
+                  setTheme(THEMES_BY_AUDIENCE[a][0]);
+                  setCustom("");
+                }}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                  audience === a
+                    ? "border-amber bg-amber/10 text-amber"
+                    : "border-border text-ink-secondary hover:border-ink/30"
+                }`}
+              >
+                {AUDIENCE_CONFIG[a].emoji} {AUDIENCE_CONFIG[a].label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-ink-muted mt-1.5">
+            {audience === "individu"
+              ? "Individu yang sedang membangun kebiasaan baca untuk dirinya sendiri."
+              : "Orang tua / keluarga yang ingin menumbuhkan kebiasaan baca bersama anak."}
+          </p>
+        </div>
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">
             Tema
           </label>
           <select
@@ -964,7 +1020,7 @@ function ExploreView({ onSave }: { onSave: (q: string, theme: string) => void })
             }}
             className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber"
           >
-            {THEMES.map((t) => <option key={t} value={t}>{t}</option>)}
+            {THEMES_BY_AUDIENCE[audience].map((t) => <option key={t} value={t}>{t}</option>)}
             <option value="__custom">+ Tema kustom…</option>
           </select>
         </div>
@@ -1016,7 +1072,7 @@ function ExploreView({ onSave }: { onSave: (q: string, theme: string) => void })
                     </button>
                     <button
                       onClick={() => {
-                        onSave(q.question, custom.trim() || theme);
+                        onSave(q.question, custom.trim() || theme, audience);
                         setSavedIdx((prev) => new Set(prev).add(i));
                       }}
                       disabled={savedIdx.has(i)}
@@ -1259,11 +1315,12 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
 function AddDiscussionModal({
   onAdd, onClose,
 }: {
-  onAdd: (q: string, theme: string, status: "draft" | "active") => void;
+  onAdd: (q: string, theme: string, status: "draft" | "active", audience: Audience) => void;
   onClose: () => void;
 }) {
   const [question, setQuestion] = useState("");
-  const [theme, setTheme] = useState(THEMES[0]);
+  const [audience, setAudience] = useState<Audience>("keluarga");
+  const [theme, setTheme] = useState(THEMES_BY_AUDIENCE.keluarga[0]);
   const [custom, setCustom] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("active");
 
@@ -1284,6 +1341,30 @@ function AddDiscussionModal({
         </div>
         <div>
           <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">
+            Target Audience
+          </label>
+          <div className="flex gap-2">
+            {(Object.keys(AUDIENCE_CONFIG) as Audience[]).map((a) => (
+              <button
+                key={a}
+                onClick={() => {
+                  setAudience(a);
+                  setTheme(THEMES_BY_AUDIENCE[a][0]);
+                  setCustom("");
+                }}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${
+                  audience === a
+                    ? "border-amber bg-amber/10 text-amber"
+                    : "border-border text-ink-secondary hover:border-ink/30"
+                }`}
+              >
+                {AUDIENCE_CONFIG[a].emoji} {AUDIENCE_CONFIG[a].label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">
             Tema
           </label>
           <select
@@ -1294,7 +1375,7 @@ function AddDiscussionModal({
             }}
             className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface text-ink focus:outline-none focus:border-amber"
           >
-            {THEMES.map((t) => <option key={t} value={t}>{t}</option>)}
+            {THEMES_BY_AUDIENCE[audience].map((t) => <option key={t} value={t}>{t}</option>)}
             <option value="__c">+ Tema kustom…</option>
           </select>
           {custom.trim() && (
@@ -1331,7 +1412,7 @@ function AddDiscussionModal({
           <button
             onClick={() => {
               if (question.trim()) {
-                onAdd(question.trim(), custom.trim() || theme, status);
+                onAdd(question.trim(), custom.trim() || theme, status, audience);
                 onClose();
               }
             }}
@@ -1457,10 +1538,10 @@ export default function ThreadsClient() {
     : null;
 
   // Mutators
-  const addDiscussion = (q: string, theme: string, status: "draft" | "active") =>
+  const addDiscussion = (q: string, theme: string, status: "draft" | "active", audience: Audience) =>
     setDiscussions((prev) => [
       ...prev,
-      { id: uid(), question: q, theme, status, createdAt: new Date().toISOString(), conversations: [] },
+      { id: uid(), question: q, theme, audience, status, createdAt: new Date().toISOString(), conversations: [] },
     ]);
 
   const addConversation = (discussionId: string, name: string, handle: string, stage: Stage, firstMsg: string) =>
@@ -1561,8 +1642,8 @@ export default function ThreadsClient() {
     setDiscussions((prev) => prev.filter((d) => !d.id.startsWith("demo-")));
   };
 
-  const saveQuestion = (q: string, theme: string) => {
-    addDiscussion(q, theme, "draft");
+  const saveQuestion = (q: string, theme: string, audience: Audience) => {
+    addDiscussion(q, theme, "draft", audience);
     setView({ type: "questions" });
   };
 
