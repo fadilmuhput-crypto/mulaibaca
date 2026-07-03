@@ -149,7 +149,10 @@ Berikan output JSON saja:
   const endpoint = isOpenCodeZen
     ? "https://opencode.ai/zen/v1/messages"
     : "https://api.anthropic.com/v1/messages";
-  const model = isOpenCodeZen ? "opencode/big-pickle" : "claude-haiku-4-5-20251001";
+  const model = isOpenCodeZen ? "big-pickle" : "claude-haiku-4-5-20251001";
+  // big-pickle (DeepSeek V4 Flash) adalah reasoning model: token reasoning
+  // ikut terhitung di max_tokens, jadi butuh buffer jauh lebih besar
+  if (isOpenCodeZen) maxTokens += 2500;
 
   try {
     const response = await fetch(endpoint, {
@@ -163,7 +166,7 @@ Berikan output JSON saja:
         model,
         max_tokens: maxTokens,
         system: BRAND_VOICE,
-        messages: [{ role: "user", content: userPrompt }],
+        messages: [{ role: "user", content: [{ type: "text", text: userPrompt }] }],
       }),
     });
 
@@ -176,7 +179,19 @@ Berikan output JSON saja:
       );
     }
 
-    return NextResponse.json({ text: result.content[0].text });
+    const textBlock = (result.content as Array<{ type: string; text?: string }>)
+      .filter((b) => b.type === "text" && b.text)
+      .map((b) => b.text)
+      .join("\n");
+
+    if (!textBlock) {
+      return NextResponse.json(
+        { error: "AI tidak mengembalikan teks — coba generate ulang." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ text: textBlock });
   } catch {
     return NextResponse.json({ error: "Gagal terhubung ke AI" }, { status: 500 });
   }
