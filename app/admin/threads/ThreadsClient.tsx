@@ -282,7 +282,9 @@ function Sidebar({
       <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider px-3 mb-3 pt-1">
         Threads CRM
       </p>
-      {items.map(({ type, icon: Icon, label, badge }) => {
+      {items.map((item) => {
+        const { type, icon: Icon, label } = item;
+        const badge = "badge" in item ? item.badge : undefined;
         const active =
           view.type === type ||
           (type === "questions" && (view.type === "discussion" || view.type === "conversation"));
