@@ -49,6 +49,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               📊 Metrics
             </Link>
             <Link
+              href="/admin/threads"
+              className="text-sm font-medium text-ink-secondary hover:text-ink transition-colors"
+            >
+              Threads
+            </Link>
+            <Link
               href="/dashboard"
               className="text-sm font-medium text-amber hover:text-amber-hover transition-colors"
             >
