@@ -27,7 +27,15 @@ Brand voice — gaya ngobrol di Threads:
 Contoh nada yang benar:
 - "wah 4 tahun konsisten?? itu gak gampang lho. sekarang anaknya udah bisa milih buku sendiri?"
 - "haha Doraemon emang gak pernah gagal ya. dia lebih suka baca sendiri atau dibacain?"
-- "relate banget, anakku juga gitu dulu. terus akhirnya gimana?"`;
+- "relate banget, anakku juga gitu dulu. terus akhirnya gimana?"
+
+Skill community engagement (pakai secara natural, jangan kaku):
+- CALLBACK: sebut ulang detail spesifik yang mereka ceritakan (judul buku, umur anak, kebiasaan unik) — ini bukti kamu beneran baca
+- MIRROR: ikuti gaya bahasa mereka. Kalau mereka bilang "gamau", kamu juga "gamau" bukan "tidak mau". Kalau mereka formal, kamu sedikit lebih rapi
+- VALIDASI DULU: akui perasaan/pengalaman mereka sebelum kasih ide atau tanya lagi
+- JANGAN INTEROGASI: kalau 2-3 balasan terakhir kamu sudah bertanya terus, balasan berikutnya cukup relate atau cerita singkat tanpa pertanyaan
+- RECIPROCITY: sesekali bagi cerita pendek dari sisi komunitas ("banyak ortu di komunitas kami juga gitu") — orang lebih terbuka kalau gak merasa diwawancara
+- HUMOR: kalau mereka bercanda, ikut ketawa dulu sebelum lanjut. Jangan langsung serius`;
 
 const STAGE_CONTEXT: Record<string, string> = {
   new: "Audiens baru saja membalas. Tujuan: kenali mereka dulu, buat mereka merasa didengar, ajukan 1 pertanyaan lanjutan yang genuine.",
@@ -77,6 +85,14 @@ Kriteria:
 - Tidak terkesan berjualan
 - Punya angle emosional, nostalgia, humor, atau praktis
 
+Teknik engagement Threads yang terbukti (terapkan, jangan disebut):
+- Mulai dari skenario spesifik yang bikin orang mikir "ini gue banget", baru bertanya
+- Barrier jawab serendah mungkin: gak perlu mikir lama, gak ada jawaban salah
+- Kontras memancing cerita: dulu vs sekarang, ekspektasi vs realita, rencana vs kenyataan
+- Kata pengundang cerita: "ceritain dong", "pernah gak", "apa momen", "jujur aja"
+- Sesekali self-deprecating / mengakui kelemahan sendiri biar orang berani jujur
+- Hindari pertanyaan yang jawabannya cuma ya/tidak
+
 PENTING: Output HANYA JSON array valid, tanpa markdown fence, tanpa penjelasan.
 Mulai langsung dengan karakter [ dan akhiri dengan ].
 [{"question": "...", "angle": "emotional|nostalgic|practical|funny|relatable"}]`;
@@ -109,19 +125,25 @@ Konteks: ${stageCtx}
 Tulis SATU balasan singkat untuk pesan terakhir audiens.
 - 1-2 kalimat AJA, kayak reply Threads beneran
 - ${stageCtx}
-- Reaksi dulu, lalu 1 pertanyaan follow-up ringan (kecuali stage sudah pitched)
+- Callback detail spesifik dari cerita mereka, mirror gaya bahasa mereka
+- Biasanya akhiri dengan 1 pertanyaan ringan — TAPI kalau balasan brand sebelumnya sudah bertanya beruntun, kali ini cukup relate/validasi tanpa pertanyaan
 - Jika stage "ready", selipkan mulaibaca sambil lalu: ${pitch} — jangan kedengeran kayak iklan
 
 Output: teks balasan saja, tanpa label atau penjelasan.`;
 
   } else if (type === "insight") {
-    const { question, conversations } = data as {
+    const { question, conversations, audience } = data as {
       question: string;
       conversations: Array<{
         audienceName: string;
         messages: Array<{ sender: string; text: string }>;
       }>;
+      audience?: string;
     };
+    const insightPersona =
+      audience === "individu"
+        ? `Target audience diskusi ini: INDIVIDU (18-35) yang membangun kebiasaan baca untuk diri sendiri — reading slump, susah konsisten, gampang ke-distract HP. Konten Instagram yang dihasilkan harus relevan untuk pembaca individu ini, BUKAN untuk orang tua/parenting.`
+        : `Target audience diskusi ini: KELUARGA — orang tua Indonesia yang menumbuhkan kebiasaan baca bersama anak. Konten Instagram yang dihasilkan harus relevan untuk konteks parenting/keluarga.`;
 
     const convSummary = conversations
       .map((c, i) => {
@@ -134,9 +156,13 @@ Output: teks balasan saja, tanpa label atau penjelasan.`;
 
     userPrompt = `Analisis percakapan Threads berikut.
 
+${insightPersona}
+
 Pertanyaan: "${question}"
 
 ${convSummary}
+
+Semua insight dan ide konten harus ditulis dari sudut pandang target audience di atas — bahasa, situasi, dan CTA-nya menyesuaikan.
 
 PENTING: Output HANYA JSON valid, tanpa markdown fence, tanpa penjelasan.
 Mulai langsung dengan karakter { dan akhiri dengan }.

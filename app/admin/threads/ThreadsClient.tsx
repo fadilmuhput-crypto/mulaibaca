@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   MessageCircle, Users, TrendingUp, CheckCircle2, Sparkles,
   ArrowLeft, Plus, Copy, RefreshCw, Send, FileText,
-  Hash, Eye, BarChart3, Zap, BookOpen, Trash2,
+  Hash, Eye, BarChart3, Zap, BookOpen, Trash2, Search, X,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -1119,7 +1119,11 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "insight",
-          data: { question: selected.question, conversations: selected.conversations },
+          data: {
+            question: selected.question,
+            conversations: selected.conversations,
+            audience: selected.audience,
+          },
         }),
       });
       const data = await res.json();
@@ -1178,9 +1182,14 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
                 ))}
               </select>
               {selected && (
-                <p className="text-xs text-ink-muted mt-1.5">
+                <p className="text-xs text-ink-muted mt-1.5 flex items-center gap-1.5 flex-wrap">
+                  <span className="font-bold px-1.5 py-0.5 rounded-full bg-amber/10 text-amber text-[10px]">
+                    {AUDIENCE_CONFIG[selected.audience ?? "keluarga"].emoji}{" "}
+                    {AUDIENCE_CONFIG[selected.audience ?? "keluarga"].label}
+                  </span>
                   {selected.conversations.length} percakapan ·{" "}
                   {selected.conversations.reduce((acc, c) => acc + c.messages.length, 0)} pesan total
+                  — konten akan disesuaikan dengan audience ini
                 </p>
               )}
             </div>
@@ -1515,6 +1524,121 @@ function AddConversationModal({
   );
 }
 
+// ── Search ─────────────────────────────────────────────────────────────
+
+function SearchResults({
+  query, discussions, onOpen,
+}: {
+  query: string;
+  discussions: Discussion[];
+  onOpen: (v: View) => void;
+}) {
+  const q = query.toLowerCase();
+
+  const matchedQuestions = discussions.filter(
+    (d) => d.question.toLowerCase().includes(q) || d.theme.toLowerCase().includes(q)
+  );
+
+  const matchedConvs = discussions.flatMap((d) =>
+    d.conversations
+      .map((c) => {
+        const matchedMsg = c.messages.find((m) => m.text.toLowerCase().includes(q));
+        const profileMatch =
+          c.audienceName.toLowerCase().includes(q) ||
+          c.audienceHandle.toLowerCase().includes(q) ||
+          c.notes.toLowerCase().includes(q);
+        if (!profileMatch && !matchedMsg) return null;
+        return { discussion: d, conversation: c, matchedMsg };
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+  );
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-ink-secondary">
+        Hasil pencarian &ldquo;<span className="font-semibold text-ink">{query}</span>&rdquo; —{" "}
+        {matchedConvs.length} percakapan, {matchedQuestions.length} pertanyaan
+      </p>
+
+      {matchedConvs.length > 0 && (
+        <div>
+          <h3 className="text-sm font-bold text-ink mb-3 flex items-center gap-2">
+            <Users size={14} className="text-amber" /> Percakapan
+          </h3>
+          <div className="space-y-2">
+            {matchedConvs.map(({ discussion, conversation, matchedMsg }) => (
+              <button
+                key={conversation.id}
+                onClick={() =>
+                  onOpen({
+                    type: "conversation",
+                    discussionId: discussion.id,
+                    conversationId: conversation.id,
+                  })
+                }
+                className="w-full bg-surface border border-border rounded-xl p-3.5 text-left hover:border-amber/50 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <StageBadge stage={conversation.stage} />
+                  <span className="font-semibold text-sm text-ink">{conversation.audienceName}</span>
+                  <span className="text-xs text-ink-muted">{conversation.audienceHandle}</span>
+                  <span className="text-xs text-ink-muted ml-auto">{formatTime(conversation.lastActivity)}</span>
+                </div>
+                {matchedMsg ? (
+                  <p className="text-xs text-ink-secondary line-clamp-2">
+                    {matchedMsg.sender === "brand" ? "→ " : ""}&ldquo;{matchedMsg.text}&rdquo;
+                  </p>
+                ) : conversation.notes ? (
+                  <p className="text-xs text-ink-muted italic line-clamp-1">📝 {conversation.notes}</p>
+                ) : null}
+                <p className="text-[10px] text-ink-muted mt-1.5 line-clamp-1 italic">
+                  dari: {discussion.question}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {matchedQuestions.length > 0 && (
+        <div>
+          <h3 className="text-sm font-bold text-ink mb-3 flex items-center gap-2">
+            <Hash size={14} className="text-amber" /> Pertanyaan
+          </h3>
+          <div className="space-y-2">
+            {matchedQuestions.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => onOpen({ type: "discussion", discussionId: d.id })}
+                className="w-full bg-surface border border-border rounded-xl p-3.5 text-left hover:border-amber/50 transition-colors"
+              >
+                <p className="text-sm font-medium text-ink line-clamp-2">{d.question}</p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  {d.audience && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber/10 text-amber">
+                      {AUDIENCE_CONFIG[d.audience].emoji} {AUDIENCE_CONFIG[d.audience].label}
+                    </span>
+                  )}
+                  <span className="text-xs text-ink-muted">{d.theme}</span>
+                  <span className="text-xs text-ink-muted">· {d.conversations.length} percakapan</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {matchedConvs.length === 0 && matchedQuestions.length === 0 && (
+        <div className="text-center py-12 border border-dashed border-border rounded-xl">
+          <Search size={24} className="mx-auto text-ink-muted mb-2" />
+          <p className="text-sm text-ink-secondary">Tidak ada hasil untuk &ldquo;{query}&rdquo;.</p>
+          <p className="text-xs text-ink-muted mt-1">Coba cari nama, handle, isi pesan, catatan, atau pertanyaan.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main ───────────────────────────────────────────────────────────────
 
 export default function ThreadsClient() {
@@ -1525,6 +1649,7 @@ export default function ThreadsClient() {
   const [view, setView] = useState<View>({ type: "overview" });
   const [showAddDiscussion, setShowAddDiscussion] = useState(false);
   const [addConvFor, setAddConvFor] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Derived
   const currentDiscussion =
@@ -1661,6 +1786,35 @@ export default function ThreadsClient() {
       />
 
       <div className="flex-1 min-w-0 pb-8">
+        <div className="relative mb-5">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari user, isi percakapan, catatan, atau pertanyaan…"
+            className="w-full border border-border rounded-lg pl-9 pr-9 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {searchQuery.trim() ? (
+          <SearchResults
+            query={searchQuery.trim()}
+            discussions={discussions}
+            onOpen={(v) => {
+              setView(v);
+              setSearchQuery("");
+            }}
+          />
+        ) : (
+          <>
         {view.type === "overview" && (
           <OverviewView discussions={discussions} setView={setView} onClearDemo={clearDemoData} />
         )}
@@ -1699,6 +1853,8 @@ export default function ThreadsClient() {
             }
             onDelete={() => deleteConversation(currentDiscussion.id, currentConversation.id)}
           />
+        )}
+          </>
         )}
       </div>
 
