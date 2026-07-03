@@ -179,6 +179,15 @@ Aturan penulisan slide:
 - CTA selalu soft selling: gak nyuruh beli/daftar, tapi mengundang ("Satu orang mulai. Kebiasaan baik menyebar.")
 - Nada: hangat, reflektif, sedikit puitis di slide 5-7 — bukan listicle kering
 
+Pola CAPTION carousel (WAJIB diikuti, arc-nya beda dari slide):
+1. Recap: "Beberapa hari lalu kami bertanya:" + pertanyaan (pakai tanda kutip)
+2. "Jawabannya beragam." + rangkum jenis-jenis jawaban dalam 1-2 kalimat
+3. "Tapi ada satu benang merah yang kami temukan." + pola utama (frasa kunci di-bold pakai **...**)
+4. Reframe singkat: "Mungkin, [kebiasaan/hal ini] memang tidak dimulai dari [X]. Melainkan dari [Y]."
+5. Apresiasi komunitas: "Terima kasih untuk semua yang sudah berbagi cerita. 🤍"
+6. Re-ask untuk pancing engagement baru: "Kalau belum sempat ikut menjawab, kami masih penasaran:" + ulangi pertanyaan (bold)
+Tulis caption dengan line break antar bagian (baris pendek-pendek, mudah dibaca di IG), bukan paragraf padat.
+
 PENTING: Output HANYA JSON valid, tanpa markdown fence, tanpa penjelasan.
 Mulai langsung dengan karakter { dan akhiri dengan }.
 {
@@ -197,7 +206,7 @@ Mulai langsung dengan karakter { dan akhiri dengan }.
         {"label": "Empowerment", "heading": "Itu berarti...", "body": "..."},
         {"label": "CTA", "heading": "🌱", "body": "... MulaiBaca — [tagline pendek]"}
       ],
-      "caption": "caption IG lengkap untuk carousel ini (2-3 paragraf pendek + hashtag)",
+      "caption": "caption IG lengkap mengikuti Pola CAPTION carousel di atas (recap → jawaban beragam → benang merah → reframe → terima kasih 🤍 → re-ask pertanyaan), baris pendek-pendek dengan line break",
       "cta": "CTA soft selling 1 kalimat"
     },
     {
