@@ -66,7 +66,8 @@ Kriteria:
 - Tidak terkesan berjualan
 - Punya angle emosional, nostalgia, humor, atau praktis
 
-Format: JSON array saja, tanpa penjelasan tambahan.
+PENTING: Output HANYA JSON array valid, tanpa markdown fence, tanpa penjelasan.
+Mulai langsung dengan karakter [ dan akhiri dengan ].
 [{"question": "...", "angle": "emotional|nostalgic|practical|funny|relatable"}]`;
     maxTokens = 800;
 
@@ -121,7 +122,8 @@ Pertanyaan: "${question}"
 
 ${convSummary}
 
-Berikan output JSON saja:
+PENTING: Output HANYA JSON valid, tanpa markdown fence, tanpa penjelasan.
+Mulai langsung dengan karakter { dan akhiri dengan }.
 {
   "themes": ["tema 1", "tema 2", "tema 3"],
   "insights": ["insight 1", "insight 2", "insight 3"],
@@ -158,8 +160,9 @@ Berikan output JSON saja:
     : "https://api.anthropic.com/v1/messages";
   const model = isOpenCodeZen ? "big-pickle" : "claude-haiku-4-5-20251001";
   // big-pickle (DeepSeek V4 Flash) adalah reasoning model: token reasoning
-  // ikut terhitung di max_tokens, jadi butuh buffer jauh lebih besar
-  if (isOpenCodeZen) maxTokens += 2500;
+  // ikut terhitung di max_tokens — task kompleks bisa makan ribuan token
+  // sebelum teks keluar, jadi buffernya harus sangat besar
+  if (isOpenCodeZen) maxTokens += 8000;
 
   try {
     const response = await fetch(endpoint, {
@@ -192,10 +195,11 @@ Berikan output JSON saja:
       .join("\n");
 
     if (!textBlock) {
-      return NextResponse.json(
-        { error: "AI tidak mengembalikan teks — coba generate ulang." },
-        { status: 500 }
-      );
+      const reason =
+        result.stop_reason === "max_tokens"
+          ? "Output AI terpotong (kehabisan token) — coba generate ulang."
+          : "AI tidak mengembalikan teks — coba generate ulang.";
+      return NextResponse.json({ error: reason }, { status: 500 });
     }
 
     return NextResponse.json({ text: textBlock });
