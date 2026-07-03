@@ -245,12 +245,17 @@ function Sidebar({
   activeCount: number;
   onAdd: () => void;
 }) {
-  const items = [
+  const items: Array<{
+    type: "overview" | "questions" | "explore" | "insight";
+    icon: typeof BarChart3;
+    label: string;
+    badge?: number;
+  }> = [
     { type: "overview", icon: BarChart3, label: "Overview" },
     { type: "questions", icon: MessageCircle, label: "Pertanyaan", badge: activeCount },
     { type: "explore", icon: Sparkles, label: "Eksplorasi" },
     { type: "insight", icon: Eye, label: "Insight" },
-  ] as const;
+  ];
 
   return (
     <div className="w-48 shrink-0 border-r border-border pr-4 space-y-1">
@@ -273,7 +278,7 @@ function Sidebar({
           >
             <Icon size={14} />
             <span className="flex-1 text-left">{label}</span>
-            {"badge" in { badge } && badge !== undefined && (
+            {badge !== undefined && (
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                   active ? "bg-white/20 text-white" : "bg-parchment text-ink-muted"
