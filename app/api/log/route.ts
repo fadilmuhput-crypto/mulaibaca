@@ -88,12 +88,18 @@ export async function POST(req: NextRequest) {
   }
 
   const { data: shelf } = await supabase
-    .from("shelf_items").select("current_page").eq("id", shelfItemId).single();
+    .from("shelf_items").select("current_page, books!inner(total_pages)").eq("id", shelfItemId).single();
   if (shelf) {
     const newPage = endPage != null ? endPage : (shelf.current_page ?? 0) + pagesRead;
+    const updates: Record<string, unknown> = { current_page: newPage };
+    const shelfData = shelf as unknown as { current_page: number; books: { total_pages: number | null } };
+    if (shelfData.books?.total_pages && newPage >= shelfData.books.total_pages) {
+      updates.status = "done";
+      updates.finished_at = new Date().toISOString();
+    }
     await supabase
       .from("shelf_items")
-      .update({ current_page: newPage })
+      .update(updates)
       .eq("id", shelfItemId);
   }
 

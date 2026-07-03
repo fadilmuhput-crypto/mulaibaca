@@ -99,6 +99,7 @@ export default function LogClient({
   const [lastPages, setLastPages] = useState(0);
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [doneShelfId, setDoneShelfId] = useState<string | null>(null);
 
@@ -116,20 +117,35 @@ export default function LogClient({
 
   function removeImage(url: string) {
     setImages((prev) => prev.filter((u) => u !== url));
+    const prefix = "/storage/v1/object/public/note-images/";
+    try {
+      const pathname = new URL(url).pathname;
+      if (pathname.startsWith(prefix)) {
+        const filePath = pathname.slice(prefix.length);
+        const supabase = createClient();
+        supabase.storage.from("note-images").remove([filePath]);
+      }
+    } catch {
+      // skip if URL parsing fails
+    }
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     if (!files?.length || !selected) return;
     setUploading(true);
+    setUploadProgress({ current: 0, total: files.length });
     const supabase = createClient();
     const newUrls: string[] = [];
+    let completed = 0;
     for (const file of Array.from(files)) {
       const ext = file.name.split(".").pop() ?? "jpg";
       const filePath = `notes/${selected.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { data, error } = await supabase.storage
         .from("note-images")
         .upload(filePath, file, { cacheControl: "3600", upsert: false });
+      completed++;
+      setUploadProgress({ current: completed, total: files.length });
       if (error) { console.error("Upload error:", error); continue; }
       const { data: { publicUrl } } = supabase.storage
         .from("note-images")
@@ -539,7 +555,7 @@ export default function LogClient({
                     className="sr-only"
                   />
                   <ImagePlus size={16} strokeWidth={1.75} />
-                  {uploading ? "Mengupload…" : "Tambah gambar"}
+                  {uploading ? `Mengupload ${uploadProgress.current}/${uploadProgress.total}…` : "Tambah gambar"}
                 </label>
               </div>
 

@@ -105,7 +105,8 @@ export default function NavBar({ session }: { session: Session }) {
 
   async function handleExitSwitch() {
     await fetch("/api/anggota-switch", { method: "DELETE" });
-    router.refresh();
+    await new Promise((r) => setTimeout(r, 100));
+    window.location.href = "/dashboard";
   }
 
   return (

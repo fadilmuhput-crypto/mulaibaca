@@ -21,14 +21,17 @@ export default function MemberSwitcher({
     try {
       if (variant === "exit") {
         await fetch("/api/anggota-switch", { method: "DELETE" });
+        await new Promise((r) => setTimeout(r, 100));
+        window.location.href = "/keluarga";
+        return;
       } else {
         await fetch("/api/anggota-switch", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ targetMemberId: targetId }),
         });
+        router.refresh();
       }
-      router.refresh();
     } finally {
       setLoading(false);
     }

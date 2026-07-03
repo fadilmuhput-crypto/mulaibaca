@@ -53,7 +53,7 @@ export default function AddToShelfButtons({ book }: { book: BookPayload }) {
       if (res.status === 401) { router.push("/masuk"); return; }
       if (!res.ok) throw new Error(data.error);
       setAdded(true);
-      setTimeout(() => router.push("/rak"), 800);
+      setTimeout(() => router.push(`/rak?tab=${status}`), 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menambahkan buku");
     } finally {

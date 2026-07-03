@@ -80,7 +80,7 @@ function ManualForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      router.push("/rak");
+      router.push(`/rak?tab=${status}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menambahkan buku");
     } finally {
