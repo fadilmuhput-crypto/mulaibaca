@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 
+// Model AI gratis bisa lambat (insight bisa >60 detik) — perpanjang batas
+// eksekusi serverless function di Vercel
+export const maxDuration = 120;
+
 const BRAND_VOICE = `Kamu adalah social media manager mulaibaca (mulaibaca.id), platform membaca keluarga Indonesia.
 
 Tentang mulaibaca:
@@ -158,7 +162,12 @@ Mulai langsung dengan karakter { dan akhiri dengan }.
   const endpoint = isOpenCodeZen
     ? "https://opencode.ai/zen/v1/messages"
     : "https://api.anthropic.com/v1/messages";
-  const model = isOpenCodeZen ? "big-pickle" : "claude-haiku-4-5-20251001";
+  // nemotron-3-ultra-free: hasil test paling natural untuk bahasa santai
+  // Indonesia dan bukan reasoning model (hemat token). Override via env
+  // THREADS_AI_MODEL tanpa perlu ubah kode (mis. big-pickle, deepseek-v4-flash-free)
+  const model = isOpenCodeZen
+    ? process.env.THREADS_AI_MODEL || "nemotron-3-ultra-free"
+    : "claude-haiku-4-5-20251001";
   // big-pickle (DeepSeek V4 Flash) adalah reasoning model: token reasoning
   // ikut terhitung di max_tokens — task kompleks bisa makan ribuan token
   // sebelum teks keluar, jadi buffernya harus sangat besar
