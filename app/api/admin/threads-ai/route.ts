@@ -164,6 +164,21 @@ ${convSummary}
 
 Semua insight dan ide konten harus ditulis dari sudut pandang target audience di atas — bahasa, situasi, dan CTA-nya menyesuaikan.
 
+SKILL SOCIAL MEDIA SPECIALIST — pola carousel "Dari Percakapan Komunitas" (WAJIB diikuti untuk carousel):
+Arc cerita 7 slide, dari pertanyaan → jawaban komunitas → pola → makna → ajakan:
+- Slide 1 (Hook): buka dengan "Kami bertanya..." + pertanyaan yang diposting + subheadline penasaran ("Dan jawabannya lebih [mengharukan/jujur/relate] dari yang kami bayangkan.")
+- Slide 2 (Jawaban umum): "Banyak yang menjawab..." + daftar jawaban terpopuler dari percakapan NYATA, pakai emoji per item + 1 kutipan pendek anonim dari percakapan
+- Slide 3 (Jawaban tak terduga): "Ada juga yang menjawab..." + jawaban unik/berbeda + penutup "Setiap perjalanan ternyata berbeda."
+- Slide 4 (Pola): "Tapi ada satu pola yang terus muncul." + 1 kalimat pola dari percakapan
+- Slide 5 (Reframe): "Mungkin..." + pergeseran cara pandang, singkat dan menghentak (2-3 baris pendek)
+- Slide 6 (Empowerment): "Itu berarti... kita semua punya kesempatan..." + siapa saja yang bisa terdampak
+- Slide 7 (CTA): emoji tunggal 🌱 + kalimat lembut penutup + soft intro mulaibaca.id + tagline pendek
+Aturan penulisan slide:
+- Teks per slide SEDIKIT — maksimal 4-6 baris pendek, ini teks di gambar bukan caption
+- Kutipan audiens dibuat anonim, boleh parafrase, jangan sebut nama/handle asli
+- CTA selalu soft selling: gak nyuruh beli/daftar, tapi mengundang ("Satu orang mulai. Kebiasaan baik menyebar.")
+- Nada: hangat, reflektif, sedikit puitis di slide 5-7 — bukan listicle kering
+
 PENTING: Output HANYA JSON valid, tanpa markdown fence, tanpa penjelasan.
 Mulai langsung dengan karakter { dan akhiri dengan }.
 {
@@ -172,27 +187,35 @@ Mulai langsung dengan karakter { dan akhiri dengan }.
   "content_ideas": [
     {
       "type": "carousel",
-      "title": "judul carousel",
-      "hook": "slide 1 - hook kuat",
-      "slides": ["slide 1", "slide 2", "slide 3", "slide 4", "slide 5 - CTA"],
-      "cta": "CTA caption"
+      "title": "judul internal carousel",
+      "slides": [
+        {"label": "Hook", "heading": "Kami bertanya...", "body": "\\"[pertanyaan]\\"\\n\\nDan jawabannya..."},
+        {"label": "Jawaban umum", "heading": "Banyak yang menjawab...", "body": "..."},
+        {"label": "Jawaban tak terduga", "heading": "Ada juga yang menjawab...", "body": "..."},
+        {"label": "Pola", "heading": "Tapi ada satu pola yang terus muncul.", "body": "..."},
+        {"label": "Reframe", "heading": "Mungkin...", "body": "..."},
+        {"label": "Empowerment", "heading": "Itu berarti...", "body": "..."},
+        {"label": "CTA", "heading": "🌱", "body": "... MulaiBaca — [tagline pendek]"}
+      ],
+      "caption": "caption IG lengkap untuk carousel ini (2-3 paragraf pendek + hashtag)",
+      "cta": "CTA soft selling 1 kalimat"
     },
     {
       "type": "single",
       "title": "judul post",
       "hook": "kalimat pembuka yang menarik",
-      "body": "isi caption (2-3 paragraf pendek, bisa pakai line break)",
-      "cta": "CTA"
+      "body": "isi caption (2-3 paragraf pendek, bisa pakai line break, storytelling dari percakapan nyata)",
+      "cta": "CTA soft selling"
     },
     {
       "type": "quote",
       "text": "quote dari percakapan nyata (parafrase boleh, jangan sebut nama asli)",
       "context": "konteks singkat quote ini",
-      "cta": "CTA"
+      "cta": "CTA soft selling"
     }
   ]
 }`;
-    maxTokens = 1200;
+    maxTokens = 2500;
   } else {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }

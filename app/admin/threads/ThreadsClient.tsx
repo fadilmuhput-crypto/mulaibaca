@@ -52,11 +52,18 @@ interface GeneratedQuestion {
   angle: string;
 }
 
+interface CarouselSlide {
+  label: string;
+  heading: string;
+  body: string;
+}
+
 interface ContentIdea {
   type: "carousel" | "single" | "quote";
   title?: string;
   hook?: string;
-  slides?: string[];
+  slides?: Array<CarouselSlide | string>;
+  caption?: string;
   body?: string;
   text?: string;
   context?: string;
@@ -1143,8 +1150,16 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
   };
 
   const buildCopyText = (idea: ContentIdea) => {
-    if (idea.type === "carousel")
-      return `${idea.title}\n\n${idea.slides?.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\nCTA: ${idea.cta}`;
+    if (idea.type === "carousel") {
+      const slides = (idea.slides ?? [])
+        .map((s, i) => {
+          if (typeof s === "string") return `Slide ${i + 1}:\n${s}`;
+          return `Slide ${i + 1} (${s.label}):\n${s.heading}\n${s.body}`;
+        })
+        .join("\n\n");
+      const caption = idea.caption ? `\n\n--- Caption ---\n${idea.caption}` : "";
+      return `${idea.title}\n\n${slides}${caption}\n\nCTA: ${idea.cta}`;
+    }
     if (idea.type === "single")
       return `${idea.hook}\n\n${idea.body}\n\n${idea.cta}`;
     return `"${idea.text}"\n\n${idea.context}\n\n${idea.cta}`;
@@ -1260,18 +1275,43 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
                   </div>
 
                   {idea.type === "carousel" && idea.slides && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {idea.hook && (
                         <p className="text-xs font-semibold text-amber mb-2">Hook: {idea.hook}</p>
                       )}
-                      {idea.slides.map((slide, si) => (
-                        <div key={si} className="flex gap-2 text-sm">
-                          <span className="text-xs font-bold text-ink-muted w-5 shrink-0 mt-0.5 text-right">
-                            {si + 1}.
-                          </span>
-                          <span className="text-ink">{slide}</span>
+                      {idea.slides.map((slide, si) =>
+                        typeof slide === "string" ? (
+                          <div key={si} className="flex gap-2 text-sm">
+                            <span className="text-xs font-bold text-ink-muted w-5 shrink-0 mt-0.5 text-right">
+                              {si + 1}.
+                            </span>
+                            <span className="text-ink">{slide}</span>
+                          </div>
+                        ) : (
+                          <div key={si} className="bg-parchment border border-border rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="text-[10px] font-bold text-white bg-forest px-1.5 py-0.5 rounded">
+                                {si + 1}
+                              </span>
+                              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
+                                {slide.label}
+                              </span>
+                            </div>
+                            <p className="text-sm font-semibold text-ink">{slide.heading}</p>
+                            {slide.body && (
+                              <p className="text-xs text-ink-secondary mt-1 whitespace-pre-line">{slide.body}</p>
+                            )}
+                          </div>
+                        )
+                      )}
+                      {idea.caption && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">
+                            Caption
+                          </p>
+                          <p className="text-xs text-ink-secondary whitespace-pre-line">{idea.caption}</p>
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
 
