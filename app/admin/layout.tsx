@@ -43,6 +43,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Bantuan
             </Link>
             <Link
+              href="/admin/metrics"
+              className="text-sm font-medium text-ink-secondary hover:text-ink transition-colors"
+            >
+              📊 Metrics
+            </Link>
+            <Link
               href="/dashboard"
               className="text-sm font-medium text-amber hover:text-amber-hover transition-colors"
             >
