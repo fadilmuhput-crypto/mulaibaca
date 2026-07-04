@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase-route";
+import { getSession } from "@/lib/session";
 import AvatarIcon from "@/components/AvatarIcon";
 import BookCover from "@/components/BookCover";
+import FollowButton from "@/components/FollowButton";
 import { BookCheck, BookText, Flame, Star, BookOpen, Bookmark } from "lucide-react";
 
 const STARS = [1, 2, 3, 4, 5];
@@ -104,6 +106,29 @@ export default async function PublicProfilePage({
       .limit(9),
   ]);
 
+  const session = await getSession();
+  const viewerMemberId = session?.memberId ?? null;
+
+  const supabaseAdmin = createAdminClient();
+  const [
+    { count: followerCount },
+    { count: followingCount },
+  ] = await Promise.all([
+    supabaseAdmin.from("follows").select("*", { count: "exact", head: true }).eq("following_id", memberId),
+    supabaseAdmin.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", memberId),
+  ]);
+
+  let initialIsFollowing = false;
+  if (viewerMemberId && viewerMemberId !== memberId) {
+    const { data: existing } = await supabaseAdmin
+      .from("follows")
+      .select("id")
+      .eq("follower_id", viewerMemberId)
+      .eq("following_id", memberId)
+      .maybeSingle();
+    initialIsFollowing = !!existing;
+  }
+
   const booksFinished = doneShelf?.length ?? 0;
   const totalPages = (logs ?? []).reduce((s, l) => s + ((l as { pages_read: number }).pages_read), 0);
   const longestStreak = (streak?.longest_streak as number) ?? 0;
@@ -141,6 +166,24 @@ export default async function PublicProfilePage({
               {memberTypeLabel[member.member_type as string] ?? "Pembaca"} · {familyName}
             </p>
             <p className="text-xs text-ink-muted mt-0.5">@{username}</p>
+          </div>
+        </div>
+
+        {/* Follow stats + button */}
+        <div className="flex items-center gap-4 text-sm">
+          <span className="text-ink-muted">
+            <strong className="text-ink font-semibold">{followerCount ?? 0}</strong> pengikut
+          </span>
+          <span className="text-ink-muted">
+            <strong className="text-ink font-semibold">{followingCount ?? 0}</strong> mengikuti
+          </span>
+          <div className="ml-auto">
+            <FollowButton
+              targetId={memberId}
+              initialFollowers={followerCount ?? 0}
+              initialIsFollowing={initialIsFollowing}
+              viewerMemberId={viewerMemberId}
+            />
           </div>
         </div>
 

@@ -52,6 +52,14 @@ function IconStar({ active }: { active: boolean }) {
   );
 }
 
+function IconActivity({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.75} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  );
+}
+
 function IconBlog({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.75} strokeLinecap="round" strokeLinejoin="round">
@@ -76,6 +84,7 @@ const NAV = [
   { href: "/rak",       label: "Rak Buku", Icon: IconBooks },
   { href: "/log",       label: "Log Baca", Icon: IconPencil },
   { href: "/review",    label: "Review",   Icon: IconStar },
+  { href: "/feed",      label: "Aktivitas", Icon: IconActivity },
 ];
 
 export default function NavBar({ session }: { session: Session }) {
