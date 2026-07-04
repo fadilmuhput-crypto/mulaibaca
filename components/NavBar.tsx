@@ -84,7 +84,6 @@ const NAV = [
   { href: "/rak",       label: "Rak Buku", Icon: IconBooks },
   { href: "/log",       label: "Log Baca", Icon: IconPencil },
   { href: "/review",    label: "Review",   Icon: IconStar },
-  { href: "/feed",      label: "Aktivitas", Icon: IconActivity },
 ];
 
 export default function NavBar({ session }: { session: Session }) {
