@@ -107,7 +107,6 @@ export default async function JelajahPage() {
       .from("shelf_items")
       .select("book_id")
       .not("book_id", "is", null)
-      .in("status", ["reading", "want"])
       .gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString()),
     adminClient
       .from("shelf_items")

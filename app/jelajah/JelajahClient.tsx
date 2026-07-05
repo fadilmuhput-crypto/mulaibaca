@@ -255,7 +255,7 @@ export default function JelajahClient({
           b.author.toLowerCase().includes(qLow) ||
           (b.publisher ?? "").toLowerCase().includes(qLow) ||
           (b.isbn ?? "").toLowerCase().includes(qLow) ||
-          b.description.toLowerCase().includes(qLow) ||
+          (b.description ?? "").toLowerCase().includes(qLow) ||
           (b.tags ?? []).some((t) => t.toLowerCase().includes(qLow))
       )
       .map(fromBook);
@@ -913,8 +913,12 @@ function GridHSection({
           <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
             {books.map((b) => (
               <div key={b.id} className="flex-shrink-0 w-28">
-                <BookCover src={b.cover_url} title={b.title} className="w-full h-[100px] rounded-xl mb-1.5" />
-                <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
+                <Link href={bookUrl(b)}>
+                  <BookCover src={b.cover_url} title={b.title} className="w-full h-[100px] rounded-xl mb-1.5" />
+                </Link>
+                <Link href={bookUrl(b)} className="hover:text-amber transition-colors">
+                  <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
+                </Link>
                 <p className="text-[10px] text-ink-muted truncate mt-0.5">{b.author}</p>
               </div>
             ))}
