@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Search, X, Shield, ShieldOff, RefreshCw, Mail, User, Calendar } from "lucide-react";
 
 type MemberItem = {
@@ -205,7 +206,7 @@ export default function MembersClient() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-ink truncate">{m.name}</p>
+                    <Link href={`/admin/members/${m.id}`} className="text-sm font-semibold text-ink truncate hover:text-amber transition-colors">{m.name}</Link>
                     <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
                       m.member_type === "anak" ? "bg-orange-100 text-orange-700" :
                       m.member_type === "ayah" || m.member_type === "ibu" ? "bg-blue-100 text-blue-700" :

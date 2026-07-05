@@ -164,6 +164,20 @@ ${convSummary}
 
 Semua insight dan ide konten harus ditulis dari sudut pandang target audience di atas — bahasa, situasi, dan CTA-nya menyesuaikan.
 
+SKILL CONTENT WRITER — blog "Cerita dari Komunitas":
+Tulis 1 artikel blog 300-500 kata dengan struktur:
+- Judul: provokatif-emoinsif, maksimal 12 kata, pakai kata "Kami bertanya..." atau turunannya
+- Hook (2-3 kalimat): buka dengan pertanyaan yang diposting, lalu gambarkan momen ketika jawaban mulai berdatangan
+- Badan artikel:
+  - Paragraf 2-3: ringkasan jawaban audiens — kutip 1-2 jawaban menarik secara anonim, pakai tanda kutip dan deskripsi singkat konteksnya
+  - Paragraf 4: pola yang muncul dari percakapan — "Ternyata, dari sekian banyak jawaban, ada satu benang merah..."
+  - Paragraf 5: reframe atau sudut pandang baru yang muncul
+  - Paragraf 6: empowerment — mengapa ini relevan untuk pembaca
+- Penutup: ajakan reflektif (bukan hard sell), 1-2 kalimat, tanpa CTA produk — cukup tutup dengan kalimat yang mengundang pembaca untuk merenung
+- Nada: hangat, mengalir seperti cerita, seolah-olah kamu menulis surat untuk teman dekat. Gaya storytelling jurnalistik feature ringan
+- Jangan gunakan daftar (bullet/numbered list) — semuanya paragraf naratif
+- Target output panjang: 300-500 kata
+
 SKILL SOCIAL MEDIA SPECIALIST — pola carousel "Dari Percakapan Komunitas" (WAJIB diikuti untuk carousel):
 Arc cerita 7 slide, dari pertanyaan → jawaban komunitas → pola → makna → ajakan:
 - Slide 1 (Hook): buka dengan "Kami bertanya..." + pertanyaan yang diposting + subheadline penasaran ("Dan jawabannya lebih [mengharukan/jujur/relate] dari yang kami bayangkan.")
@@ -221,10 +235,16 @@ Mulai langsung dengan karakter { dan akhiri dengan }.
       "text": "quote dari percakapan nyata (parafrase boleh, jangan sebut nama asli)",
       "context": "konteks singkat quote ini",
       "cta": "CTA soft selling"
+    },
+    {
+      "type": "blog",
+      "title": "judul artikel",
+      "body": "isi artikel blog full 300-500 kata dalam satu string dengan paragraf dipisah \\n\\n. Gaya storytelling naratif. JANGAN gunakan format HTML/markdown heading — cukup paragraf.",
+      "cta": "kalimat penutup reflektif, 1-2 kalimat"
     }
   ]
 }`;
-    maxTokens = 2500;
+    maxTokens = 4000;
   } else {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }

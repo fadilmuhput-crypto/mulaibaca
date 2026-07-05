@@ -59,7 +59,7 @@ interface CarouselSlide {
 }
 
 interface ContentIdea {
-  type: "carousel" | "single" | "quote";
+  type: "carousel" | "single" | "quote" | "blog";
   title?: string;
   hook?: string;
   slides?: Array<CarouselSlide | string>;
@@ -1171,6 +1171,8 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
     }
     if (idea.type === "single")
       return `${idea.hook}\n\n${idea.body}\n\n${idea.cta}`;
+    if (idea.type === "blog")
+      return `${idea.title}\n\n${idea.body}\n\n${idea.cta}`;
     return `"${idea.text}"\n\n${idea.context}\n\n${idea.cta}`;
   };
 
@@ -1293,10 +1295,12 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
                           ? "bg-blue-50 text-blue-700"
                           : idea.type === "single"
                           ? "bg-green-50 text-green-700"
+                          : idea.type === "blog"
+                          ? "bg-orange-50 text-orange-700"
                           : "bg-purple-50 text-purple-700"
                       }`}
                     >
-                      {idea.type === "carousel" ? "📎 Carousel" : idea.type === "single" ? "🖼 Single Post" : "💬 Quote Card"}
+                      {idea.type === "carousel" ? "📎 Carousel" : idea.type === "single" ? "🖼 Single Post" : idea.type === "blog" ? "📝 Blog" : "💬 Quote Card"}
                     </span>
                     {idea.title && (
                       <span className="text-sm font-semibold text-ink">{idea.title}</span>
@@ -1364,6 +1368,19 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
                       )}
                       {idea.context && (
                         <p className="text-xs text-ink-muted">{idea.context}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {idea.type === "blog" && (
+                    <div className="space-y-3">
+                      {idea.title && (
+                        <p className="text-base font-bold text-ink">{idea.title}</p>
+                      )}
+                      {idea.body && (
+                        <div className="text-sm text-ink-secondary whitespace-pre-line leading-relaxed">
+                          {idea.body}
+                        </div>
                       )}
                     </div>
                   )}
