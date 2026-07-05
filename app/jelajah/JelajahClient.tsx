@@ -52,7 +52,7 @@ function bookUrl(card: BookCard): string {
 function fromBook(b: Book): BookCard {
   const allTags = [...new Set([
     ...(b.categories ?? []),
-    ...b.tags,
+    ...(b.tags ?? []),
   ])];
   return {
     id: b.id ?? toSlug(b.title),
@@ -256,7 +256,7 @@ export default function JelajahClient({
           (b.publisher ?? "").toLowerCase().includes(qLow) ||
           (b.isbn ?? "").toLowerCase().includes(qLow) ||
           b.description.toLowerCase().includes(qLow) ||
-          b.tags.some((t) => t.toLowerCase().includes(qLow))
+          (b.tags ?? []).some((t) => t.toLowerCase().includes(qLow))
       )
       .map(fromBook);
   }
@@ -520,7 +520,7 @@ export default function JelajahClient({
                 <SectionLabel>Sedang dibaca keluarga</SectionLabel>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
                   {familyBooks.map((fb, i) => (
-                    <div key={i} className="flex-shrink-0 w-24">
+                    <div key={i} className="flex-shrink-0 w-28">
                       <BookCover src={fb.coverUrl} title={fb.title} className="w-full h-[88px] rounded-xl mb-1.5" />
                       <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{fb.title}</p>
                       <p className="text-[10px] text-amber font-semibold truncate mt-0.5">{fb.memberName}</p>
@@ -591,7 +591,7 @@ export default function JelajahClient({
                     {filteredBooks.map((b) => {
                       const card = fromBook(b);
                       return (
-                        <div key={b.title} className="flex-shrink-0 w-[100px]">
+                        <div key={b.title} className="flex-shrink-0 w-28">
                           <div className="relative group">
                             <Link href={bookUrl(card)}>
                               <BookCover src={b.cover_url} title={b.title} className="w-full h-[130px] rounded-xl" />
@@ -624,9 +624,9 @@ export default function JelajahClient({
                   {trendingBooks.map((b) => {
                     const c = fromBook(b);
                     return (
-                      <div key={b.id} className="flex-shrink-0 w-24">
+                      <div key={b.id} className="flex-shrink-0 w-28">
                         <Link href={bookUrl(c)}>
-                          <BookCover src={b.cover_url} title={b.title} className="w-full h-[88px] rounded-xl mb-1.5" />
+                          <BookCover src={b.cover_url} title={b.title} className="w-full h-[100px] rounded-xl mb-1.5" />
                         </Link>
                         <Link href={bookUrl(c)} className="hover:text-amber transition-colors">
                           <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
@@ -647,9 +647,9 @@ export default function JelajahClient({
                   {personalBooks.map((b) => {
                     const c = fromBook(b);
                     return (
-                      <div key={b.id} className="flex-shrink-0 w-24">
+                      <div key={b.id} className="flex-shrink-0 w-28">
                         <Link href={bookUrl(c)}>
-                          <BookCover src={b.cover_url} title={b.title} className="w-full h-[88px] rounded-xl mb-1.5" />
+                          <BookCover src={b.cover_url} title={b.title} className="w-full h-[100px] rounded-xl mb-1.5" />
                         </Link>
                         <Link href={bookUrl(c)} className="hover:text-amber transition-colors">
                           <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
@@ -912,8 +912,8 @@ function GridHSection({
         <>
           <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
             {books.map((b) => (
-              <div key={b.id} className="flex-shrink-0 w-24">
-                <BookCover src={b.cover_url} title={b.title} className="w-full h-[88px] rounded-xl mb-1.5" />
+              <div key={b.id} className="flex-shrink-0 w-28">
+                <BookCover src={b.cover_url} title={b.title} className="w-full h-[100px] rounded-xl mb-1.5" />
                 <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
                 <p className="text-[10px] text-ink-muted truncate mt-0.5">{b.author}</p>
               </div>

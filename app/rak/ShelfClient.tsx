@@ -162,32 +162,6 @@ export default function ShelfClient({
 
   return (
     <div>
-      {/* Stats bar */}
-      {(readingCount + doneCount) > 0 && (
-        <div className="flex gap-2 mb-5 overflow-x-auto no-scrollbar pb-0.5">
-          {readingCount > 0 && (
-            <div className="flex items-center gap-1.5 bg-surface brutal-border rounded-xl px-3 py-2 flex-shrink-0">
-              <BookOpen size={13} strokeWidth={2} className="text-amber" />
-              <span className="text-xs font-semibold text-ink">{readingCount}</span>
-              <span className="text-xs text-ink-muted">sedang dibaca</span>
-            </div>
-          )}
-          {doneCount > 0 && (
-            <div className="flex items-center gap-1.5 bg-surface brutal-border rounded-xl px-3 py-2 flex-shrink-0">
-              <Trophy size={13} strokeWidth={2} className="text-forest" />
-              <span className="text-xs font-semibold text-ink">{doneCount}</span>
-              <span className="text-xs text-ink-muted">selesai</span>
-            </div>
-          )}
-          {totalPagesDone > 0 && (
-            <div className="flex items-center gap-1.5 bg-surface brutal-border rounded-xl px-3 py-2 flex-shrink-0">
-              <span className="text-xs font-semibold text-ink">{totalPagesDone.toLocaleString("id-ID")}</span>
-              <span className="text-xs text-ink-muted">halaman selesai</span>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Tabs */}
       <div className="flex gap-2 mb-5 overflow-x-auto no-scrollbar flex-nowrap">
         {TABS.map((t) => {
