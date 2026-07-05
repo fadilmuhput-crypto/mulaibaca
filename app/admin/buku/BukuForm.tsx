@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import BookCover from "@/components/BookCover";
 import { Search, X, Camera, Sparkles } from "lucide-react";
 import type { AdminBook } from "./page";
-import { CATEGORY_TREE } from "@/lib/category-tree";
+import { CATEGORY_TREE, findSubCategory } from "@/lib/category-tree";
 
 type OLResult = {
   key: string;
@@ -359,6 +359,21 @@ export default function BukuForm({
       {/* Kategori dari CATEGORY_TREE */}
       <div>
         <label className="input-label">Kategori</label>
+        {form.categories.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {form.categories.map((key) => {
+              const sub = findSubCategory(key);
+              return (
+                <span key={key} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-forest text-white text-xs font-semibold">
+                  {sub?.label ?? key}
+                  <button type="button" onClick={() => set("categories", form.categories.filter((c) => c !== key))} className="hover:text-white/70 ml-0.5">
+                    <X size={11} strokeWidth={2.5} />
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        )}
         <div className="rounded-xl border border-border bg-parchment p-3 space-y-3">
           {CATEGORY_TREE.map((root) => (
             <div key={root.key}>
