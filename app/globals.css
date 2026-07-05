@@ -200,6 +200,19 @@
 .btn-danger:not(:disabled):active { transform: translate(2px, 2px); box-shadow: none; }
 .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
+/* ── Admin nav chips ──────────────────── */
+.nav-chip {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-ink-secondary);
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.nav-chip:hover { background-color: var(--color-parchment); color: var(--color-ink); }
+
 /* ━━━ CARDS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .card {
