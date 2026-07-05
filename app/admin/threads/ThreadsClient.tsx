@@ -1142,7 +1142,11 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
           },
         }),
       });
-      const data = await res.json();
+      let data;
+      try { data = await res.json(); } catch {
+        setError(`Server error (${res.status}) — coba lagi.`);
+        return;
+      }
       if (data.error) { setError(data.error); return; }
       try {
         const jsonStr = data.text.match(/\{[\s\S]*\}/)?.[0];
@@ -1152,7 +1156,7 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
         setError("Gagal parse respons AI.");
       }
     } catch {
-      setError("Gagal terhubung.");
+      setError("Gagal terhubung ke server.");
     } finally {
       setIsGenerating(false);
     }

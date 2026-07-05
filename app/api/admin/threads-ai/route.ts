@@ -60,7 +60,11 @@ export async function POST(request: Request) {
   }
   const isOpenCodeZen = !!process.env.OPENCODE_ZEN_API_KEY;
 
-  const { type, data } = await request.json();
+  let body;
+  try { body = await request.json(); } catch {
+    return NextResponse.json({ error: "Body request tidak valid" }, { status: 400 });
+  }
+  const { type, data } = body;
 
   let userPrompt = "";
   let maxTokens = 500;
