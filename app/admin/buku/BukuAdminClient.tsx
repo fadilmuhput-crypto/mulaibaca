@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BookCover from "@/components/BookCover";
 import type { AdminBook, LibraryBook } from "./page";
-import { Pencil, Trash2, Eye, EyeOff, Users, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff, Users, AlertCircle, CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
 import { CATEGORY_TREE } from "@/lib/category-tree";
 
 type Tab = "semua" | "terkurasi" | "perpustakaan" | "enrichment" | "tanpa-kategori";
@@ -39,6 +39,7 @@ export default function BukuAdminClient({
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [enriching, setEnriching] = useState<string | null>(null);
+  const [aiEnriching, setAiEnriching] = useState<string | null>(null);
 
   const curatedCount = books.filter((b) => b.is_curated).length;
   const enrichmentPending = books.filter((b) => b.enrichment_status === "pending" || b.enrichment_status === "failed").length;
@@ -157,6 +158,32 @@ export default function BukuAdminClient({
       );
     } finally {
       setEnriching(null);
+    }
+  }
+
+  async function aiEnrichBook(bookId: string) {
+    setAiEnriching(bookId);
+    try {
+      const res = await fetch("/api/books/ai-enrich", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(`AI Enrich gagal: ${data.error}`);
+        return;
+      }
+      setBooks((prev) =>
+        prev.map((b) => (b.id === bookId ? { ...b, enrichment_status: "enriched" } : b))
+      );
+      if (data.updated?.length > 0) {
+        router.refresh();
+      }
+    } catch {
+      alert("Gagal terhubung ke AI enrichment");
+    } finally {
+      setAiEnriching(null);
     }
   }
 
@@ -356,14 +383,24 @@ export default function BukuAdminClient({
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   {tab === "enrichment" && book.enrichment_status !== "enriched" && (
-                    <button
-                      onClick={() => enrichBook(book.id)}
-                      disabled={enriching === book.id}
-                      title="Enrich sekarang"
-                      className="w-9 h-9 rounded-lg flex items-center justify-center text-ink-muted hover:bg-parchment hover:text-amber transition-colors disabled:opacity-40"
-                    >
-                      <RefreshCw size={16} strokeWidth={1.75} className={enriching === book.id ? "animate-spin" : ""} />
-                    </button>
+                    <>
+                      <button
+                        onClick={() => enrichBook(book.id)}
+                        disabled={enriching === book.id}
+                        title="Enrich dari OpenLibrary"
+                        className="w-9 h-9 rounded-lg flex items-center justify-center text-ink-muted hover:bg-parchment hover:text-forest transition-colors disabled:opacity-40"
+                      >
+                        <RefreshCw size={16} strokeWidth={1.75} className={enriching === book.id ? "animate-spin" : ""} />
+                      </button>
+                      <button
+                        onClick={() => aiEnrichBook(book.id)}
+                        disabled={aiEnriching === book.id}
+                        title="Enrich pakai AI (deskripsi, kategori, tags)"
+                        className="w-9 h-9 rounded-lg flex items-center justify-center text-ink-muted hover:bg-parchment hover:text-purple-600 transition-colors disabled:opacity-40"
+                      >
+                        <Sparkles size={16} strokeWidth={1.75} className={aiEnriching === book.id ? "animate-pulse" : ""} />
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={() => toggleActive(book)}
