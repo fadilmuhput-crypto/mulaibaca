@@ -141,7 +141,7 @@ HANYA output JSON, tanpa markdown fence.`;
 
     if (Object.keys(updates).length === 0) {
       await admin.from("books").update({ enrichment_status: "enriched" }).eq("id", bookId);
-      return NextResponse.json({ message: "Tidak ada field baru yang perlu diisi, status diupdate" });
+      return NextResponse.json({ message: "Tidak ada field baru yang perlu diisi, status diupdate", updated: [] });
     }
 
     updates.enrichment_status = "enriched";
@@ -155,7 +155,13 @@ HANYA output JSON, tanpa markdown fence.`;
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "AI enrichment berhasil", updated: Object.keys(updates) });
+    return NextResponse.json({
+      message: "AI enrichment berhasil",
+      updated: Object.keys(updates),
+      description: updates.description ?? null,
+      categories: updates.categories ?? null,
+      tags: updates.tags ?? null,
+    });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Gagal terhubung ke AI" },

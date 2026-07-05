@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import BookCover from "@/components/BookCover";
-import { Search, X, Camera } from "lucide-react";
+import { Search, X, Camera, Sparkles } from "lucide-react";
 import type { AdminBook } from "./page";
 import { CATEGORY_TREE } from "@/lib/category-tree";
 
@@ -71,6 +71,9 @@ export default function BukuForm({
   const [olLoading, setOlLoading] = useState(false);
   const [olOpen, setOlOpen] = useState(false);
 
+  const [aiEnriching, setAiEnriching] = useState(false);
+  const [aiEnrichError, setAiEnrichError] = useState("");
+
   function set(key: keyof FormData, value: unknown) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
@@ -109,6 +112,45 @@ export default function BukuForm({
       // ignore OL errors
     } finally {
       setOlLoading(false);
+    }
+  }
+
+  async function aiEnrich() {
+    if (!book?.id) return;
+    setAiEnriching(true);
+    setAiEnrichError("");
+    try {
+      const res = await fetch("/api/books/ai-enrich", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId: book.id }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setAiEnrichError(data.error);
+        return;
+      }
+      if (data.updated?.length === 0) {
+        setAiEnrichError("Tidak ada field baru yang bisa diisi.");
+        return;
+      }
+      setForm((prev) => {
+        const next = { ...prev };
+        if (data.description && typeof data.description === "string") {
+          next.description = data.description;
+        }
+        if (data.categories && Array.isArray(data.categories)) {
+          next.categories = data.categories;
+        }
+        if (data.tags && Array.isArray(data.tags)) {
+          next.tags = data.tags;
+        }
+        return next;
+      });
+    } catch {
+      setAiEnrichError("Gagal terhubung ke AI");
+    } finally {
+      setAiEnriching(false);
     }
   }
 
@@ -216,6 +258,34 @@ export default function BukuForm({
         )}
         {olLoading && <p className="text-xs text-ink-muted mt-2">Mencari…</p>}
       </div>
+
+      {/* AI Enrich (edit mode only) */}
+      {book?.id && (
+        <div className="bg-purple-50/50 rounded-2xl border border-purple-200 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-ink flex items-center gap-1.5">
+                <Sparkles size={14} className="text-purple-600" /> AI Enrichment
+              </p>
+              <p className="text-xs text-ink-muted mt-0.5">
+                Generate deskripsi, kategori, dan tags otomatis pakai AI. Hasilnya bisa dicek dulu sebelum disimpan.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={aiEnrich}
+              disabled={aiEnriching}
+              className="btn-secondary text-sm flex items-center gap-1.5 px-4 py-2 disabled:opacity-50"
+            >
+              <Sparkles size={14} className={aiEnriching ? "animate-pulse" : ""} />
+              {aiEnriching ? "Memproses…" : "AI Enrich"}
+            </button>
+          </div>
+          {aiEnrichError && (
+            <p className="text-xs text-error mt-2 bg-error-soft rounded-lg px-3 py-2">{aiEnrichError}</p>
+          )}
+        </div>
+      )}
 
       {/* Core fields */}
       <div className="grid sm:grid-cols-2 gap-4">
