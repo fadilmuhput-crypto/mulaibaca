@@ -30,6 +30,7 @@ export default function BlogForm({ initial }: Props) {
   const [isPublished, setIsPublished] = useState(initial?.is_published ?? false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -141,16 +142,20 @@ export default function BlogForm({ initial }: Props) {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
+                  setUploadError("");
                   const form = new FormData();
                   form.append("file", file);
                   try {
                     const res = await fetch("/api/upload/blog-image", { method: "POST", body: form });
-                    const data = await res.json();
+                    const text = await res.text();
+                    let data;
+                    try { data = JSON.parse(text); } catch { throw new Error(`Server error (${res.status}): response bukan JSON`); }
                     if (!res.ok) throw new Error(data.error ?? `Server error (${res.status})`);
                     setCoverImage(data.url);
-                    setError("");
                   } catch (err) {
-                    setError(err instanceof Error ? err.message : "Gagal mengupload gambar");
+                    const msg = err instanceof Error ? err.message : "Gagal mengupload gambar";
+                    setUploadError(msg);
+                    console.error("Upload cover error:", msg, err);
                   }
                 }}
               />
@@ -159,6 +164,12 @@ export default function BlogForm({ initial }: Props) {
           {coverImage && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={coverImage} alt="Preview" className="mt-2 h-32 w-full object-cover rounded-lg border border-border" />
+          )}
+          {uploadError && (
+            <p className="mt-1.5 text-xs text-error flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              {uploadError}
+            </p>
           )}
         </div>
       </div>
