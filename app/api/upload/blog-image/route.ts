@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
 
 const BUCKET = "blog-images";
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export async function POST(req: NextRequest) {
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const file = form.get("file");
   if (!(file instanceof File)) return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 });
   if (!ALLOWED.includes(file.type)) return NextResponse.json({ error: `Format ${file.type} tidak didukung. Gunakan JPG, PNG, WebP, atau GIF.` }, { status: 400 });
-  if (file.size > MAX_BYTES) return NextResponse.json({ error: `Ukuran file ${(file.size / 1024 / 1024).toFixed(1)} MB melebihi batas maksimal 5 MB` }, { status: 400 });
+  if (file.size > MAX_BYTES) return NextResponse.json({ error: `Ukuran file ${(file.size / 1024 / 1024).toFixed(1)} MB melebihi batas maksimal 4 MB` }, { status: 400 });
 
   const ext = file.type.split("/")[1].replace("jpeg", "jpg");
   const filename = `${user.id}-${Date.now()}.${ext}`;
