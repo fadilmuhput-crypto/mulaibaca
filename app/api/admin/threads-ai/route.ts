@@ -136,13 +136,14 @@ Tulis SATU balasan singkat untuk pesan terakhir audiens.
 Output: teks balasan saja, tanpa label atau penjelasan.`;
 
   } else if (type === "insight") {
-    const { question, conversations, audience } = data as {
+    const { question, conversations, audience, pillar } = data as {
       question: string;
       conversations: Array<{
         audienceName: string;
         messages: Array<{ sender: string; text: string }>;
       }>;
       audience?: string;
+      pillar?: { name: string; description: string; goals: string; cta_style: string; temas: string[]; channels: string[] };
     };
     const insightPersona =
       audience === "individu"
@@ -158,9 +159,15 @@ Output: teks balasan saja, tanpa label atau penjelasan.`;
       })
       .join("\n\n");
 
+    const pillarBlock = pillar
+      ? `\n--- PANDUAN CONTENT PILLAR ---\nPillar: ${pillar.name}\nDeskripsi: ${pillar.description}\nTujuan: ${pillar.goals}\nCTA Style: ${pillar.cta_style}\nTema: ${pillar.temas.join(", ")}\nChannel: ${pillar.channels.join(", ")}\nSemua ide konten harus selaras dengan pillar ini.`
+
+    : "";
+
     userPrompt = `Analisis percakapan Threads berikut.
 
 ${insightPersona}
+${pillarBlock}
 
 Pertanyaan: "${question}"
 

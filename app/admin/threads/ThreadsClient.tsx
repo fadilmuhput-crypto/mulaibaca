@@ -16,6 +16,8 @@ type View =
   | { type: "questions" }
   | { type: "explore" }
   | { type: "insight" }
+  | { type: "pillars" }
+  | { type: "track" }
   | { type: "discussion"; discussionId: string }
   | { type: "conversation"; discussionId: string; conversationId: string };
 
@@ -74,6 +76,47 @@ interface InsightResult {
   themes: string[];
   insights: string[];
   content_ideas: ContentIdea[];
+}
+
+// ── Content Pillar ─────────────────────────────────────────────────────
+
+type Channel = "instagram" | "threads" | "blog";
+
+interface ContentPillar {
+  id: string;
+  name: string;
+  description: string;
+  audience: Audience;
+  channels: Channel[];
+  temas: string[];
+  goals: string;
+  cta_style: string;
+  createdAt: string;
+}
+
+// ── Performance Tracking ────────────────────────────────────────────────
+
+type ContentType = "carousel" | "reel" | "static" | "thread" | "blog";
+
+interface TrackedContent {
+  id: string;
+  channel: Channel;
+  contentType: ContentType;
+  title: string;
+  url: string;
+  publishedAt: string;
+  metrics: {
+    likes: number;
+    comments: number;
+    shares: number;
+    saves?: number;
+    reach?: number;
+    views?: number;
+  };
+  pillarId?: string;
+  insightId?: string;
+  notes: string;
+  createdAt: string;
 }
 
 // ── Constants ──────────────────────────────────────────────────────────
@@ -273,7 +316,7 @@ function Sidebar({
   onAdd: () => void;
 }) {
   const items: Array<{
-    type: "overview" | "questions" | "explore" | "insight";
+    type: "overview" | "questions" | "explore" | "insight" | "pillars" | "track";
     icon: typeof BarChart3;
     label: string;
     badge?: number;
@@ -282,6 +325,8 @@ function Sidebar({
     { type: "questions", icon: MessageCircle, label: "Pertanyaan", badge: activeCount },
     { type: "explore", icon: Sparkles, label: "Eksplorasi" },
     { type: "insight", icon: Eye, label: "Insight" },
+    { type: "pillars", icon: BookOpen, label: "Pillar" },
+    { type: "track", icon: TrendingUp, label: "Track" },
   ];
 
   return (
@@ -1106,7 +1151,7 @@ function ExploreView({ onSave }: { onSave: (q: string, theme: string, audience: 
 
 // ── Insight ────────────────────────────────────────────────────────────
 
-function InsightView({ discussions }: { discussions: Discussion[] }) {
+function InsightView({ discussions, pillars }: { discussions: Discussion[]; pillars: ContentPillar[] }) {
   const withConvs = discussions.filter((d) => d.conversations.length > 0);
   const [selectedId, setSelectedId] = useState(withConvs[0]?.id || "");
   const [audience, setAudience] = useState<Audience>(
@@ -1115,6 +1160,7 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
   const [insight, setInsight] = useState<InsightResult | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [pillarId, setPillarId] = useState("");
 
   const selected = withConvs.find((d) => d.id === selectedId);
 
@@ -1139,6 +1185,7 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
             question: selected.question,
             conversations: selected.conversations,
             audience,
+            pillar: pillarId ? pillars.find((p) => p.id === pillarId) : undefined,
           },
         }),
       });
@@ -1243,6 +1290,25 @@ function InsightView({ discussions }: { discussions: Discussion[] }) {
                   : "Insight & konten ditulis untuk konteks keluarga / parenting."}
               </p>
             </div>
+            {pillars.length > 0 && (
+              <div>
+                <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">
+                  Content Pillar
+                </label>
+                <select
+                  value={pillarId}
+                  onChange={(e) => setPillarId(e.target.value)}
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber"
+                >
+                  <option value="">— Tanpa pillar —</option>
+                  {pillars.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.audience})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <button
               onClick={generate}
               disabled={isGenerating || !selectedId}
@@ -1729,12 +1795,568 @@ function SearchResults({
   );
 }
 
+// ── PillarView ───────────────────────────────────────────────────────────
+
+const CHANNEL_OPTIONS: Channel[] = ["instagram", "threads", "blog"];
+const CHANNEL_LABELS: Record<Channel, string> = {
+  instagram: "Instagram",
+  threads: "Threads",
+  blog: "Blog",
+};
+
+function PillarView({
+  pillars,
+  setPillars,
+}: {
+  pillars: ContentPillar[];
+  setPillars: (v: ContentPillar[] | ((p: ContentPillar[]) => ContentPillar[])) => void;
+}) {
+  const [editing, setEditing] = useState<ContentPillar | null>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const addPillar = (p: ContentPillar) => setPillars((prev) => [...prev, p]);
+  const updatePillar = (id: string, p: ContentPillar) =>
+    setPillars((prev) => prev.map((x) => (x.id === id ? p : x)));
+  const deletePillar = (id: string) => {
+    if (!confirm("Hapus pillar ini?")) return;
+    setPillars((prev) => prev.filter((x) => x.id !== id));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-semibold text-ink text-base">Content Pillar</h3>
+          <p className="text-xs text-ink-muted mt-0.5">
+            Panduan strategis untuk menjaga konsistensi konten di semua channel
+          </p>
+        </div>
+        <button onClick={() => { setEditing(null); setShowForm(true); }} className="btn-primary flex items-center gap-1.5 text-sm">
+          <Plus size={14} /> Tambah Pillar
+        </button>
+      </div>
+
+      {pillars.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
+          <BookOpen size={32} className="mx-auto text-ink-muted/50 mb-2" />
+          <p className="text-sm text-ink-muted">Belum ada content pillar.</p>
+          <p className="text-xs text-ink-muted/60 mt-1">Buat pillar pertama untuk memandu strategi konten kamu.</p>
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {pillars.map((p) => (
+            <div key={p.id} className="bg-surface border border-border rounded-xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-ink">{p.name}</h4>
+                  <p className="text-sm text-ink-muted mt-0.5 line-clamp-2">{p.description}</p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => { setEditing(p); setShowForm(true); }}
+                    className="p-1.5 text-ink-muted hover:text-ink rounded-lg hover:bg-ink/5 transition-colors"
+                    title="Edit"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </button>
+                  <button
+                    onClick={() => deletePillar(p.id)}
+                    className="p-1.5 text-ink-muted hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    title="Hapus"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber/10 text-amber">
+                  {AUDIENCE_CONFIG[p.audience]?.emoji} {AUDIENCE_CONFIG[p.audience]?.label}
+                </span>
+                {p.channels.map((ch) => (
+                  <span key={ch} className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                    {CHANNEL_LABELS[ch]}
+                  </span>
+                ))}
+                {p.temas.length > 0 && (
+                  <span className="text-[10px] text-ink-muted ml-1">
+                    {p.temas.length} tema
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showForm && (
+        <PillarForm
+          initial={editing}
+          onSave={(p) => {
+            if (editing) updatePillar(editing.id, p);
+            else addPillar(p);
+            setShowForm(false);
+            setEditing(null);
+          }}
+          onClose={() => { setShowForm(false); setEditing(null); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function PillarForm({
+  initial,
+  onSave,
+  onClose,
+}: {
+  initial: ContentPillar | null;
+  onSave: (p: ContentPillar) => void;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [audience, setAudience] = useState<Audience>(initial?.audience ?? "individu");
+  const [channels, setChannels] = useState<Channel[]>(initial?.channels ?? []);
+  const [temasInput, setTemasInput] = useState(initial?.temas.join(", ") ?? "");
+  const [goals, setGoals] = useState(initial?.goals ?? "");
+  const [ctaStyle, setCtaStyle] = useState(initial?.cta_style ?? "");
+
+  const toggleChannel = (ch: Channel) =>
+    setChannels((prev) => prev.includes(ch) ? prev.filter((x) => x !== ch) : [...prev, ch]);
+
+  const handleSave = () => {
+    if (!name.trim()) return;
+    onSave({
+      id: initial?.id ?? crypto.randomUUID(),
+      name: name.trim(),
+      description: description.trim(),
+      audience,
+      channels,
+      temas: temasInput.split(",").map((t) => t.trim()).filter(Boolean),
+      goals: goals.trim(),
+      cta_style: ctaStyle.trim(),
+      createdAt: initial?.createdAt ?? new Date().toISOString(),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-surface border border-border rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 space-y-4">
+        <h4 className="font-semibold text-ink">{initial ? "Edit Pillar" : "Buat Pillar Baru"}</h4>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Nama Pillar</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mis: Bangun Kebiasaan Membaca" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Deskripsi</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Deskripsi singkat tentang pillar ini" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber resize-none" />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Target Audience</label>
+          <div className="flex gap-2">
+            {(Object.keys(AUDIENCE_CONFIG) as Audience[]).map((a) => (
+              <button key={a} onClick={() => setAudience(a)}
+                className={`flex-1 px-3 py-2 text-sm rounded-lg border transition-colors ${
+                  audience === a ? "bg-amber text-white border-amber" : "bg-surface text-ink-muted border-border hover:border-amber/50"
+                }`}
+              >
+                {AUDIENCE_CONFIG[a].emoji} {AUDIENCE_CONFIG[a].label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Channel</label>
+          <div className="flex gap-2">
+            {CHANNEL_OPTIONS.map((ch) => (
+              <button key={ch} onClick={() => toggleChannel(ch)}
+                className={`flex-1 px-3 py-2 text-sm rounded-lg border transition-colors ${
+                  channels.includes(ch) ? "bg-blue-600 text-white border-blue-600" : "bg-surface text-ink-muted border-border hover:border-blue-400"
+                }`}
+              >
+                {CHANNEL_LABELS[ch]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Tema (pisahkan dengan koma)</label>
+          <input value={temasInput} onChange={(e) => setTemasInput(e.target.value)} placeholder="reading slump, konsistensi, distraksi HP" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Tujuan</label>
+          <textarea value={goals} onChange={(e) => setGoals(e.target.value)} rows={2} placeholder="Apa yang ingin dicapai dari pillar ini?" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber resize-none" />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Gaya CTA</label>
+          <input value={ctaStyle} onChange={(e) => setCtaStyle(e.target.value)} placeholder="Mis: Lembut, reflektif, ajakan merenung" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+        </div>
+
+        <div className="flex items-center gap-2 pt-2">
+          <button onClick={handleSave} disabled={!name.trim()} className="btn-primary flex-1 justify-center text-sm disabled:opacity-60">
+            {initial ? "Simpan Perubahan" : "Buat Pillar"}
+          </button>
+          <button onClick={onClose} className="btn-ghost flex-1 justify-center text-sm">Batal</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── TrackView ───────────────────────────────────────────────────────────
+
+const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
+  carousel: "Carousel",
+  reel: "Reel",
+  static: "Static",
+  thread: "Thread",
+  blog: "Blog",
+};
+
+const CHANNEL_ICONS: Record<Channel, string> = {
+  instagram: "IG",
+  threads: "Th",
+  blog: "Bl",
+};
+
+interface ChannelSummary {
+  total: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saves: number;
+}
+
+function TrackView({
+  tracked,
+  setTracked,
+  pillars,
+}: {
+  tracked: TrackedContent[];
+  setTracked: (v: TrackedContent[] | ((p: TrackedContent[]) => TrackedContent[])) => void;
+  pillars: ContentPillar[];
+}) {
+  const [channelFilter, setChannelFilter] = useState<Channel | "all">("all");
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<TrackedContent | null>(null);
+
+  const filtered = channelFilter === "all" ? tracked : tracked.filter((t) => t.channel === channelFilter);
+
+  const summaryByChannel = (ch: Channel): ChannelSummary => {
+    const items = tracked.filter((t) => t.channel === ch);
+    return {
+      total: items.length,
+      likes: items.reduce((a, t) => a + t.metrics.likes, 0),
+      comments: items.reduce((a, t) => a + t.metrics.comments, 0),
+      shares: items.reduce((a, t) => a + t.metrics.shares, 0),
+      saves: items.reduce((a, t) => a + (t.metrics.saves ?? 0), 0),
+    };
+  };
+
+  const addItem = (item: TrackedContent) => setTracked((prev) => [...prev, item]);
+  const updateItem = (id: string, item: TrackedContent) =>
+    setTracked((prev) => prev.map((x) => (x.id === id ? item : x)));
+  const deleteItem = (id: string) => {
+    if (!confirm("Hapus item ini?")) return;
+    setTracked((prev) => prev.filter((x) => x.id !== id));
+  };
+
+  const totalEngagement = tracked.reduce((a, t) => a + t.metrics.likes + t.metrics.comments + t.metrics.shares + (t.metrics.saves ?? 0), 0);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-h2">Performance Track</h2>
+          <p className="text-sm text-ink-secondary mt-1">
+            Catat dan pantau performa konten yang sudah terbit.
+          </p>
+        </div>
+        <button onClick={() => { setEditing(null); setShowForm(true); }} className="btn-primary flex items-center gap-1.5 text-sm">
+          <Plus size={14} /> Log Konten
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-3">
+        {(Object.keys(CHANNEL_LABELS) as Channel[]).map((ch) => {
+          const s = summaryByChannel(ch);
+          return (
+            <div key={ch} className="bg-surface border border-border rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">{CHANNEL_ICONS[ch]}</span>
+                <span className="text-sm font-semibold text-ink">{CHANNEL_LABELS[ch]}</span>
+              </div>
+              <div className="text-2xl font-bold text-ink">{s.total}</div>
+              <div className="text-[11px] text-ink-muted mt-1">
+                {s.total > 0 ? (
+                  <span>{s.likes} 👍 · {s.comments} 💬 · {s.shares} 🔁</span>
+                ) : "Belum ada data"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Channel Filter */}
+      <div className="flex gap-2">
+        {(["all", "instagram", "threads", "blog"] as const).map((ch) => (
+          <button
+            key={ch}
+            onClick={() => setChannelFilter(ch)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+              channelFilter === ch
+                ? "bg-amber text-white border-amber"
+                : "bg-surface text-ink-muted border-border hover:border-amber/50"
+            }`}
+          >
+            {ch === "all" ? "Semua" : CHANNEL_LABELS[ch]}
+          </button>
+        ))}
+      </div>
+
+      {/* Content List */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
+          <TrendingUp size={32} className="mx-auto text-ink-muted/50 mb-2" />
+          <p className="text-sm text-ink-muted">Belum ada konten yang dicatat.</p>
+          <p className="text-xs text-ink-muted/60 mt-1">Log konten yang sudah terbit untuk mulai melacak performa.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((item) => (
+            <div key={item.id} className="bg-surface border border-border rounded-xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">{CHANNEL_ICONS[item.channel]}</span>
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">{CONTENT_TYPE_LABELS[item.contentType]}</span>
+                    {item.pillarId && (() => {
+                      const pillar = pillars.find((p) => p.id === item.pillarId);
+                      return pillar ? (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber/10 text-amber">{pillar.name}</span>
+                      ) : null;
+                    })()}
+                  </div>
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-ink hover:text-amber transition-colors mt-1 block truncate">
+                    {item.title}
+                  </a>
+                  <p className="text-[11px] text-ink-muted mt-0.5">
+                    {new Date(item.publishedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => { setEditing(item); setShowForm(true); }} className="p-1.5 text-ink-muted hover:text-ink rounded-lg hover:bg-ink/5 transition-colors" title="Edit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </button>
+                  <button onClick={() => deleteItem(item.id)} className="p-1.5 text-ink-muted hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors" title="Hapus">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+                <Metric label="Likes" value={item.metrics.likes} />
+                <Metric label="Comments" value={item.metrics.comments} />
+                <Metric label="Shares" value={item.metrics.shares} />
+                {item.metrics.saves !== undefined && <Metric label="Saves" value={item.metrics.saves} />}
+              </div>
+              {item.notes && (
+                <p className="text-xs text-ink-muted mt-2 italic">{item.notes}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showForm && (
+        <TrackForm
+          initial={editing}
+          pillars={pillars}
+          onSave={(item) => {
+            if (editing) updateItem(editing.id, item);
+            else addItem(item);
+            setShowForm(false);
+            setEditing(null);
+          }}
+          onClose={() => { setShowForm(false); setEditing(null); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="text-center">
+      <div className="text-sm font-bold text-ink">{value.toLocaleString("id-ID")}</div>
+      <div className="text-[10px] text-ink-muted">{label}</div>
+    </div>
+  );
+}
+
+function TrackForm({
+  initial,
+  pillars,
+  onSave,
+  onClose,
+}: {
+  initial: TrackedContent | null;
+  pillars: ContentPillar[];
+  onSave: (p: TrackedContent) => void;
+  onClose: () => void;
+}) {
+  const [channel, setChannel] = useState<Channel>(initial?.channel ?? "instagram");
+  const [contentType, setContentType] = useState<ContentType>(initial?.contentType ?? "carousel");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [url, setUrl] = useState(initial?.url ?? "");
+  const [publishedAt, setPublishedAt] = useState(initial?.publishedAt ?? new Date().toISOString().slice(0, 10));
+  const [likes, setLikes] = useState(initial?.metrics.likes ?? 0);
+  const [comments, setComments] = useState(initial?.metrics.comments ?? 0);
+  const [shares, setShares] = useState(initial?.metrics.shares ?? 0);
+  const [saves, setSaves] = useState(initial?.metrics.saves ?? 0);
+  const [pillarId, setPillarId] = useState(initial?.pillarId ?? "");
+  const [notes, setNotes] = useState(initial?.notes ?? "");
+
+  const handleSave = () => {
+    if (!title.trim()) return;
+    onSave({
+      id: initial?.id ?? crypto.randomUUID(),
+      channel,
+      contentType,
+      title: title.trim(),
+      url: url.trim(),
+      publishedAt,
+      metrics: { likes, comments, shares, saves, reach: undefined, views: undefined },
+      pillarId: pillarId || undefined,
+      insightId: undefined,
+      notes: notes.trim(),
+      createdAt: initial?.createdAt ?? new Date().toISOString(),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-surface border border-border rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 space-y-4">
+        <h4 className="font-semibold text-ink">{initial ? "Edit Konten" : "Log Konten Baru"}</h4>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Channel</label>
+            <div className="flex gap-1.5">
+              {(Object.keys(CHANNEL_LABELS) as Channel[]).map((ch) => (
+                <button key={ch} onClick={() => setChannel(ch)}
+                  className={`flex-1 px-2 py-1.5 text-xs rounded-lg border transition-colors ${
+                    channel === ch ? "bg-blue-600 text-white border-blue-600" : "bg-surface text-ink-muted border-border hover:border-blue-400"
+                  }`}
+                >
+                  {CHANNEL_LABELS[ch]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Tipe</label>
+            <div className="flex gap-1.5">
+              {(Object.keys(CONTENT_TYPE_LABELS) as ContentType[]).map((ct) => (
+                <button key={ct} onClick={() => setContentType(ct)}
+                  className={`flex-1 px-2 py-1.5 text-xs rounded-lg border transition-colors ${
+                    contentType === ct ? "bg-purple-600 text-white border-purple-600" : "bg-surface text-ink-muted border-border hover:border-purple-400"
+                  }`}
+                >
+                  {CONTENT_TYPE_LABELS[ct]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Judul</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul konten" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">URL</label>
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Tgl Terbit</label>
+            <input type="date" value={publishedAt} onChange={(e) => setPublishedAt(e.target.value)} className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">Metrics</label>
+          <div className="grid grid-cols-4 gap-2">
+            <div>
+              <label className="text-[10px] text-ink-muted block mb-0.5">👍 Likes</label>
+              <input type="number" min="0" value={likes} onChange={(e) => setLikes(Number(e.target.value))} className="w-full border border-border rounded-lg px-2 py-1.5 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+            </div>
+            <div>
+              <label className="text-[10px] text-ink-muted block mb-0.5">💬 Comments</label>
+              <input type="number" min="0" value={comments} onChange={(e) => setComments(Number(e.target.value))} className="w-full border border-border rounded-lg px-2 py-1.5 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+            </div>
+            <div>
+              <label className="text-[10px] text-ink-muted block mb-0.5">🔁 Shares</label>
+              <input type="number" min="0" value={shares} onChange={(e) => setShares(Number(e.target.value))} className="w-full border border-border rounded-lg px-2 py-1.5 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+            </div>
+            <div>
+              <label className="text-[10px] text-ink-muted block mb-0.5">💾 Saves</label>
+              <input type="number" min="0" value={saves} onChange={(e) => setSaves(Number(e.target.value))} className="w-full border border-border rounded-lg px-2 py-1.5 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+            </div>
+          </div>
+        </div>
+
+        {pillars.length > 0 && (
+          <div>
+            <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Content Pillar</label>
+            <select value={pillarId} onChange={(e) => setPillarId(e.target.value)} className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber">
+              <option value="">— Tanpa pillar —</option>
+              {pillars.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Catatan</label>
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Insight, learnings, dll" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber resize-none" />
+        </div>
+
+        <div className="flex items-center gap-2 pt-2">
+          <button onClick={handleSave} disabled={!title.trim()} className="btn-primary flex-1 justify-center text-sm disabled:opacity-60">
+            {initial ? "Simpan Perubahan" : "Log Konten"}
+          </button>
+          <button onClick={onClose} className="btn-ghost flex-1 justify-center text-sm">Batal</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ───────────────────────────────────────────────────────────────
 
 export default function ThreadsClient() {
   const [discussions, setDiscussions] = useLocalStorage<Discussion[]>(
     "mulaibaca-threads-crm",
     SAMPLE_DATA
+  );
+  const [pillars, setPillars] = useLocalStorage<ContentPillar[]>(
+    "mulaibaca-threads-pillars",
+    []
+  );
+  const [tracked, setTracked] = useLocalStorage<TrackedContent[]>(
+    "mulaibaca-threads-track",
+    []
   );
   const [view, setView] = useState<View>({ type: "overview" });
   const [showAddDiscussion, setShowAddDiscussion] = useState(false);
@@ -1917,7 +2539,9 @@ export default function ThreadsClient() {
           />
         )}
         {view.type === "explore" && <ExploreView onSave={saveQuestion} />}
-        {view.type === "insight" && <InsightView discussions={discussions} />}
+        {view.type === "insight" && <InsightView discussions={discussions} pillars={pillars} />}
+        {view.type === "pillars" && <PillarView pillars={pillars} setPillars={setPillars} />}
+        {view.type === "track" && <TrackView tracked={tracked} setTracked={setTracked} pillars={pillars} />}
         {view.type === "discussion" && currentDiscussion && (
           <DiscussionView
             discussion={currentDiscussion}
