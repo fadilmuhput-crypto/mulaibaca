@@ -1853,13 +1853,42 @@ function PillarView({
 }) {
   const [editing, setEditing] = useState<ContentPillar | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const addPillar = (p: ContentPillar) => setPillars((prev) => [...prev, p]);
-  const updatePillar = (id: string, p: ContentPillar) =>
-    setPillars((prev) => prev.map((x) => (x.id === id ? p : x)));
-  const deletePillar = (id: string) => {
+  const addPillar = async (p: ContentPillar) => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/pillars", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(p),
+      });
+      const json = await res.json();
+      if (json.data) setPillars((prev) => [...prev, json.data]);
+    } catch {}
+    setSaving(false);
+  };
+
+  const updatePillar = async (id: string, p: ContentPillar) => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/pillars/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(p),
+      });
+      const json = await res.json();
+      if (json.data) setPillars((prev) => prev.map((x) => (x.id === id ? json.data : x)));
+    } catch {}
+    setSaving(false);
+  };
+
+  const deletePillar = async (id: string) => {
     if (!confirm("Hapus pillar ini?")) return;
-    setPillars((prev) => prev.filter((x) => x.id !== id));
+    try {
+      await fetch(`/api/admin/pillars/${id}`, { method: "DELETE" });
+      setPillars((prev) => prev.filter((x) => x.id !== id));
+    } catch {}
   };
 
   return (
@@ -2829,10 +2858,18 @@ export default function ThreadsClient() {
     "mulaibaca-threads-crm",
     SAMPLE_DATA
   );
-  const [pillars, setPillars] = useLocalStorage<ContentPillar[]>(
-    "mulaibaca-threads-pillars",
-    []
-  );
+  const [pillars, setPillars] = useState<ContentPillar[]>([]);
+  const [pillarsLoading, setPillarsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/pillars")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.data) setPillars(res.data);
+      })
+      .catch(() => {})
+      .finally(() => setPillarsLoading(false));
+  }, []);
   const [tracked, setTracked] = useLocalStorage<TrackedContent[]>(
     "mulaibaca-threads-track",
     []
