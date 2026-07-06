@@ -19,6 +19,7 @@ type View =
   | { type: "pillars" }
   | { type: "track" }
   | { type: "learn" }
+  | { type: "audience" }
   | { type: "discussion"; discussionId: string }
   | { type: "conversation"; discussionId: string; conversationId: string };
 
@@ -132,6 +133,19 @@ interface LearningEntry {
   channel?: Channel;
   pillarId?: string;
   tags: string[];
+  createdAt: string;
+}
+
+// ── Draft Response ──────────────────────────────────────────────────────
+
+interface Draft {
+  id: string;
+  discussionId: string;
+  conversationId: string;
+  audienceName: string;
+  question: string;
+  text: string;
+  aiGenerated: boolean;
   createdAt: string;
 }
 
@@ -332,7 +346,7 @@ function Sidebar({
   onAdd: () => void;
 }) {
   const items: Array<{
-    type: "overview" | "questions" | "explore" | "insight" | "pillars" | "track" | "learn";
+    type: "overview" | "questions" | "explore" | "insight" | "pillars" | "track" | "learn" | "audience";
     icon: typeof BarChart3;
     label: string;
     badge?: number;
@@ -344,6 +358,7 @@ function Sidebar({
     { type: "pillars", icon: BookOpen, label: "Pillar" },
     { type: "track", icon: TrendingUp, label: "Track" },
     { type: "learn", icon: FileText, label: "Learn" },
+    { type: "audience", icon: Users, label: "Audience" },
   ];
 
   return (
@@ -747,6 +762,7 @@ function DiscussionView({
 function ConversationView({
   discussion, conversation, setView,
   onAddMessage, onUpdateStage, onUpdateNotes, onDelete,
+  onSaveDraft,
 }: {
   discussion: Discussion;
   conversation: Conversation;
@@ -755,6 +771,7 @@ function ConversationView({
   onUpdateStage: (stage: Stage) => void;
   onUpdateNotes: (notes: string) => void;
   onDelete: () => void;
+  onSaveDraft: (text: string, aiGenerated: boolean) => void;
 }) {
   const [msgText, setMsgText] = useState("");
   const [msgSender, setMsgSender] = useState<"audience" | "brand">("audience");
@@ -914,6 +931,12 @@ function ConversationView({
                 className="btn-secondary flex items-center gap-1.5 text-xs flex-1"
               >
                 <Copy size={12} /> {copied ? "Disalin!" : "Copy ke Threads"}
+              </button>
+              <button
+                onClick={() => { onSaveDraft(aiResponse, true); setAiResponse(""); }}
+                className="btn-secondary flex items-center gap-1.5 text-xs flex-1"
+              >
+                <FileText size={12} /> Simpan Draft
               </button>
               <button
                 onClick={handleUseResponse}
@@ -2605,6 +2628,200 @@ function LearnForm({
   );
 }
 
+// ── AudienceView ────────────────────────────────────────────────────────
+
+function AudienceView({
+  discussions,
+  drafts,
+  setDrafts,
+  pillars,
+}: {
+  discussions: Discussion[];
+  drafts: Draft[];
+  setDrafts: (v: Draft[] | ((p: Draft[]) => Draft[])) => void;
+  pillars: ContentPillar[];
+}) {
+  const [draftFilter, setDraftFilter] = useState<"all" | "ai" | "manual">("all");
+
+  const withConvs = discussions.filter((d) => d.conversations.length > 0);
+  const totalConversations = withConvs.reduce((a, d) => a + d.conversations.length, 0);
+  const totalMessages = withConvs.reduce((a, d) => a + d.conversations.reduce((a2, c) => a2 + c.messages.length, 0), 0);
+
+  const individuConvs = withConvs.filter((d) => d.audience === "individu")
+    .reduce((a, d) => a + d.conversations.length, 0);
+  const keluargaConvs = withConvs.filter((d) => d.audience === "keluarga")
+    .reduce((a, d) => a + d.conversations.length, 0);
+
+  const stageCounts = {} as Record<Stage, number>;
+  withConvs.forEach((d) => d.conversations.forEach((c) => {
+    stageCounts[c.stage] = (stageCounts[c.stage] ?? 0) + 1;
+  }));
+
+  const topStages = (Object.entries(stageCounts) as [Stage, number][])
+    .sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  const themeCounts = {} as Record<string, number>;
+  discussions.forEach((d) => {
+    if (d.theme) themeCounts[d.theme] = (themeCounts[d.theme] ?? 0) + 1;
+  });
+  const topThemes = Object.entries(themeCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+  const filteredDrafts = draftFilter === "all"
+    ? drafts
+    : drafts.filter((d) => draftFilter === "ai" ? d.aiGenerated : !d.aiGenerated);
+
+  const deleteDraft = (id: string) => {
+    if (!confirm("Hapus draft ini?")) return;
+    setDrafts((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-h2">Audience Discovery</h2>
+        <p className="text-sm text-ink-secondary mt-1">
+          Wawasan tentang audiens, pola percakapan, dan draft respons.
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-4 gap-3">
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <div className="text-2xl font-bold text-ink">{withConvs.length}</div>
+          <div className="text-[11px] text-ink-muted mt-0.5">Pertanyaan Aktif</div>
+        </div>
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <div className="text-2xl font-bold text-ink">{totalConversations}</div>
+          <div className="text-[11px] text-ink-muted mt-0.5">Total Percakapan</div>
+        </div>
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <div className="text-2xl font-bold text-ink">{totalMessages}</div>
+          <div className="text-[11px] text-ink-muted mt-0.5">Total Pesan</div>
+        </div>
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <div className="text-2xl font-bold text-ink">{drafts.length}</div>
+          <div className="text-[11px] text-ink-muted mt-0.5">Draft Tersimpan</div>
+        </div>
+      </div>
+
+      {/* Audience Breakdown */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">Audience Breakdown</h4>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-ink">Individu</span>
+              <span className="text-sm font-bold text-ink">{individuConvs}</span>
+            </div>
+            <div className="w-full h-2 bg-ink/5 rounded-full overflow-hidden">
+              <div className="h-full bg-amber rounded-full" style={{ width: `${totalConversations ? (individuConvs / totalConversations) * 100 : 0}%` }} />
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-sm text-ink">Keluarga</span>
+              <span className="text-sm font-bold text-ink">{keluargaConvs}</span>
+            </div>
+            <div className="w-full h-2 bg-ink/5 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${totalConversations ? (keluargaConvs / totalConversations) * 100 : 0}%` }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">Stage Distribution</h4>
+          {topStages.length === 0 ? (
+            <p className="text-sm text-ink-muted">Belum ada data.</p>
+          ) : (
+            <div className="space-y-2">
+              {topStages.map(([stage, count]) => {
+                const cfg = STAGE_CONFIG[stage];
+                const pct = totalConversations ? Math.round((count / totalConversations) * 100) : 0;
+                return (
+                  <div key={stage}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-ink">{cfg.emoji} {cfg.label}</span>
+                      <span className="text-ink-muted">{count} ({pct}%)</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-ink/5 rounded-full overflow-hidden mt-1">
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: cfg.color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Top Themes */}
+      {topThemes.length > 0 && (
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">Top Themes</h4>
+          <div className="flex flex-wrap gap-2">
+            {topThemes.map(([theme, count]) => (
+              <span key={theme} className="px-2.5 py-1 text-xs font-medium rounded-full bg-amber/10 text-amber border border-amber/20">
+                {theme} · {count}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Drafts Queue */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider">Draft Queue ({drafts.length})</h4>
+          {drafts.length > 0 && (
+            <div className="flex gap-1.5">
+              {(["all", "ai", "manual"] as const).map((f) => (
+                <button key={f} onClick={() => setDraftFilter(f)}
+                  className={`px-2 py-1 text-[10px] font-semibold rounded-lg border transition-colors ${
+                    draftFilter === f ? "bg-amber text-white border-amber" : "bg-surface text-ink-muted border-border"
+                  }`}
+                >
+                  {f === "all" ? "Semua" : f === "ai" ? "AI" : "Manual"}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {filteredDrafts.length === 0 ? (
+          <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
+            <FileText size={24} className="mx-auto text-ink-muted/50 mb-1" />
+            <p className="text-sm text-ink-muted">Belum ada draft.</p>
+            <p className="text-xs text-ink-muted/60 mt-0.5">Simpan draft dari percakapan untuk di-review nanti.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filteredDrafts.map((draft) => (
+              <div key={draft.id} className="bg-surface border border-border rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-ink">{draft.audienceName}</span>
+                      {draft.aiGenerated && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">✨ AI</span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-ink-muted line-clamp-1 mb-1">{draft.question}</p>
+                    <p className="text-sm text-ink bg-parchment rounded-lg p-2.5 whitespace-pre-wrap">{draft.text}</p>
+                    <p className="text-[10px] text-ink-muted/60 mt-1">
+                      {new Date(draft.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                  <button onClick={() => deleteDraft(draft.id)} className="p-1.5 text-ink-muted hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors shrink-0" title="Hapus draft">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main ───────────────────────────────────────────────────────────────
 
 export default function ThreadsClient() {
@@ -2622,6 +2839,10 @@ export default function ThreadsClient() {
   );
   const [learnings, setLearnings] = useLocalStorage<LearningEntry[]>(
     "mulaibaca-threads-learn",
+    []
+  );
+  const [drafts, setDrafts] = useLocalStorage<Draft[]>(
+    "mulaibaca-threads-drafts",
     []
   );
   const [view, setView] = useState<View>({ type: "overview" });
@@ -2809,6 +3030,7 @@ export default function ThreadsClient() {
         {view.type === "pillars" && <PillarView pillars={pillars} setPillars={setPillars} />}
         {view.type === "track" && <TrackView tracked={tracked} setTracked={setTracked} pillars={pillars} />}
         {view.type === "learn" && <LearnView learnings={learnings} setLearnings={setLearnings} pillars={pillars} />}
+        {view.type === "audience" && <AudienceView discussions={discussions} drafts={drafts} setDrafts={setDrafts} pillars={pillars} />}
         {view.type === "discussion" && currentDiscussion && (
           <DiscussionView
             discussion={currentDiscussion}
@@ -2833,6 +3055,19 @@ export default function ThreadsClient() {
               updateNotes(currentDiscussion.id, currentConversation.id, notes)
             }
             onDelete={() => deleteConversation(currentDiscussion.id, currentConversation.id)}
+            onSaveDraft={(text, aiGenerated) => {
+              const d: Draft = {
+                id: crypto.randomUUID(),
+                discussionId: currentDiscussion.id,
+                conversationId: currentConversation.id,
+                audienceName: currentConversation.audienceName,
+                question: currentDiscussion.question,
+                text,
+                aiGenerated,
+                createdAt: new Date().toISOString(),
+              };
+              setDrafts((prev) => [d, ...prev]);
+            }}
           />
         )}
           </>
