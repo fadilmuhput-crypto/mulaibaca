@@ -8,6 +8,7 @@ import RichEditor from "@/components/RichEditor";
 type Props = {
   initial?: {
     id: string;
+    slug: string;
     title: string;
     content: string;
     excerpt: string;
@@ -194,6 +195,19 @@ export default function BlogForm({ initial }: Props) {
         <button type="submit" disabled={saving} className="btn-primary">
           {saving ? "Menyimpan…" : initial ? "Simpan Perubahan" : "Buat Artikel"}
         </button>
+        {initial?.slug && (
+          <Link
+            href={`/admin/blog/preview/${initial.id}`}
+            target="_blank"
+            className="btn-ghost-ink flex items-center gap-1.5"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Preview
+          </Link>
+        )}
         <Link href="/admin/blog" className="btn-ghost-ink">
           Batal
         </Link>

@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 });
-  if (!ALLOWED.includes(file.type)) return NextResponse.json({ error: "Format tidak didukung. Gunakan JPG, PNG, atau WebP." }, { status: 400 });
-  if (file.size > MAX_BYTES) return NextResponse.json({ error: "Ukuran file maksimal 5 MB" }, { status: 400 });
+  if (!ALLOWED.includes(file.type)) return NextResponse.json({ error: `Format ${file.type} tidak didukung. Gunakan JPG, PNG, WebP, atau GIF.` }, { status: 400 });
+  if (file.size > MAX_BYTES) return NextResponse.json({ error: `Ukuran file ${(file.size / 1024 / 1024).toFixed(1)} MB melebihi batas maksimal 5 MB` }, { status: 400 });
 
   const ext = file.type.split("/")[1].replace("jpeg", "jpg");
   const filename = `${user.id}-${Date.now()}.${ext}`;
@@ -29,7 +29,12 @@ export async function POST(req: NextRequest) {
     .from(BUCKET)
     .upload(filename, bytes, { contentType: file.type, upsert: false });
 
-  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
+  if (uploadError) {
+    return NextResponse.json({
+      error: `Gagal upload ke storage: ${uploadError.message}`,
+      detail: { bucket: BUCKET, filename, message: uploadError.message },
+    }, { status: 500 });
+  }
 
   const { data: { publicUrl } } = admin.storage.from(BUCKET).getPublicUrl(filename);
   return NextResponse.json({ url: publicUrl });

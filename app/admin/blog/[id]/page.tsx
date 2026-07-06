@@ -17,6 +17,7 @@ export default async function EditBlogPage({ params }: PageProps) {
       <BlogForm
         initial={{
           id: post.id,
+          slug: post.slug,
           title: post.title,
           content: post.content,
           excerpt: post.excerpt,

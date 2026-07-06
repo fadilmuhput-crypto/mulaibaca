@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Bold, Italic, Heading, List, ListOrdered, Image, Eye, EyeOff } from "lucide-react";
 
 type Props = {
@@ -13,12 +13,28 @@ const TOOLBAR_BTN = "w-9 h-9 rounded-lg flex items-center justify-center text-in
 export default function RichEditor({ value, onChange }: Props) {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isInternal = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (!isInternal.current && editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value;
+    }
+    isInternal.current = false;
+  }, [value]);
 
   const exec = useCallback((cmd: string, val?: string) => {
     document.execCommand(cmd, false, val);
     if (editorRef.current) editorRef.current.focus();
+    if (onChange) {
+      isInternal.current = true;
+      onChange(editorRef.current?.innerHTML ?? "");
+    }
+  }, [onChange]);
+
+  const handleEditorInput = useCallback(() => {
+    isInternal.current = true;
     if (onChange) onChange(editorRef.current?.innerHTML ?? "");
   }, [onChange]);
 
@@ -30,20 +46,16 @@ export default function RichEditor({ value, onChange }: Props) {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/upload/blog-image", { method: "POST", body: fd });
-      if (!res.ok) throw new Error("Upload gagal");
-      const { url } = await res.json();
-      exec("insertImage", url);
-    } catch {
-      alert("Gagal upload gambar");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Upload gagal");
+      exec("insertImage", data.url);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Gagal upload gambar");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [exec]);
-
-  const handleEditorInput = useCallback(() => {
-    if (onChange) onChange(editorRef.current?.innerHTML ?? "");
-  }, [onChange]);
 
   return (
     <div className="space-y-2">
@@ -116,7 +128,6 @@ export default function RichEditor({ value, onChange }: Props) {
           role="textbox"
           aria-label="Konten artikel"
           aria-multiline="true"
-          dangerouslySetInnerHTML={{ __html: value }}
         />
       )}
     </div>
