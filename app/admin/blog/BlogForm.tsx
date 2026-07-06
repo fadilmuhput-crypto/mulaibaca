@@ -145,11 +145,12 @@ export default function BlogForm({ initial }: Props) {
                   form.append("file", file);
                   try {
                     const res = await fetch("/api/upload/blog-image", { method: "POST", body: form });
-                    if (!res.ok) throw new Error("Gagal upload");
                     const data = await res.json();
+                    if (!res.ok) throw new Error(data.error ?? `Server error (${res.status})`);
                     setCoverImage(data.url);
-                  } catch {
-                    setError("Gagal mengupload gambar");
+                    setError("");
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "Gagal mengupload gambar");
                   }
                 }}
               />
