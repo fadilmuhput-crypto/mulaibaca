@@ -18,6 +18,7 @@ type View =
   | { type: "insight" }
   | { type: "pillars" }
   | { type: "track" }
+  | { type: "learn" }
   | { type: "discussion"; discussionId: string }
   | { type: "conversation"; discussionId: string; conversationId: string };
 
@@ -116,6 +117,21 @@ interface TrackedContent {
   pillarId?: string;
   insightId?: string;
   notes: string;
+  createdAt: string;
+}
+
+// ── Learning Log ────────────────────────────────────────────────────────
+
+type LearningCategory = "worked" | "not_worked" | "insight" | "experiment";
+
+interface LearningEntry {
+  id: string;
+  category: LearningCategory;
+  title: string;
+  content: string;
+  channel?: Channel;
+  pillarId?: string;
+  tags: string[];
   createdAt: string;
 }
 
@@ -316,7 +332,7 @@ function Sidebar({
   onAdd: () => void;
 }) {
   const items: Array<{
-    type: "overview" | "questions" | "explore" | "insight" | "pillars" | "track";
+    type: "overview" | "questions" | "explore" | "insight" | "pillars" | "track" | "learn";
     icon: typeof BarChart3;
     label: string;
     badge?: number;
@@ -327,6 +343,7 @@ function Sidebar({
     { type: "insight", icon: Eye, label: "Insight" },
     { type: "pillars", icon: BookOpen, label: "Pillar" },
     { type: "track", icon: TrendingUp, label: "Track" },
+    { type: "learn", icon: FileText, label: "Learn" },
   ];
 
   return (
@@ -2343,6 +2360,251 @@ function TrackForm({
   );
 }
 
+// ── LearnView ───────────────────────────────────────────────────────────
+
+const CATEGORY_CONFIG: Record<LearningCategory, { label: string; color: string; bg: string; emoji: string }> = {
+  worked:      { label: "Yang Berhasil",  color: "#065F46", bg: "#D1FAE5", emoji: "✅" },
+  not_worked:  { label: "Yang Gagal",    color: "#991B1B", bg: "#FEE2E2", emoji: "❌" },
+  insight:     { label: "Insight Baru",  color: "#1E40AF", bg: "#DBEAFE", emoji: "💡" },
+  experiment:  { label: "Eksperimen",    color: "#6B21A8", bg: "#F3E8FF", emoji: "🧪" },
+};
+
+function LearnView({
+  learnings,
+  setLearnings,
+  pillars,
+}: {
+  learnings: LearningEntry[];
+  setLearnings: (v: LearningEntry[] | ((p: LearningEntry[]) => LearningEntry[])) => void;
+  pillars: ContentPillar[];
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<LearningEntry | null>(null);
+  const [catFilter, setCatFilter] = useState<LearningCategory | "all">("all");
+
+  const filtered = catFilter === "all" ? learnings : learnings.filter((l) => l.category === catFilter);
+
+  const addEntry = (e: LearningEntry) => setLearnings((prev) => [e, ...prev]);
+  const updateEntry = (id: string, e: LearningEntry) =>
+    setLearnings((prev) => prev.map((x) => (x.id === id ? e : x)));
+  const deleteEntry = (id: string) => {
+    if (!confirm("Hapus catatan ini?")) return;
+    setLearnings((prev) => prev.filter((x) => x.id !== id));
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-h2">Learning Log</h2>
+          <p className="text-sm text-ink-secondary mt-1">
+            Catat apa yang berhasil, gagal, dan insight dari konten yang sudah terbit.
+          </p>
+        </div>
+        <button onClick={() => { setEditing(null); setShowForm(true); }} className="btn-primary flex items-center gap-1.5 text-sm">
+          <Plus size={14} /> Catat Learning
+        </button>
+      </div>
+
+      {/* Category Filter */}
+      <div className="flex gap-2">
+        {(["all", "worked", "not_worked", "insight", "experiment"] as const).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setCatFilter(cat)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+              catFilter === cat
+                ? "bg-amber text-white border-amber"
+                : "bg-surface text-ink-muted border-border hover:border-amber/50"
+            }`}
+          >
+            {cat === "all" ? "Semua" : CATEGORY_CONFIG[cat].emoji + " " + CATEGORY_CONFIG[cat].label}
+          </button>
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
+          <FileText size={32} className="mx-auto text-ink-muted/50 mb-2" />
+          <p className="text-sm text-ink-muted">Belum ada catatan learning.</p>
+          <p className="text-xs text-ink-muted/60 mt-1">Dokumentasikan insight dari setiap konten untuk iterasi strategi ke depan.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((entry) => {
+            const cfg = CATEGORY_CONFIG[entry.category];
+            const pillar = entry.pillarId ? pillars.find((p) => p.id === entry.pillarId) : null;
+            return (
+              <div key={entry.id} className="bg-surface border border-border rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ color: cfg.color, backgroundColor: cfg.bg }}>
+                        {cfg.emoji} {cfg.label}
+                      </span>
+                      {entry.channel && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+                          {CHANNEL_LABELS[entry.channel]}
+                        </span>
+                      )}
+                      {pillar && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber/10 text-amber">
+                          {pillar.name}
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="font-semibold text-ink text-sm">{entry.title}</h4>
+                    <p className="text-sm text-ink-muted mt-1 whitespace-pre-wrap">{entry.content}</p>
+                    {entry.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {entry.tags.map((tag) => (
+                          <span key={tag} className="text-[10px] text-ink-muted px-1.5 py-0.5 rounded bg-ink/5">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-[11px] text-ink-muted/60 mt-2">
+                      {new Date(entry.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => { setEditing(entry); setShowForm(true); }} className="p-1.5 text-ink-muted hover:text-ink rounded-lg hover:bg-ink/5 transition-colors" title="Edit">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
+                    <button onClick={() => deleteEntry(entry.id)} className="p-1.5 text-ink-muted hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors" title="Hapus">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {showForm && (
+        <LearnForm
+          initial={editing}
+          pillars={pillars}
+          onSave={(entry) => {
+            if (editing) updateEntry(editing.id, entry);
+            else addEntry(entry);
+            setShowForm(false);
+            setEditing(null);
+          }}
+          onClose={() => { setShowForm(false); setEditing(null); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function LearnForm({
+  initial,
+  pillars,
+  onSave,
+  onClose,
+}: {
+  initial: LearningEntry | null;
+  pillars: ContentPillar[];
+  onSave: (p: LearningEntry) => void;
+  onClose: () => void;
+}) {
+  const [category, setCategory] = useState<LearningCategory>(initial?.category ?? "insight");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [content, setContent] = useState(initial?.content ?? "");
+  const [channel, setChannel] = useState<Channel | "">(initial?.channel ?? "");
+  const [pillarId, setPillarId] = useState(initial?.pillarId ?? "");
+  const [tagsInput, setTagsInput] = useState(initial?.tags.join(", ") ?? "");
+
+  const handleSave = () => {
+    if (!title.trim()) return;
+    onSave({
+      id: initial?.id ?? crypto.randomUUID(),
+      category,
+      title: title.trim(),
+      content: content.trim(),
+      channel: (channel as Channel) || undefined,
+      pillarId: pillarId || undefined,
+      tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
+      createdAt: initial?.createdAt ?? new Date().toISOString(),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-surface border border-border rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 space-y-4">
+        <h4 className="font-semibold text-ink">{initial ? "Edit Learning" : "Catat Learning Baru"}</h4>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1.5">Kategori</label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {(Object.keys(CATEGORY_CONFIG) as LearningCategory[]).map((cat) => (
+              <button key={cat} onClick={() => setCategory(cat)}
+                className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-colors ${
+                  category === cat
+                    ? "text-white border-transparent" + " bg-" + cat === "worked" ? "[#065F46]" : cat === "not_worked" ? "[#991B1B]" : cat === "insight" ? "[#1E40AF]" : "[#6B21A8]"
+                    : "bg-surface text-ink-muted border-border hover:border-amber/50"
+                }`}
+                style={category === cat ? { backgroundColor: CATEGORY_CONFIG[cat].color, borderColor: CATEGORY_CONFIG[cat].color } : {}}
+              >
+                {CATEGORY_CONFIG[cat].emoji} {CATEGORY_CONFIG[cat].label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Judul</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Mis: Carousel reading slump perform lebih baik" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Catatan</label>
+          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={4} placeholder="Apa yang terjadi? Apa yang dipelajari?" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber resize-none" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Channel (opsional)</label>
+            <select value={channel} onChange={(e) => setChannel(e.target.value as Channel | "")} className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber">
+              <option value="">— Semua channel —</option>
+              {(Object.keys(CHANNEL_LABELS) as Channel[]).map((ch) => (
+                <option key={ch} value={ch}>{CHANNEL_LABELS[ch]}</option>
+              ))}
+            </select>
+          </div>
+          {pillars.length > 0 && (
+            <div>
+              <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Pillar (opsional)</label>
+              <select value={pillarId} onChange={(e) => setPillarId(e.target.value)} className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber">
+                <option value="">— Tanpa pillar —</option>
+                {pillars.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Tag (pisahkan dengan koma)</label>
+          <input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="carousel, reading slump, engagement" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+        </div>
+
+        <div className="flex items-center gap-2 pt-2">
+          <button onClick={handleSave} disabled={!title.trim()} className="btn-primary flex-1 justify-center text-sm disabled:opacity-60">
+            {initial ? "Simpan Perubahan" : "Catat Learning"}
+          </button>
+          <button onClick={onClose} className="btn-ghost flex-1 justify-center text-sm">Batal</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ───────────────────────────────────────────────────────────────
 
 export default function ThreadsClient() {
@@ -2356,6 +2618,10 @@ export default function ThreadsClient() {
   );
   const [tracked, setTracked] = useLocalStorage<TrackedContent[]>(
     "mulaibaca-threads-track",
+    []
+  );
+  const [learnings, setLearnings] = useLocalStorage<LearningEntry[]>(
+    "mulaibaca-threads-learn",
     []
   );
   const [view, setView] = useState<View>({ type: "overview" });
@@ -2542,6 +2808,7 @@ export default function ThreadsClient() {
         {view.type === "insight" && <InsightView discussions={discussions} pillars={pillars} />}
         {view.type === "pillars" && <PillarView pillars={pillars} setPillars={setPillars} />}
         {view.type === "track" && <TrackView tracked={tracked} setTracked={setTracked} pillars={pillars} />}
+        {view.type === "learn" && <LearnView learnings={learnings} setLearnings={setLearnings} pillars={pillars} />}
         {view.type === "discussion" && currentDiscussion && (
           <DiscussionView
             discussion={currentDiscussion}
