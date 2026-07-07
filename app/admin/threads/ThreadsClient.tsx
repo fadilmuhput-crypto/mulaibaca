@@ -163,6 +163,13 @@ interface AIFeedback {
   createdAt: string;
 }
 
+// ── Revisi ──────────────────────────────────────────────────────────────
+
+interface Revision {
+  instruction: string;
+  output: string;
+}
+
 // ── Constants ──────────────────────────────────────────────────────────
 
 const STAGE_CONFIG: Record<Stage, { label: string; color: string; bg: string; border: string; emoji: string }> = {
@@ -843,11 +850,15 @@ function ConversationView({
   const [aiError, setAiError] = useState("");
   const [notes, setNotes] = useState(conversation.notes);
   const [copied, setCopied] = useState(false);
+  const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [revInstruction, setRevInstruction] = useState("");
+  const [revising, setRevising] = useState(false);
 
   const generateResponse = async () => {
     setIsGenerating(true);
     setAiResponse("");
     setAiError("");
+    setRevisions([]);
     try {
       const res = await fetch("/api/admin/threads-ai", {
         method: "POST",
@@ -860,6 +871,7 @@ function ConversationView({
             stage: conversation.stage,
             audience: discussion.audience,
             preferences: aiPreferences || undefined,
+            revisions: undefined,
           },
         }),
       });
@@ -883,6 +895,42 @@ function ConversationView({
     if (!aiResponse.trim()) return;
     onAddMessage(aiResponse, "brand", true);
     setAiResponse("");
+  };
+
+  const reviseResponse = async () => {
+    if (!revInstruction.trim()) return;
+    setRevising(true);
+    setAiResponse("");
+    setAiError("");
+    const prev = revisions.length > 0 ? revisions[revisions.length - 1].output : "";
+    try {
+      const res = await fetch("/api/admin/threads-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "response",
+          data: {
+            question: discussion.question,
+            messages: conversation.messages,
+            stage: conversation.stage,
+            audience: discussion.audience,
+            preferences: aiPreferences || undefined,
+            revisions: [...revisions, { instruction: revInstruction, output: prev || revInstruction }],
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.error) setAiError(data.error);
+      else {
+        setRevisions((prev) => [...prev, { instruction: revInstruction, output: data.text || "" }]);
+        setAiResponse(data.text || "");
+        setRevInstruction("");
+      }
+    } catch {
+      setAiError("Gagal terhubung ke server.");
+    } finally {
+      setRevising(false);
+    }
   };
 
   return (
@@ -1015,6 +1063,35 @@ function ConversationView({
               aiOutput={aiResponse}
               onFeedback={(rating, notes) => onAiFeedback("response", discussion.question, aiResponse, rating, notes)}
             />
+            <div className="border-t border-border/60 pt-3 space-y-2">
+              {revisions.length > 0 && (
+                <div className="space-y-1">
+                  {revisions.map((r, i) => (
+                    <p key={i} className="text-[11px] text-ink-muted flex gap-1">
+                      <span className="text-amber font-bold shrink-0">Revisi #{i + 1}:</span>
+                      <span className="line-clamp-1">{r.instruction}</span>
+                    </p>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-1.5">
+                <input
+                  value={revInstruction}
+                  onChange={(e) => setRevInstruction(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") reviseResponse(); }}
+                  placeholder="Minta revisi… (contoh: pendekin, tambah emoji, ganti angle)"
+                  className="flex-1 border border-border rounded-lg px-2.5 py-1.5 text-xs text-ink bg-surface outline-none focus:border-amber"
+                />
+                <button
+                  onClick={reviseResponse}
+                  disabled={revising || !revInstruction.trim()}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber text-white hover:bg-amber/90 transition-colors disabled:opacity-60 flex items-center gap-1"
+                >
+                  {revising ? <RefreshCw size={11} className="animate-spin" /> : <Sparkles size={11} />}
+                  Revisi
+                </button>
+              </div>
+            </div>
           </>
         )}
 
@@ -1276,6 +1353,9 @@ function InsightView({ discussions, pillars, onAiFeedback, aiPreferences = "" }:
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
   const [pillarId, setPillarId] = useState("");
+  const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [revInstruction, setRevInstruction] = useState("");
+  const [revising, setRevising] = useState(false);
 
   const selected = withConvs.find((d) => d.id === selectedId);
 
@@ -1283,6 +1363,55 @@ function InsightView({ discussions, pillars, onAiFeedback, aiPreferences = "" }:
     setSelectedId(id);
     const d = withConvs.find((x) => x.id === id);
     if (d?.audience) setAudience(d.audience);
+    setInsight(null);
+    setRevisions([]);
+  };
+
+  const reviseInsight = async () => {
+    if (!revInstruction.trim() || !selected || !insight) return;
+    setRevising(true);
+    setError("");
+    setInsight(null);
+    const prev = revisions.length > 0 ? revisions[revisions.length - 1].output : JSON.stringify(insight);
+    try {
+      const res = await fetch("/api/admin/threads-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "insight",
+          data: {
+            question: selected.question,
+            conversations: selected.conversations,
+            audience,
+            pillar: pillarId ? pillars.find((p) => p.id === pillarId) : undefined,
+            preferences: aiPreferences || undefined,
+            revisions: [...revisions, { instruction: revInstruction, output: prev }],
+          },
+        }),
+      });
+      let data;
+      try { data = await res.json(); } catch {
+        setError(`Server error (${res.status}) — coba lagi.`);
+        return;
+      }
+      if (data.error) { setError(data.error); return; }
+      try {
+        const jsonStr = data.text.match(/\{[\s\S]*\}/)?.[0];
+        if (jsonStr) {
+          const parsed = JSON.parse(jsonStr) as InsightResult;
+          setRevisions((prev) => [...prev, { instruction: revInstruction, output: JSON.stringify(parsed) }]);
+          setInsight(parsed);
+          setRevInstruction("");
+        }
+        else setError("Format respons tidak valid.");
+      } catch {
+        setError("Gagal parse respons AI.");
+      }
+    } catch {
+      setError("Gagal terhubung ke server.");
+    } finally {
+      setRevising(false);
+    }
   };
 
   const generate = async () => {
@@ -1290,6 +1419,7 @@ function InsightView({ discussions, pillars, onAiFeedback, aiPreferences = "" }:
     setIsGenerating(true);
     setInsight(null);
     setError("");
+    setRevisions([]);
     try {
       const res = await fetch("/api/admin/threads-ai", {
         method: "POST",
@@ -1600,6 +1730,35 @@ function InsightView({ discussions, pillars, onAiFeedback, aiPreferences = "" }:
               notes
             )}
           />
+          <div className="border-t border-border/60 pt-3 space-y-2">
+            {revisions.length > 0 && (
+              <div className="space-y-1">
+                {revisions.map((r, i) => (
+                  <p key={i} className="text-[11px] text-ink-muted flex gap-1">
+                    <span className="text-amber font-bold shrink-0">Revisi #{i + 1}:</span>
+                    <span className="line-clamp-1">{r.instruction}</span>
+                  </p>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-1.5">
+              <input
+                value={revInstruction}
+                onChange={(e) => setRevInstruction(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") reviseInsight(); }}
+                placeholder="Minta revisi insight… (contoh: fokus ke tema bonding, tambah ide blog)"
+                className="flex-1 border border-border rounded-lg px-2.5 py-1.5 text-xs text-ink bg-surface outline-none focus:border-amber"
+              />
+              <button
+                onClick={reviseInsight}
+                disabled={revising || !revInstruction.trim()}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber text-white hover:bg-amber/90 transition-colors disabled:opacity-60 flex items-center gap-1"
+              >
+                {revising ? <RefreshCw size={11} className="animate-spin" /> : <Sparkles size={11} />}
+                Revisi
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -2767,11 +2926,15 @@ function QuickEngageModal({
   const [theme, setTheme] = useState("");
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [revInstruction, setRevInstruction] = useState("");
+  const [revising, setRevising] = useState(false);
 
   const generateDraft = async () => {
     if (!handle.trim() || !postContext.trim()) return;
     setGenerating(true);
     setError("");
+    setRevisions([]);
     try {
       const res = await fetch("/api/admin/threads-ai", {
         method: "POST",
@@ -2791,6 +2954,37 @@ function QuickEngageModal({
       setError("Gagal terhubung ke AI.");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const reviseDraft = async () => {
+    if (!revInstruction.trim() || !draft.trim()) return;
+    setRevising(true);
+    setError("");
+    setDraft("");
+    const prev = revisions.length > 0 ? revisions[revisions.length - 1].output : draft;
+    try {
+      const res = await fetch("/api/admin/threads-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "engage",
+          data: { handle: handle.trim(), postContext: postContext.trim(), topic: topic.trim() || undefined, audience, preferences: aiPreferences || undefined, revisions: [...revisions, { instruction: revInstruction, output: prev || revInstruction }] },
+        }),
+      });
+      const json = await res.json();
+      if (json.error) setError(json.error);
+      else {
+        const newDraft = json.draft || json.text || "";
+        setRevisions((prev) => [...prev, { instruction: revInstruction, output: newDraft }]);
+        setDraft(newDraft);
+        setTheme(json.theme || theme || "membaca");
+        setRevInstruction("");
+      }
+    } catch {
+      setError("Gagal terhubung ke AI.");
+    } finally {
+      setRevising(false);
     }
   };
 
@@ -2851,7 +3045,7 @@ function QuickEngageModal({
               </p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => { setDraft(""); setTheme(""); }} className="btn-ghost flex-1 justify-center text-sm">
+              <button onClick={() => { setDraft(""); setTheme(""); setRevisions([]); }} className="btn-ghost flex-1 justify-center text-sm">
                 Generate Ulang
               </button>
               <button onClick={() => onSave(theme || topic || "membaca", theme || topic || "membaca", audience, handle.trim(), draft.trim())}
@@ -2873,6 +3067,35 @@ function QuickEngageModal({
                 notes
               )}
             />
+            <div className="border-t border-border/60 pt-3 space-y-2">
+              {revisions.length > 0 && (
+                <div className="space-y-1">
+                  {revisions.map((r, i) => (
+                    <p key={i} className="text-[11px] text-ink-muted flex gap-1">
+                      <span className="text-amber font-bold shrink-0">Revisi #{i + 1}:</span>
+                      <span className="line-clamp-1">{r.instruction}</span>
+                    </p>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-1.5">
+                <input
+                  value={revInstruction}
+                  onChange={(e) => setRevInstruction(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") reviseDraft(); }}
+                  placeholder="Minta revisi… (contoh: pendekin, tambah emoji)"
+                  className="flex-1 border border-border rounded-lg px-2.5 py-1.5 text-xs text-ink bg-surface outline-none focus:border-amber"
+                />
+                <button
+                  onClick={reviseDraft}
+                  disabled={revising || !revInstruction.trim()}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber text-white hover:bg-amber/90 transition-colors disabled:opacity-60 flex items-center gap-1"
+                >
+                  {revising ? <RefreshCw size={11} className="animate-spin" /> : <Sparkles size={11} />}
+                  Revisi
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

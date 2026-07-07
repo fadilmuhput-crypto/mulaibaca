@@ -111,11 +111,12 @@ Mulai langsung dengan karakter [ dan akhiri dengan ].
     maxTokens = 800;
 
   } else if (type === "response") {
-    const { question, messages, stage, audience } = data as {
+    const { question, messages, stage, audience, revisions } = data as {
       question: string;
       messages: Array<{ sender: string; text: string }>;
       stage: string;
       audience?: string;
+      revisions?: Array<{ instruction: string; output: string }>;
     };
     const stageCtx = STAGE_CONTEXT[stage] || STAGE_CONTEXT.chatting;
     const pitch =
@@ -125,6 +126,10 @@ Mulai langsung dengan karakter [ dan akhiri dengan ].
     const history = messages
       .map((m) => `${m.sender === "audience" ? "AUDIENS" : "BRAND"}: ${m.text}`)
       .join("\n");
+
+    const revBlock = revisions && revisions.length > 0
+      ? `\n\n--- RIWAYAT REVISI ---\n${revisions.map((r) => `User minta: ${r.instruction}\nOutput sebelumnya: ${r.output}`).join("\n\n")}\n---\n\nBerdasarkan riwayat di atas, terapkan revisi terbaru. Output versi revisi saja.`
+      : "";
 
     userPrompt = `Pertanyaan yang diposting di Threads: "${question}"
 
@@ -141,20 +146,25 @@ Tulis SATU balasan singkat untuk pesan terakhir audiens.
 - Biasanya akhiri dengan 1 pertanyaan ringan — TAPI kalau balasan brand sebelumnya sudah bertanya beruntun, kali ini cukup relate/validasi tanpa pertanyaan
 - Jika stage "ready", selipkan mulaibaca sambil lalu: ${pitch} — jangan kedengeran kayak iklan
 
-Output: teks balasan saja, tanpa label atau penjelasan.`;
+Output: teks balasan saja, tanpa label atau penjelasan.${revBlock}`;
 
   } else if (type === "engage") {
-    const { handle, postContext, topic, audience } = data as {
+    const { handle, postContext, topic, audience, revisions } = data as {
       handle: string;
       postContext: string;
       topic?: string;
       audience?: string;
+      revisions?: Array<{ instruction: string; output: string }>;
     };
     const persona =
       audience === "individu"
         ? "individu Indonesia (18-35) yang membangun kebiasaan membaca"
         : "orang tua / keluarga Indonesia yang menumbuhkan kebiasaan baca bersama anak";
     const audienceTag = audience === "individu" ? "individu" : "keluarga";
+
+    const revBlock = revisions && revisions.length > 0
+      ? `\n\n--- RIWAYAT REVISI ---\n${revisions.map((r) => `User minta: ${r.instruction}\nOutput sebelumnya: ${r.output}`).join("\n\n")}\n---\n\nBerdasarkan riwayat di atas, terapkan revisi terbaru. Output JSON revisi saja.`
+      : "";
 
     userPrompt = `${BRAND_VOICE}
 
@@ -177,11 +187,11 @@ Output HANYA JSON valid, tanpa markdown fence, tanpa penjelasan:
   "draft": "teks balasan 1-2 kalimat",
   "theme": "tema yang dipilih",
   "angle": "emotional|practical|funny|relatable"
-}`;
+}${revBlock}`;
     maxTokens = 500;
 
   } else if (type === "insight") {
-    const { question, conversations, audience, pillar } = data as {
+    const { question, conversations, audience, pillar, revisions } = data as {
       question: string;
       conversations: Array<{
         audienceName: string;
@@ -189,6 +199,7 @@ Output HANYA JSON valid, tanpa markdown fence, tanpa penjelasan:
       }>;
       audience?: string;
       pillar?: { name: string; description: string; goals: string; cta_style: string; temas: string[]; channels: string[] };
+      revisions?: Array<{ instruction: string; output: string }>;
     };
     const insightPersona =
       audience === "individu"
@@ -208,6 +219,10 @@ Output HANYA JSON valid, tanpa markdown fence, tanpa penjelasan:
       ? `\n--- PANDUAN CONTENT PILLAR ---\nPillar: ${pillar.name}\nDeskripsi: ${pillar.description}\nTujuan: ${pillar.goals}\nCTA Style: ${pillar.cta_style}\nTema: ${pillar.temas.join(", ")}\nChannel: ${pillar.channels.join(", ")}\nSemua ide konten harus selaras dengan pillar ini.`
 
     : "";
+
+    const revBlock = revisions && revisions.length > 0
+      ? `\n\n--- RIWAYAT REVISI ---\n${revisions.map((r) => `User minta: ${r.instruction}\nOutput sebelumnya: ${r.output}`).join("\n\n")}\n---\n\nBerdasarkan riwayat di atas, terapkan revisi terbaru. Output JSON revisi saja, dengan format yang sama persis.\n`
+      : "";
 
     userPrompt = `Analisis percakapan Threads berikut.
 
@@ -299,7 +314,7 @@ Mulai langsung dengan karakter { dan akhiri dengan }.
       "cta": "kalimat penutup reflektif, 1-2 kalimat"
     }
   ]
-}`;
+}${revBlock}`;
     maxTokens = 4000;
   } else {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
