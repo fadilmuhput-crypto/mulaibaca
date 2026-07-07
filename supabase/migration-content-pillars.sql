@@ -1,6 +1,24 @@
+-- Create storage bucket for blog cover images (if not exists)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+select 'blog-images', 'blog-images', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif']
+where not exists (select 1 from storage.buckets where id = 'blog-images');
+
+-- Public can view blog images
+create policy "Blog images are public"
+  on storage.objects for select
+  using (bucket_id = 'blog-images');
+
+-- Authenticated admins can upload blog images
+create policy "Admins can upload blog images"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'blog-images'
+    and (select is_cms_admin from members where auth_user_id = auth.uid() limit 1) = true
+  );
+
 CREATE TABLE content_pillars (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES members(id) ON DELETE SET NULL,
   name TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   audience TEXT NOT NULL DEFAULT 'individu' CHECK (audience IN ('individu', 'keluarga')),
@@ -15,15 +33,13 @@ CREATE TABLE content_pillars (
 
 ALTER TABLE content_pillars ENABLE ROW LEVEL SECURITY;
 
--- Only admins can manage pillars
 CREATE POLICY "Admins can manage content pillars"
   ON content_pillars
   FOR ALL
   TO authenticated
-  USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'))
-  WITH CHECK (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
+  USING (EXISTS (SELECT 1 FROM members WHERE auth_user_id = auth.uid() AND role = 'admin'))
+  WITH CHECK (EXISTS (SELECT 1 FROM members WHERE auth_user_id = auth.uid() AND role = 'admin'));
 
--- All authenticated users can read pillars (for use in insight/ai)
 CREATE POLICY "Authenticated users can view content pillars"
   ON content_pillars
   FOR SELECT
