@@ -66,8 +66,16 @@ export async function POST(request: Request) {
   }
   const { type, data } = body;
 
+  // Preferences / feedback dari user yang mempengaruhi gaya AI
+  const preferences = data?.preferences as string | undefined;
+
   let userPrompt = "";
   let maxTokens = 500;
+
+  // Sisipkan preferensi user dari feedback sebelumnya
+  const prefBlock = preferences
+    ? `\n\n--- PREFERENSI USER (dari feedback sebelumnya) ---\n${preferences}\nPerhatikan preferensi ini saat menulis respons.\n`
+    : "";
 
   if (type === "questions") {
     const { theme, audience } = data as { theme: string; audience?: string };
@@ -297,6 +305,8 @@ Mulai langsung dengan karakter { dan akhiri dengan }.
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }
 
+  const finalPrompt = prefBlock ? `${prefBlock}\n${userPrompt}` : userPrompt;
+
   const endpoint = isOpenCodeZen
     ? "https://opencode.ai/zen/v1/messages"
     : "https://api.anthropic.com/v1/messages";
@@ -323,7 +333,7 @@ Mulai langsung dengan karakter { dan akhiri dengan }.
         model,
         max_tokens: maxTokens,
         system: BRAND_VOICE,
-        messages: [{ role: "user", content: [{ type: "text", text: userPrompt }] }],
+        messages: [{ role: "user", content: [{ type: "text", text: finalPrompt }] }],
       }),
     });
 

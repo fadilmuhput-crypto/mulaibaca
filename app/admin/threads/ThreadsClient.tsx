@@ -149,6 +149,20 @@ interface Draft {
   createdAt: string;
 }
 
+// ── AI Feedback ─────────────────────────────────────────────────────────
+
+type AIType = "response" | "insight" | "engage" | "questions";
+
+interface AIFeedback {
+  id: string;
+  aiType: AIType;
+  rating: "good" | "bad";
+  notes: string;
+  context: string;
+  aiOutput: string;
+  createdAt: string;
+}
+
 // ── Constants ──────────────────────────────────────────────────────────
 
 const STAGE_CONFIG: Record<Stage, { label: string; color: string; bg: string; border: string; emoji: string }> = {
@@ -411,9 +425,10 @@ function Sidebar({
 // ── Overview ───────────────────────────────────────────────────────────
 
 function OverviewView({
-  discussions, setView, onClearDemo,
+  discussions, aiFeedbacks, setView, onClearDemo,
 }: {
   discussions: Discussion[];
+  aiFeedbacks: AIFeedback[];
   setView: (v: View) => void;
   onClearDemo: () => void;
 }) {
@@ -492,6 +507,52 @@ function OverviewView({
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {aiFeedbacks.length > 0 && (
+        <div>
+          <h3 className="text-sm font-bold text-ink mb-3 flex items-center gap-2">
+            <Sparkles size={14} className="text-amber" /> Preferensi AI
+          </h3>
+          <div className="bg-surface rounded-xl border border-border p-4 space-y-2">
+            <div className="grid grid-cols-3 gap-3 text-center text-xs">
+              {(["response", "insight", "engage"] as const).map((type) => {
+                const total = aiFeedbacks.filter((f) => f.aiType === type).length;
+                const good = aiFeedbacks.filter((f) => f.aiType === type && f.rating === "good").length;
+                const bad = aiFeedbacks.filter((f) => f.aiType === type && f.rating === "bad").length;
+                const pct = total > 0 ? Math.round((good / total) * 100) : 0;
+                const labels: Record<string, string> = { response: "Respons", insight: "Insight", engage: "Engage" };
+                return (
+                  <div key={type} className="bg-parchment rounded-lg p-2.5">
+                    <p className="font-semibold text-ink mb-1">{labels[type]}</p>
+                    <p className="text-lg font-bold text-ink">{total}</p>
+                    <p className="text-[10px] text-ink-muted">{good} 👍 · {bad} 👎</p>
+                    {total > 0 && (
+                      <div className="w-full bg-border rounded-full h-1 mt-1.5 overflow-hidden">
+                        <div className="bg-green-500 h-full rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {aiFeedbacks.filter((f) => f.notes).length > 0 && (
+              <div className="pt-2 border-t border-border">
+                <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Catatan Terbaru</p>
+                <div className="space-y-1 max-h-24 overflow-y-auto">
+                  {aiFeedbacks.filter((f) => f.notes).slice(0, 3).map((f) => (
+                    <p key={f.id} className="text-[11px] text-ink-muted">
+                      <span className={f.rating === "good" ? "text-green-600" : "text-red-600"}>
+                        {f.rating === "good" ? "👍" : "👎"}
+                      </span>{" "}
+                      {f.notes}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -762,7 +823,7 @@ function DiscussionView({
 function ConversationView({
   discussion, conversation, setView,
   onAddMessage, onUpdateStage, onUpdateNotes, onDelete,
-  onSaveDraft,
+  onSaveDraft, onAiFeedback, aiPreferences = "",
 }: {
   discussion: Discussion;
   conversation: Conversation;
@@ -772,6 +833,8 @@ function ConversationView({
   onUpdateNotes: (notes: string) => void;
   onDelete: () => void;
   onSaveDraft: (text: string, aiGenerated: boolean) => void;
+  onAiFeedback: (aiType: AIType, context: string, aiOutput: string, rating: "good" | "bad", notes: string) => void;
+  aiPreferences?: string;
 }) {
   const [msgText, setMsgText] = useState("");
   const [msgSender, setMsgSender] = useState<"audience" | "brand">("audience");
@@ -796,6 +859,7 @@ function ConversationView({
             messages: conversation.messages,
             stage: conversation.stage,
             audience: discussion.audience,
+            preferences: aiPreferences || undefined,
           },
         }),
       });
@@ -945,6 +1009,12 @@ function ConversationView({
                 <CheckCircle2 size={12} /> Simpan ke Chat
               </button>
             </div>
+            <AIFeedbackInline
+              aiType="response"
+              context={discussion.question}
+              aiOutput={aiResponse}
+              onFeedback={(rating, notes) => onAiFeedback("response", discussion.question, aiResponse, rating, notes)}
+            />
           </>
         )}
 
@@ -1191,7 +1261,12 @@ function ExploreView({ onSave }: { onSave: (q: string, theme: string, audience: 
 
 // ── Insight ────────────────────────────────────────────────────────────
 
-function InsightView({ discussions, pillars }: { discussions: Discussion[]; pillars: ContentPillar[] }) {
+function InsightView({ discussions, pillars, onAiFeedback, aiPreferences = "" }: {
+  discussions: Discussion[];
+  pillars: ContentPillar[];
+  onAiFeedback: (aiType: AIType, context: string, aiOutput: string, rating: "good" | "bad", notes: string) => void;
+  aiPreferences?: string;
+}) {
   const withConvs = discussions.filter((d) => d.conversations.length > 0);
   const [selectedId, setSelectedId] = useState(withConvs[0]?.id || "");
   const [audience, setAudience] = useState<Audience>(
@@ -1219,15 +1294,16 @@ function InsightView({ discussions, pillars }: { discussions: Discussion[]; pill
       const res = await fetch("/api/admin/threads-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "insight",
-          data: {
-            question: selected.question,
-            conversations: selected.conversations,
-            audience,
-            pillar: pillarId ? pillars.find((p) => p.id === pillarId) : undefined,
-          },
-        }),
+          body: JSON.stringify({
+            type: "insight",
+            data: {
+              question: selected.question,
+              conversations: selected.conversations,
+              audience,
+              pillar: pillarId ? pillars.find((p) => p.id === pillarId) : undefined,
+              preferences: aiPreferences || undefined,
+            },
+          }),
       });
       let data;
       try { data = await res.json(); } catch {
@@ -1511,6 +1587,19 @@ function InsightView({ discussions, pillars }: { discussions: Discussion[]; pill
               ))}
             </div>
           </div>
+
+          <AIFeedbackInline
+            aiType="insight"
+            context={selected?.question ?? ""}
+            aiOutput={JSON.stringify(insight)}
+            onFeedback={(rating, notes) => onAiFeedback(
+              "insight",
+              selected?.question ?? "",
+              insight.content_ideas.map((idea) => buildCopyText(idea)).join("\n---\n"),
+              rating,
+              notes
+            )}
+          />
         </div>
       )}
     </div>
@@ -2662,9 +2751,13 @@ function LearnForm({
 function QuickEngageModal({
   onSave,
   onClose,
+  onAiFeedback,
+  aiPreferences = "",
 }: {
   onSave: (question: string, theme: string, audience: Audience, handle: string, draft: string) => void;
   onClose: () => void;
+  onAiFeedback: (aiType: AIType, context: string, aiOutput: string, rating: "good" | "bad", notes: string) => void;
+  aiPreferences?: string;
 }) {
   const [handle, setHandle] = useState("");
   const [postContext, setPostContext] = useState("");
@@ -2685,7 +2778,7 @@ function QuickEngageModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "engage",
-          data: { handle: handle.trim(), postContext: postContext.trim(), topic: topic.trim() || undefined, audience },
+          data: { handle: handle.trim(), postContext: postContext.trim(), topic: topic.trim() || undefined, audience, preferences: aiPreferences || undefined },
         }),
       });
       const json = await res.json();
@@ -2768,6 +2861,18 @@ function QuickEngageModal({
                 <CheckCircle2 size={14} /> Simpan & Track
               </button>
             </div>
+            <AIFeedbackInline
+              aiType="engage"
+              context={`${handle ?? ""} — ${postContext?.slice(0, 100) ?? ""}`}
+              aiOutput={draft}
+              onFeedback={(rating, notes) => onAiFeedback(
+                "engage",
+                `${handle} — ${postContext?.slice(0, 100)}`,
+                draft,
+                rating,
+                notes
+              )}
+            />
           </div>
         )}
 
@@ -2775,6 +2880,79 @@ function QuickEngageModal({
 
         <button onClick={onClose} className="text-sm text-ink-muted hover:text-ink w-full text-center pt-1">Batal</button>
       </div>
+    </div>
+  );
+}
+
+// ── AIFeedbackInline ─────────────────────────────────────────────────────
+
+function AIFeedbackInline({
+  aiType,
+  context,
+  aiOutput,
+  onFeedback,
+}: {
+  aiType: AIType;
+  context: string;
+  aiOutput: string;
+  onFeedback: (rating: "good" | "bad", notes: string) => void;
+}) {
+  const [submitted, setSubmitted] = useState(false);
+  const [rating, setRating] = useState<"good" | "bad" | null>(null);
+  const [notes, setNotes] = useState("");
+
+  const handleSubmit = () => {
+    if (!rating) return;
+    onFeedback(rating, notes);
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return (
+      <p className="text-[11px] text-ink-muted/60 flex items-center gap-1">
+        <CheckCircle2 size={10} /> Feedback tersimpan. Makasih!
+      </p>
+    );
+  }
+
+  return (
+    <div className="pt-2 border-t border-border/60 mt-2">
+      <p className="text-[11px] text-ink-muted mb-1.5">Feedback buat AI ini?</p>
+      <div className="flex items-center gap-2 mb-1.5">
+        <button
+          onClick={() => setRating("good")}
+          className={`px-2 py-1 text-[11px] font-semibold rounded-lg border transition-colors ${
+            rating === "good" ? "bg-green-600 text-white border-green-600" : "bg-surface text-ink-muted border-border hover:border-green-400"
+          }`}
+        >
+          👍 Bagus
+        </button>
+        <button
+          onClick={() => setRating("bad")}
+          className={`px-2 py-1 text-[11px] font-semibold rounded-lg border transition-colors ${
+            rating === "bad" ? "bg-red-600 text-white border-red-600" : "bg-surface text-ink-muted border-border hover:border-red-400"
+          }`}
+        >
+          👎 Kurang
+        </button>
+      </div>
+      {rating && (
+        <div className="flex items-start gap-1.5">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={1}
+            placeholder="Kenapa? (opsional)"
+            className="flex-1 border border-border rounded-lg px-2 py-1 text-[11px] text-ink bg-surface resize-none outline-none focus:border-amber min-h-0"
+          />
+          <button
+            onClick={handleSubmit}
+            className="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber text-white hover:bg-amber/90 transition-colors"
+          >
+            Kirim
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -3004,6 +3182,10 @@ export default function ThreadsClient() {
     "mulaibaca-threads-drafts",
     []
   );
+  const [aiFeedbacks, setAiFeedbacks] = useLocalStorage<AIFeedback[]>(
+    "mulaibaca-ai-feedback",
+    []
+  );
   const [view, setView] = useState<View>({ type: "overview" });
   const [showAddDiscussion, setShowAddDiscussion] = useState(false);
   const [showEngage, setShowEngage] = useState(false);
@@ -3164,6 +3346,24 @@ export default function ThreadsClient() {
     setView({ type: "conversation", discussionId, conversationId });
   };
 
+  const saveAiFeedback = (aiType: AIType, context: string, aiOutput: string, rating: "good" | "bad", notes: string) => {
+    setAiFeedbacks((prev) => [
+      { id: uid(), aiType, rating, notes, context, aiOutput, createdAt: new Date().toISOString() },
+      ...prev,
+    ]);
+  };
+
+  const buildAiPrefs = (aiType: AIType): string => {
+    const recent = aiFeedbacks.filter((f) => f.aiType === aiType).slice(0, 6);
+    if (recent.length === 0) return "";
+    const parts = recent.map((f) => {
+      const feeling = f.rating === "good" ? "User suka" : "User kurang suka";
+      const note = f.notes ? ` (${f.notes})` : "";
+      return `- ${feeling}${note}`;
+    });
+    return `Preferensi user dari feedback sebelumnya:\n${parts.join("\n")}\nSesuaikan gaya respons dengan preferensi di atas.`;
+  };
+
   const activeCount = discussions.filter((d) => d.status === "active").length;
 
   return (
@@ -3213,9 +3413,9 @@ export default function ThreadsClient() {
           />
         ) : (
           <>
-        {view.type === "overview" && (
-          <OverviewView discussions={discussions} setView={setView} onClearDemo={clearDemoData} />
-        )}
+{view.type === "overview" && (
+  <OverviewView discussions={discussions} aiFeedbacks={aiFeedbacks} setView={setView} onClearDemo={clearDemoData} />
+)}
         {view.type === "questions" && (
           <QuestionsView
             discussions={discussions}
@@ -3225,7 +3425,16 @@ export default function ThreadsClient() {
           />
         )}
         {view.type === "explore" && <ExploreView onSave={saveQuestion} />}
-        {view.type === "insight" && <InsightView discussions={discussions} pillars={pillars} />}
+        {view.type === "insight" && (
+  <InsightView
+    discussions={discussions}
+    pillars={pillars}
+    onAiFeedback={(aiType, context, aiOutput, rating, notes) =>
+      saveAiFeedback(aiType, context, aiOutput, rating, notes)
+    }
+    aiPreferences={buildAiPrefs("insight")}
+  />
+)}
         {view.type === "pillars" && <PillarView pillars={pillars} setPillars={setPillars} />}
         {view.type === "track" && <TrackView tracked={tracked} setTracked={setTracked} pillars={pillars} />}
         {view.type === "learn" && <LearnView learnings={learnings} setLearnings={setLearnings} pillars={pillars} />}
@@ -3267,6 +3476,10 @@ export default function ThreadsClient() {
               };
               setDrafts((prev) => [d, ...prev]);
             }}
+            onAiFeedback={(aiType, context, aiOutput, rating, notes) =>
+              saveAiFeedback(aiType, context, aiOutput, rating, notes)
+            }
+            aiPreferences={buildAiPrefs("response")}
           />
         )}
           </>
@@ -3292,6 +3505,10 @@ export default function ThreadsClient() {
         <QuickEngageModal
           onSave={engageUser}
           onClose={() => setShowEngage(false)}
+          onAiFeedback={(aiType, context, aiOutput, rating, notes) =>
+            saveAiFeedback(aiType, context, aiOutput, rating, notes)
+          }
+          aiPreferences={buildAiPrefs("engage")}
         />
       )}
     </div>
