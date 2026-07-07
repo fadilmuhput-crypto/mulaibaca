@@ -135,6 +135,43 @@ Tulis SATU balasan singkat untuk pesan terakhir audiens.
 
 Output: teks balasan saja, tanpa label atau penjelasan.`;
 
+  } else if (type === "engage") {
+    const { handle, postContext, topic, audience } = data as {
+      handle: string;
+      postContext: string;
+      topic?: string;
+      audience?: string;
+    };
+    const persona =
+      audience === "individu"
+        ? "individu Indonesia (18-35) yang membangun kebiasaan membaca"
+        : "orang tua / keluarga Indonesia yang menumbuhkan kebiasaan baca bersama anak";
+    const audienceTag = audience === "individu" ? "individu" : "keluarga";
+
+    userPrompt = `${BRAND_VOICE}
+
+Seorang user Threads (@${handle}) baru saja posting tentang ${topic || "membaca"}:
+
+"${postContext}"
+
+Tugas:
+1. Tulis SATU balasan singkat (1-2 kalimat) untuk komen di postingan mereka.
+   - WAJIB callback detail spesifik dari postingan mereka
+   - Validasi dulu apa yang mereka rasakan/ceritakan
+   - Akhiri dengan 1 pertanyaan ringan yang natural
+   - Hindari: interogasi, jualan, promoting mulaibaca di balasan pertama ini
+   - Persona target: ${persona}
+
+2. Tentukan 1 tema yang paling cocok untuk interaksi ini (dari: reading slump, konsistensi, rekomendasi buku, parenting literasi, rutinitas baca, review buku, distraksi HP, TBR, bonding lewat buku, milestone anak)
+
+Output HANYA JSON valid, tanpa markdown fence, tanpa penjelasan:
+{
+  "draft": "teks balasan 1-2 kalimat",
+  "theme": "tema yang dipilih",
+  "angle": "emotional|practical|funny|relatable"
+}`;
+    maxTokens = 500;
+
   } else if (type === "insight") {
     const { question, conversations, audience, pillar } = data as {
       question: string;

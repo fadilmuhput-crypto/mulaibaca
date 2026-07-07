@@ -1443,8 +1443,8 @@ function InsightView({ discussions, pillars }: { discussions: Discussion[]; pill
                             <p className="text-sm font-semibold text-ink">{slide.heading}</p>
                             {slide.body && (
                               <p className="text-xs text-ink-secondary mt-1 whitespace-pre-line">{slide.body}</p>
-                            )}
-                          </div>
+          )}
+        </div>
                         )
                       )}
                       {idea.caption && (
@@ -2657,6 +2657,128 @@ function LearnForm({
   );
 }
 
+// ── QuickEngageModal ─────────────────────────────────────────────────────
+
+function QuickEngageModal({
+  onSave,
+  onClose,
+}: {
+  onSave: (question: string, theme: string, audience: Audience, handle: string, draft: string) => void;
+  onClose: () => void;
+}) {
+  const [handle, setHandle] = useState("");
+  const [postContext, setPostContext] = useState("");
+  const [audience, setAudience] = useState<Audience>("individu");
+  const [topic, setTopic] = useState("");
+  const [draft, setDraft] = useState("");
+  const [theme, setTheme] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
+
+  const generateDraft = async () => {
+    if (!handle.trim() || !postContext.trim()) return;
+    setGenerating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/threads-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "engage",
+          data: { handle: handle.trim(), postContext: postContext.trim(), topic: topic.trim() || undefined, audience },
+        }),
+      });
+      const json = await res.json();
+      if (json.error) setError(json.error);
+      else {
+        setDraft(json.draft || json.text || "");
+        setTheme(json.theme || topic || "membaca");
+      }
+    } catch {
+      setError("Gagal terhubung ke AI.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-surface border border-border rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 space-y-4">
+        <h3 className="font-bold text-ink text-lg">Engage Threads User</h3>
+        <p className="text-sm text-ink-muted">
+          Catat user Threads yang posting tentang buku, generate draft respons, dan track interaksinya.
+        </p>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Threads Handle</label>
+          <input value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="@namauser" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Isi Postingan</label>
+          <textarea value={postContext} onChange={(e) => setPostContext(e.target.value)} rows={3} placeholder="Paste atau tulis ulang apa yang mereka posting tentang buku/membaca…" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber resize-none" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Target Audience</label>
+            <div className="flex gap-1.5">
+              {(Object.keys(AUDIENCE_CONFIG) as Audience[]).map((a) => (
+                <button key={a} onClick={() => setAudience(a)}
+                  className={`flex-1 px-2 py-1.5 text-xs rounded-lg border transition-colors ${
+                    audience === a ? "bg-amber text-white border-amber" : "bg-surface text-ink-muted border-border hover:border-amber/50"
+                  }`}
+                >
+                  {AUDIENCE_CONFIG[a].emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Topik (opsional)</label>
+            <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Mis: reading slump" className="w-full border border-border rounded-lg px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:border-amber" />
+          </div>
+        </div>
+
+        {!draft ? (
+          <button onClick={generateDraft} disabled={generating || !handle.trim() || !postContext.trim()}
+            className="btn-primary w-full justify-center flex items-center gap-2 disabled:opacity-60"
+          >
+            {generating ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            {generating ? "Generate Draft…" : "Generate Draft Respons"}
+          </button>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-bold text-ink-muted uppercase tracking-wider block mb-1">Draft Respons</label>
+              <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={3}
+                className="w-full border border-amber/30 bg-amber/5 rounded-lg px-3 py-2 text-sm text-ink resize-none outline-none focus:border-amber min-h-20" />
+              <p className="text-[11px] text-ink-muted mt-1">
+                Edit seperlunya sebelum disimpan. Tema: <strong>{theme || topic || "membaca"}</strong>
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => { setDraft(""); setTheme(""); }} className="btn-ghost flex-1 justify-center text-sm">
+                Generate Ulang
+              </button>
+              <button onClick={() => onSave(theme || topic || "membaca", theme || topic || "membaca", audience, handle.trim(), draft.trim())}
+                disabled={!draft.trim()}
+                className="btn-primary flex-1 justify-center text-sm disabled:opacity-60 flex items-center gap-1.5"
+              >
+                <CheckCircle2 size={14} /> Simpan & Track
+              </button>
+            </div>
+          </div>
+        )}
+
+        {error && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
+
+        <button onClick={onClose} className="text-sm text-ink-muted hover:text-ink w-full text-center pt-1">Batal</button>
+      </div>
+    </div>
+  );
+}
+
 // ── AudienceView ────────────────────────────────────────────────────────
 
 function AudienceView({
@@ -2884,6 +3006,7 @@ export default function ThreadsClient() {
   );
   const [view, setView] = useState<View>({ type: "overview" });
   const [showAddDiscussion, setShowAddDiscussion] = useState(false);
+  const [showEngage, setShowEngage] = useState(false);
   const [addConvFor, setAddConvFor] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -3010,6 +3133,37 @@ export default function ThreadsClient() {
     setView({ type: "questions" });
   };
 
+  const engageUser = (question: string, theme: string, audience: Audience, handle: string, draft: string) => {
+    const discussionId = uid();
+    const conversationId = uid();
+    setDiscussions((prev) => [
+      {
+        id: discussionId,
+        question,
+        theme,
+        audience,
+        status: "active",
+            conversations: [
+              {
+                id: conversationId,
+                audienceName: handle,
+                audienceHandle: handle,
+                stage: "chatting",
+                notes: "",
+                lastActivity: new Date().toISOString(),
+                messages: [
+                  { id: uid(), sender: "brand", text: draft, timestamp: new Date().toISOString(), aiGenerated: true },
+                ],
+              },
+            ],
+        createdAt: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+    setShowEngage(false);
+    setView({ type: "conversation", discussionId, conversationId });
+  };
+
   const activeCount = discussions.filter((d) => d.status === "active").length;
 
   return (
@@ -3022,8 +3176,9 @@ export default function ThreadsClient() {
       />
 
       <div className="flex-1 min-w-0 pb-8">
-        <div className="relative mb-5">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+        <div className="flex items-center gap-2 mb-5">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -3039,8 +3194,15 @@ export default function ThreadsClient() {
             </button>
           )}
         </div>
+        <button
+          onClick={() => setShowEngage(true)}
+          className="btn-primary shrink-0 flex items-center gap-1.5 text-sm h-full"
+        >
+          <Zap size={14} /> Engage
+        </button>
+      </div>
 
-        {searchQuery.trim() ? (
+      {searchQuery.trim() ? (
           <SearchResults
             query={searchQuery.trim()}
             discussions={discussions}
@@ -3124,6 +3286,12 @@ export default function ThreadsClient() {
             addConversation(addConvFor, name, handle, stage, msg)
           }
           onClose={() => setAddConvFor(null)}
+        />
+      )}
+      {showEngage && (
+        <QuickEngageModal
+          onSave={engageUser}
+          onClose={() => setShowEngage(false)}
         />
       )}
     </div>
