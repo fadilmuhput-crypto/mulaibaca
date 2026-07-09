@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { FeedItem } from "@/app/api/feed/route";
 import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus } from "lucide-react";
 import BookCover from "@/components/BookCover";
+import AvatarIcon from "@/components/AvatarIcon";
 
 const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string; icon: React.ReactNode }> = {
   log:          { verb: "lagi baca", color: "text-amber", icon: <BookOpen size={14} /> },
@@ -60,11 +61,11 @@ function FeedList({ items }: { items: FeedItem[] }) {
             {/* Header: avatar + name + timestamp + action */}
             <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-2">
               <Link href={`/u/${item.member_username}`} className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-amber/10 flex items-center justify-center text-base font-bold text-amber overflow-hidden">
+                <div className="w-10 h-10 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden">
                   {item.member_avatar ? (
-                    <img src={item.member_avatar} alt="" className="w-full h-full object-cover" />
+                    <AvatarIcon avatar={item.member_avatar} size={18} />
                   ) : (
-                    item.member_name.charAt(0)
+                    <span className="text-base font-bold">{item.member_name.charAt(0)}</span>
                   )}
                 </div>
               </Link>
@@ -90,11 +91,11 @@ function FeedList({ items }: { items: FeedItem[] }) {
               /* Follow activity — show followed person */
               <div className="px-4 pb-4">
                 <Link href={`/u/${item.detail.following_username}`} className="flex items-center gap-3 bg-parchment rounded-xl p-3 hover:bg-amber-soft/30 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-amber/10 flex items-center justify-center text-base font-bold text-amber overflow-hidden flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden flex-shrink-0">
                     {item.detail.following_avatar ? (
-                      <img src={item.detail.following_avatar} alt="" className="w-full h-full object-cover" />
+                      <AvatarIcon avatar={item.detail.following_avatar} size={18} />
                     ) : (
-                      item.detail.following_name?.charAt(0)
+                      <span className="text-base font-bold">{item.detail.following_name?.charAt(0)}</span>
                     )}
                   </div>
                   <div className="min-w-0">
