@@ -116,35 +116,21 @@ export default async function DashboardPage() {
       <NavBar session={session} />
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-5">
-        {/* Greeting + streak — compact */}
+        {/* ── HEADER: Greeting + Streak ── */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-h1">Halo, {session.memberName}!</h1>
             <p className="text-xs text-ink-muted mt-0.5">Selamat datang kembali</p>
           </div>
-          <div className="text-center bg-surface rounded-xl px-4 py-2 brutal-border brutal-shadow-sm relative">
-            <div className="flex justify-center text-amber mb-0.5"><Flame size={22} strokeWidth={1.75} /></div>
+          <Link href="/log" className="flex items-center gap-3 bg-surface rounded-xl px-4 py-2 brutal-border brutal-shadow-sm hover:border-amber/40 transition-colors">
+            <div className="flex justify-center text-amber"><Flame size={20} strokeWidth={1.75} /></div>
             <div className="font-display text-2xl font-black text-ink leading-none">{currentStreak}</div>
-            <div className="text-xs text-ink-muted mt-0.5 font-semibold">hari</div>
-          </div>
+            <div className="text-xs text-ink-muted font-semibold">hari</div>
+          </Link>
         </div>
 
-        {/* Timeline — at the top like social feeds */}
-        <section>
-          <FeedClient initial={feedItems} compact />
-        </section>
-
-        {/* Quick entry row — 3 cards */}
-        <section className="grid grid-cols-3 gap-2.5">
-          <Link
-            href="/jelajah"
-            className="bg-forest text-white rounded-xl p-3 flex flex-col items-center gap-1.5 brutal-border brutal-shadow-sm text-center"
-          >
-            <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
-              <Plus size={18} strokeWidth={2.5} />
-            </div>
-            <span className="font-semibold text-[11px] leading-tight">Tambah Buku</span>
-          </Link>
+        {/* ── QUICK ACTIONS ── */}
+        <section className="grid grid-cols-3 gap-2">
           <Link
             href="/log"
             className="bg-amber text-white rounded-xl p-3 flex flex-col items-center gap-1.5 brutal-border brutal-shadow-sm text-center"
@@ -153,6 +139,15 @@ export default async function DashboardPage() {
               <PenLine size={18} strokeWidth={1.75} />
             </div>
             <span className="font-semibold text-[11px] leading-tight">Catat Bacaan</span>
+          </Link>
+          <Link
+            href="/jelajah"
+            className="bg-forest text-white rounded-xl p-3 flex flex-col items-center gap-1.5 brutal-border brutal-shadow-sm text-center"
+          >
+            <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
+              <Plus size={18} strokeWidth={2.5} />
+            </div>
+            <span className="font-semibold text-[11px] leading-tight">Tambah Buku</span>
           </Link>
           <Link
             href="/rak"
@@ -165,29 +160,25 @@ export default async function DashboardPage() {
           </Link>
         </section>
 
-        {/* Onboarding checklist — hide when all steps done */}
+        {/* ── ONBOARDING CHECKLIST ── (hidden when all steps done) */}
         {!allOnboardingDone && (
-          <section className="bg-surface rounded-2xl brutal-border p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
+          <section className="bg-surface rounded-2xl brutal-border p-4 space-y-2.5">
+            <div className="flex items-center gap-2">
               <span className="text-xs font-black uppercase tracking-widest text-ink-muted">Mulai dari sini</span>
               <span className="text-xs font-bold text-amber bg-amber-soft px-2 py-0.5 rounded-full">
                 {checklistStepsDone.filter(Boolean).length}/3 selesai
               </span>
             </div>
-
-            {/* Step 1 */}
             <Link
               href={hasFirstBook ? "/rak" : "/onboarding/buku"}
-              className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
+              className={`flex items-center gap-3 rounded-xl p-2.5 transition-colors ${
                 hasFirstBook ? "opacity-60" : "bg-parchment hover:bg-amber-soft/40"
               }`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
                 hasFirstBook ? "bg-forest border-forest text-white" : "border-amber text-amber"
               }`}>
-                {hasFirstBook
-                  ? <Check size={13} strokeWidth={3} />
-                  : <span className="text-xs font-bold">1</span>}
+                {hasFirstBook ? <Check size={13} strokeWidth={3} /> : <span className="text-xs font-bold">1</span>}
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold ${hasFirstBook ? "line-through text-ink-muted" : "text-ink"}`}>
@@ -197,20 +188,16 @@ export default async function DashboardPage() {
               </div>
               {!hasFirstBook && <span className="text-amber text-xs font-bold flex-shrink-0">Mulai →</span>}
             </Link>
-
-            {/* Step 2 */}
             <Link
               href="/log"
-              className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
+              className={`flex items-center gap-3 rounded-xl p-2.5 transition-colors ${
                 hasFirstLog ? "opacity-60" : hasFirstBook ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
               }`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
                 hasFirstLog ? "bg-forest border-forest text-white" : "border-border text-ink-muted"
               }`}>
-                {hasFirstLog
-                  ? <Check size={13} strokeWidth={3} />
-                  : <span className="text-xs font-bold">2</span>}
+                {hasFirstLog ? <Check size={13} strokeWidth={3} /> : <span className="text-xs font-bold">2</span>}
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold ${hasFirstLog ? "line-through text-ink-muted" : "text-ink"}`}>
@@ -220,20 +207,16 @@ export default async function DashboardPage() {
               </div>
               {hasFirstBook && !hasFirstLog && <span className="text-amber text-xs font-bold flex-shrink-0">Catat →</span>}
             </Link>
-
-            {/* Step 3 */}
             <Link
               href="/profil"
-              className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${
+              className={`flex items-center gap-3 rounded-xl p-2.5 transition-colors ${
                 hasWeeklyGoal ? "opacity-60" : hasFirstLog ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
               }`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
                 hasWeeklyGoal ? "bg-forest border-forest text-white" : "border-border text-ink-muted"
               }`}>
-                {hasWeeklyGoal
-                  ? <Check size={13} strokeWidth={3} />
-                  : <Target size={12} strokeWidth={2} />}
+                {hasWeeklyGoal ? <Check size={13} strokeWidth={3} /> : <Target size={12} strokeWidth={2} />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold ${hasWeeklyGoal ? "line-through text-ink-muted" : "text-ink"}`}>
@@ -243,117 +226,97 @@ export default async function DashboardPage() {
               </div>
               {hasFirstLog && !hasWeeklyGoal && <span className="text-amber text-xs font-bold flex-shrink-0">Atur →</span>}
             </Link>
-
           </section>
         )}
 
-        {/* Optional: invite family — shown after checklist is complete or if user has first log */}
-        {allOnboardingDone && !hasFamilyMember && memberCount <= 1 && (
-          <Link
-            href="/keluarga"
-            className="flex items-center gap-3 bg-surface rounded-2xl border border-border p-4 hover:border-amber/40 transition-colors"
-          >
-            <div className="w-8 h-8 rounded-xl bg-amber-soft flex items-center justify-center text-amber flex-shrink-0">
-              <Users size={16} strokeWidth={1.75} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-ink">Ajak keluarga baca bareng</p>
-              <p className="text-xs text-ink-muted">Opsional — pantau progres membaca bersama</p>
-            </div>
-            <span className="text-xs font-semibold text-amber flex-shrink-0">Lihat →</span>
-          </Link>
-        )}
+        {/* ── TIMELINE ── */}
+        <section>
+          <FeedClient initial={feedItems} compact />
+        </section>
 
-        {/* Weekly goal */}
+        {/* ── WEEKLY GOAL ── */}
         {session.weeklyPagesGoal > 0 ? (
-          <Link href="/profil" className="block bg-surface rounded-2xl p-4 brutal-border brutal-shadow-xs">
-            {(() => {
-              const goal = session.weeklyPagesGoal;
-              const pct = Math.min(Math.round((weeklyPagesRead / goal) * 100), 100);
-              const met = weeklyPagesRead >= goal;
-              return (
-                <>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Target size={16} strokeWidth={1.75} className={met ? "text-forest" : "text-amber"} />
-                      <span className="text-overline">{met ? "Target tercapai!" : "Target minggu ini"}</span>
-                    </div>
-                    <span className="text-xs font-semibold text-ink-secondary">{weeklyPagesRead} / {goal} hal</span>
+          (() => {
+            const goal = session.weeklyPagesGoal;
+            const pct = Math.min(Math.round((weeklyPagesRead / goal) * 100), 100);
+            const met = weeklyPagesRead >= goal;
+            return (
+              <Link
+                href="/profil"
+                className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors"
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${met ? "bg-forest/10" : "bg-amber-soft"}`}>
+                  <Target size={15} strokeWidth={1.75} className={met ? "text-forest" : "text-amber"} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-xs font-semibold ${met ? "text-forest" : "text-ink-secondary"}`}>
+                      {met ? "Target mingguan tercapai!" : "Target minggu ini"}
+                    </span>
+                    <span className="text-xs font-bold text-ink">{weeklyPagesRead}/{goal}</span>
                   </div>
                   <div className="progress-bar">
                     <div className="progress-fill transition-all" style={{ width: `${pct}%`, backgroundColor: met ? "var(--color-forest)" : "var(--color-amber)" }} />
                   </div>
-                  {!met && (
-                    <p className="text-xs text-ink-muted mt-1.5">{goal - weeklyPagesRead} halaman lagi untuk mencapai target</p>
-                  )}
-                </>
-              );
-            })()}
-          </Link>
+                </div>
+              </Link>
+            );
+          })()
         ) : hasFirstLog ? (
           <Link
             href="/profil"
-            className="flex items-center justify-between bg-amber-soft rounded-2xl px-4 py-3.5 border border-amber/20"
+            className="flex items-center gap-3 bg-amber-soft rounded-xl p-3 border border-amber/20 hover:border-amber/40 transition-colors"
           >
-            <div className="flex items-center gap-2">
-              <Target size={18} strokeWidth={1.75} className="text-amber" />
-              <span className="text-sm font-semibold text-ink-secondary">Tetapkan target membaca mingguanmu</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber/10 flex-shrink-0">
+              <Target size={15} strokeWidth={1.75} className="text-amber" />
             </div>
-            <span className="text-amber text-sm font-semibold">Atur →</span>
+            <p className="flex-1 text-sm font-semibold text-ink-secondary">Tetapkan target membaca mingguan</p>
+            <span className="text-amber text-xs font-semibold">Atur →</span>
           </Link>
         ) : null}
 
-        {/* Currently reading */}
+        {/* ── SEDANG DI BACA ── (compact horizontal scroll) */}
         <section>
           <div className="section-header">
             <h2 className="section-title">Sedang dibaca</h2>
             <Link href="/rak" className="section-link">Lihat semua →</Link>
           </div>
-
           {readingNow.length === 0 ? (
             <Link
               href="/jelajah"
-              className="group block border-2 border-dashed border-border rounded-2xl p-6 text-center hover:border-amber transition-colors"
+              className="group block border-2 border-dashed border-border rounded-2xl p-5 text-center hover:border-amber transition-colors"
             >
-              <div className="flex justify-center text-ink-muted mb-2 group-hover:text-amber transition-colors"><BookOpen size={32} strokeWidth={1.5} /></div>
+              <div className="flex justify-center text-ink-muted mb-2 group-hover:text-amber transition-colors"><BookOpen size={28} strokeWidth={1.5} /></div>
               <p className="text-ink-secondary text-sm">Mau mulai baca apa hari ini?</p>
               <p className="text-amber text-sm font-medium mt-1">+ Tambah buku pertamamu</p>
             </Link>
           ) : (
-            <div className="space-y-3">
+            <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
               {readingNow.map((item: {
                 id: string;
                 current_page: number;
-                books: { title: string; author: string | null; cover_url: string | null; total_pages: number | null } | null;
+                books: { id: string; title: string; author: string | null; cover_url: string | null; total_pages: number | null } | null;
               }) => {
                 const book = item.books;
                 if (!book) return null;
-                const progress =
-                  book.total_pages && item.current_page
-                    ? Math.min(Math.round((item.current_page / book.total_pages) * 100), 100)
-                    : 0;
+                const progress = book.total_pages && item.current_page
+                  ? Math.min(Math.round((item.current_page / book.total_pages) * 100), 100)
+                  : 0;
                 return (
                   <Link
                     key={item.id}
-                    href="/rak?tab=reading"
-                    className="card-interactive flex gap-3 p-3"
+                    href={`/log?bookId=${book.id}`}
+                    className="flex-shrink-0 w-32 bg-surface rounded-xl border border-border p-2.5 hover:border-amber/40 transition-colors"
                   >
-                    <BookCover src={book.cover_url} title={book.title} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-ink text-sm truncate">{book.title}</p>
-                      {book.author && (
-                        <p className="text-xs text-ink-muted truncate">{book.author}</p>
-                      )}
-                      <div className="mt-2">
-                        <div className="progress-bar">
-                          <div className="progress-fill" style={{ width: `${progress}%` }} />
-                        </div>
-                        <p className="text-xs text-ink-muted mt-1">
-                          {progress > 0
-                            ? `${item.current_page} / ${book.total_pages} hal · ${progress}%`
-                            : "Belum mulai"}
-                        </p>
+                    <BookCover src={book.cover_url} title={book.title} className="w-full aspect-[3/4] rounded-lg mb-2" />
+                    <p className="font-medium text-ink text-xs truncate">{book.title}</p>
+                    <div className="mt-1.5">
+                      <div className="progress-bar h-1.5">
+                        <div className="progress-fill" style={{ width: `${progress}%` }} />
                       </div>
+                      <p className="text-[10px] text-ink-muted mt-1">
+                        {progress > 0 ? `${progress}%` : "Belum mulai"}
+                      </p>
                     </div>
                   </Link>
                 );
@@ -362,64 +325,77 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        {/* Family members — only after first log, or if family already has multiple members */}
+        {/* ── KELUARGA ── (compact, only if has family members) */}
         {showFamily && familyMembers && familyMembers.length >= 1 && (
-          <section>
-            <div className="section-header">
+          <section className="border-t border-border pt-4">
+            <div className="flex items-center justify-between mb-3">
               <h2 className="section-title flex items-center gap-1.5">
+                <Users size={14} strokeWidth={1.75} className="text-ink-muted" />
                 Anggota keluarga
                 <KeluargaTooltip />
               </h2>
-              <Link href="/keluarga" className="section-link">
-                {session.memberRole === "admin" ? "Kelola →" : "Lihat progress →"}
+              <Link href="/keluarga" className="text-xs font-semibold text-ink-muted hover:text-amber transition-colors">
+                {session.memberRole === "admin" ? "Kelola" : "Lihat progress"} →
               </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
               {familyMembers.map((m: { id: string; name: string; avatar: string }) => (
-                <Link key={m.id} href="/keluarga" className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${
+                <Link key={m.id} href="/keluarga" className="flex flex-col items-center gap-1 flex-shrink-0">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
                     m.id === session.memberId ? "border-amber bg-amber-soft text-amber" : "border-border bg-surface text-ink-secondary hover:border-amber/50"
                   }`}>
-                    <AvatarIcon avatar={m.avatar} size={22} />
+                    <AvatarIcon avatar={m.avatar} size={18} />
                   </div>
-                  <span className="text-xs text-ink-secondary max-w-[48px] truncate text-center leading-tight">{m.name}</span>
+                  <span className="text-[10px] text-ink-secondary max-w-[40px] truncate text-center leading-tight">{m.name}</span>
                 </Link>
               ))}
               {session.memberRole === "admin" && (
-                <Link href="/keluarga/tambah-anak" className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed border-border bg-surface text-ink-muted hover:border-amber/50 hover:text-amber transition-colors">
-                    <span className="text-xl leading-none">+</span>
+                <Link href="/keluarga/tambah-anak" className="flex flex-col items-center gap-1 flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-dashed border-border bg-surface text-ink-muted hover:border-amber/50 hover:text-amber transition-colors">
+                    <span className="text-lg leading-none">+</span>
                   </div>
-                  <span className="text-xs text-ink-muted max-w-[48px] text-center leading-tight">Tambah</span>
+                  <span className="text-[10px] text-ink-muted max-w-[40px] text-center leading-tight">Tambah</span>
                 </Link>
               )}
             </div>
-          </section>
-        )}
-
-        {/* Invite card — only after first log */}
-        {showFamily && session.inviteCode && (
-          memberCount <= 1
-            ? <InviteCodeCard inviteCode={session.inviteCode} familyName={session.familyName} />
-            : (
-              <section className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
-                <p className="text-overline mb-2">Kode undangan</p>
-                <div className="mb-3">
-                  <span className="font-mono text-xl font-bold text-ink tracking-widest uppercase">
-                    {session.inviteCode}
-                  </span>
+            {session.inviteCode && memberCount <= 1 && (
+              <InviteCodeCard inviteCode={session.inviteCode} familyName={session.familyName} />
+            )}
+            {session.inviteCode && memberCount > 1 && (
+              <div className="mt-3 flex items-center justify-between bg-amber-soft rounded-xl px-3.5 py-2.5 border border-amber/20">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-ink-muted uppercase">Kode undangan</span>
+                  <span className="font-mono text-sm font-bold text-ink tracking-widest uppercase">{session.inviteCode}</span>
                 </div>
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(`Ayo gabung ke "${session.familyName}" di mulaibaca! 📚\n\nKlik link ini langsung:\nhttps://mulaibaca.id/bergabung?code=${session.inviteCode.toUpperCase()}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 w-full text-xs text-ink-muted hover:text-ink transition-colors py-2 border-t border-amber/20 mt-2 pt-2"
+                  className="text-xs text-ink-muted hover:text-ink transition-colors flex items-center gap-1 flex-shrink-0"
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                  Bagikan lewat WhatsApp
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  Bagikan
                 </a>
-              </section>
-            )
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ── AJAK KELUARGA (only if no family and onboarding done) */}
+        {allOnboardingDone && !hasFamilyMember && memberCount <= 1 && !showFamily && (
+          <Link
+            href="/keluarga"
+            className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-lg bg-amber-soft flex items-center justify-center text-amber flex-shrink-0">
+              <Users size={15} strokeWidth={1.75} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-ink">Ajak keluarga baca bareng</p>
+              <p className="text-xs text-ink-muted">Opsional — pantau progres membaca bersama</p>
+            </div>
+            <span className="text-xs font-semibold text-amber flex-shrink-0">Lihat →</span>
+          </Link>
         )}
       </main>
     </div>

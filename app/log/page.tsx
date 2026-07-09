@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase-server";
 import NavBar from "@/components/NavBar";
 import LogClient from "./LogClient";
 
-export default async function LogPage() {
+export default async function LogPage(props: { searchParams: Promise<{ bookId?: string }> }) {
+  const searchParams = await props.searchParams;
+  const bookId = searchParams.bookId;
   const session = await getSession();
   if (!session) redirect("/masuk");
 
@@ -61,6 +63,7 @@ export default async function LogPage() {
           pagesPerDay={pagesPerDay}
           weeklyPagesGoal={session.weeklyPagesGoal}
           today={today}
+          defaultBookId={bookId}
         />
       </main>
     </div>

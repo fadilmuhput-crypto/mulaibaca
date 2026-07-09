@@ -9,6 +9,7 @@ export type FeedItem = {
   member_name: string;
   member_avatar: string;
   member_username: string | null;
+  book_id?: string;
   book_title?: string;
   book_slug?: string;
   book_cover?: string | null;
@@ -87,15 +88,15 @@ export async function GET() {
 
     switch (r.activity_type) {
       case "shelf_add":
-        return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { status: d.status as string } };
+        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { status: d.status as string } };
       case "shelf_status":
-        return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { from_status: d.from_status as string, to_status: d.to_status as string } };
+        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { from_status: d.from_status as string, to_status: d.to_status as string } };
       case "log":
-        return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { pages_read: d.pages_read as number } };
+        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { pages_read: d.pages_read as number } };
       case "review":
-        return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { rating: d.rating as number, excerpt: d.excerpt as string | undefined, review_slug: d.review_slug as string } };
+        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { rating: d.rating as number, excerpt: d.excerpt as string | undefined, review_slug: d.review_slug as string } };
       case "finish":
-        return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: {} };
+        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: {} };
       case "follow":
         return { ...base, detail: { following_id: d.following_id as string, following_name: d.following_name as string, following_avatar: d.following_avatar as string | undefined, following_username: d.following_username as string | undefined } };
       default:

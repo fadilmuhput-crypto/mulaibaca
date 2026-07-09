@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Check, Flame, Target, AlertTriangle, X, ImagePlus, Share2 } from "lucide-react";
@@ -73,6 +73,7 @@ export default function LogClient({
   pagesPerDay,
   weeklyPagesGoal,
   today,
+  defaultBookId,
 }: {
   shelf: ShelfItem[];
   todayLogs: TodayLog[];
@@ -80,6 +81,7 @@ export default function LogClient({
   pagesPerDay: Record<string, number>;
   weeklyPagesGoal: number;
   today: string;
+  defaultBookId?: string;
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<ShelfItem | null>(
@@ -102,6 +104,13 @@ export default function LogClient({
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [doneShelfId, setDoneShelfId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (defaultBookId && shelf.length > 0 && !selected) {
+      const found = shelf.find((s) => s.books?.id === defaultBookId);
+      if (found) selectBook(found);
+    }
+  }, [defaultBookId, shelf, selected]);
 
   const weekDays = buildWeekDays(today);
   const todayPages = todayLogs.reduce((s, l) => s + l.pages_read, 0);

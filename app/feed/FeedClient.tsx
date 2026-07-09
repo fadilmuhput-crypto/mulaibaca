@@ -50,9 +50,8 @@ function FeedList({ items }: { items: FeedItem[] }) {
 
   return (
     <div className="space-y-4">
-      {items.map((item) => {
+      {      items.map((item) => {
         const label = ACTIVITY_LABELS[item.type];
-        const bookSlug = item.book_slug || `/buku/${item.book_title?.toLowerCase().replace(/\s+/g, "-")}`;
         return (
           <div
             key={item.id}
@@ -108,7 +107,7 @@ function FeedList({ items }: { items: FeedItem[] }) {
               </div>
             ) : (
               /* Book-related activity */
-              <Link href={bookSlug} className="block px-4 pb-4">
+              <Link href={item.book_id ? `/log?bookId=${item.book_id}` : "#"} className="block px-4 pb-4">
                 <div className="flex gap-4">
                   {item.book_cover && (
                     <div className="flex-shrink-0">
