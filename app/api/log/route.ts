@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient } from "@/lib/supabase-route";
 import { getEffectiveAuth } from "@/lib/effective-auth";
 import { createNotification } from "@/lib/notifications";
+import { insertActivity } from "@/lib/activity-feed";
 
 async function getSelfAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await getEffectiveAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { dataClient: supabase, memberId } = auth;
+  const { dataClient: supabase, memberId, familyId } = auth;
 
   const { shelfItemId, pagesRead, durationMinutes, note, logDate, endPage, fromPage, toPage, images } = await req.json();
 
@@ -87,20 +88,32 @@ export async function POST(req: NextRequest) {
     log = data;
   }
 
+  // Fetch shelf item + book separately (avoids join issues)
   const { data: shelf } = await supabase
-    .from("shelf_items").select("current_page, books!inner(total_pages)").eq("id", shelfItemId).single();
-  if (shelf) {
+    .from("shelf_items").select("id, current_page, book_id, status").eq("id", shelfItemId).maybeSingle();
+  const { data: book } = shelf?.book_id
+    ? await supabase.from("books").select("id, title, cover_url, total_pages").eq("id", shelf.book_id).maybeSingle()
+    : { data: null };
+
+  if (shelf && book) {
     const newPage = endPage != null ? endPage : (shelf.current_page ?? 0) + pagesRead;
     const updates: Record<string, unknown> = { current_page: newPage };
-    const shelfData = shelf as unknown as { current_page: number; books: { total_pages: number | null } };
-    if (shelfData.books?.total_pages && newPage >= shelfData.books.total_pages) {
+    const autoFinished = book.total_pages != null && newPage >= book.total_pages;
+    if (autoFinished) {
       updates.status = "done";
       updates.finished_at = new Date().toISOString();
     }
-    await supabase
-      .from("shelf_items")
-      .update(updates)
-      .eq("id", shelfItemId);
+    await supabase.from("shelf_items").update(updates).eq("id", shelfItemId);
+
+    const slug = book.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
+    insertActivity(memberId, familyId, "log", {
+      book_id: book.id, book_title: book.title, book_slug: slug, book_cover: book.cover_url, pages_read: pagesRead,
+    });
+    if (autoFinished) {
+      insertActivity(memberId, familyId, "finish", {
+        book_id: book.id, book_title: book.title, book_slug: slug, book_cover: book.cover_url,
+      });
+    }
   }
 
   const { data: streak } = await supabase

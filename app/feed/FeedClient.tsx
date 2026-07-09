@@ -3,13 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { FeedItem } from "@/app/api/feed/route";
-import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft } from "lucide-react";
+import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus } from "lucide-react";
 import BookCover from "@/components/BookCover";
 
-const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string }> = {
-  log:     { verb: "lagi baca", color: "text-amber" },
-  review:  { verb: "nulis review", color: "text-blue-500" },
-  finish:  { verb: "selesai baca", color: "text-lime" },
+const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string; icon: React.ReactNode }> = {
+  log:          { verb: "lagi baca", color: "text-amber", icon: <BookOpen size={14} /> },
+  review:       { verb: "nulis review", color: "text-blue-500", icon: <Star size={14} /> },
+  finish:       { verb: "selesai baca", color: "text-lime", icon: <CheckCircle size={14} /> },
+  shelf_add:    { verb: "mulai baca", color: "text-amber", icon: <BookmarkPlus size={14} /> },
+  shelf_status: { verb: "ubah status", color: "text-purple-500", icon: <ArrowRightLeft size={14} /> },
+  follow:       { verb: "ikuti", color: "text-sky-500", icon: <UserPlus size={14} /> },
 };
 
 function timeAgo(date: string) {
@@ -25,11 +28,31 @@ function timeAgo(date: string) {
 }
 
 function FeedList({ items }: { items: FeedItem[] }) {
+  const shareLabels: Record<FeedItem["type"], string> = {
+    log: "lagi baca",
+    review: "nulis review",
+    finish: "selesai baca",
+    shelf_add: "mulai baca",
+    shelf_status: "ubah status",
+    follow: "ikuti",
+  };
+
+  async function shareItem(item: FeedItem) {
+    const shareText = item.book_title
+      ? `Aku ${shareLabels[item.type]} "${item.book_title}" di mulaibaca 📚`
+      : `Aku ${shareLabels[item.type]} ${item.detail.following_name} di mulaibaca 📚`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "mulaibaca", text: shareText });
+      } catch {}
+    }
+  }
+
   return (
     <div className="space-y-4">
       {items.map((item) => {
         const label = ACTIVITY_LABELS[item.type];
-        const bookSlug = item.book_slug || `/buku/${item.book_title.toLowerCase().replace(/\s+/g, "-")}`;
+        const bookSlug = item.book_slug || `/buku/${item.book_title?.toLowerCase().replace(/\s+/g, "-")}`;
         return (
           <div
             key={item.id}
@@ -57,46 +80,93 @@ function FeedList({ items }: { items: FeedItem[] }) {
                   <span className="text-xs text-ink-muted/50">·</span>
                   <span className="text-[11px] text-ink-muted/60">{timeAgo(item.timestamp)}</span>
                 </div>
-                <span className={`text-xs font-medium ${label.color}`}>{label.verb}</span>
+                <span className={`text-xs font-medium ${label.color} flex items-center gap-1`}>
+                  {label.icon} {label.verb}
+                </span>
               </div>
             </div>
 
-            {/* Main content: book cover + details */}
-            <Link href={bookSlug} className="block px-4 pb-4">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <BookCover src={item.book_cover} title={item.book_title} className="w-16 h-22 rounded-lg shadow-sm" />
-                </div>
-                <div className="flex-1 min-w-0 pt-1">
-                  <p className="text-sm font-semibold text-ink leading-snug line-clamp-2">{item.book_title}</p>
-
-                  {item.type === "log" && item.detail.pages_read && (
-                    <p className="text-xs text-ink-muted mt-1.5">
-                      <span className="font-semibold text-amber">+{item.detail.pages_read}</span> halaman
-                    </p>
-                  )}
-
-                  {item.type === "review" && (
-                    <div className="mt-1.5 space-y-1">
-                      <div className="flex gap-0.5">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <span key={s} className={`text-xs ${s <= (item.detail.rating ?? 0) ? "text-amber" : "text-border"}`}>★</span>
-                        ))}
-                      </div>
-                      {item.detail.excerpt && (
-                        <p className="text-xs text-ink-muted leading-relaxed line-clamp-2">"{item.detail.excerpt}"</p>
-                      )}
+            {/* Main content */}
+            {(item.type === "follow") ? (
+              /* Follow activity — show followed person */
+              <div className="px-4 pb-4">
+                <Link href={`/u/${item.detail.following_username}`} className="flex items-center gap-3 bg-parchment rounded-xl p-3 hover:bg-amber-soft/30 transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-amber/10 flex items-center justify-center text-base font-bold text-amber overflow-hidden flex-shrink-0">
+                    {item.detail.following_avatar ? (
+                      <img src={item.detail.following_avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      item.detail.following_name?.charAt(0)
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink truncate">{item.detail.following_name}</p>
+                    {item.detail.following_username && (
+                      <p className="text-xs text-ink-muted truncate">@{item.detail.following_username}</p>
+                    )}
+                  </div>
+                </Link>
+              </div>
+            ) : (
+              /* Book-related activity */
+              <Link href={bookSlug} className="block px-4 pb-4">
+                <div className="flex gap-4">
+                  {item.book_cover && (
+                    <div className="flex-shrink-0">
+                      <BookCover src={item.book_cover} title={item.book_title ?? ""} className="w-16 h-22 rounded-lg shadow-sm" />
                     </div>
                   )}
+                  <div className="flex-1 min-w-0 pt-1">
+                    <p className="text-sm font-semibold text-ink leading-snug line-clamp-2">{item.book_title}</p>
 
-                  {item.type === "finish" && (
-                    <p className="text-xs font-semibold text-lime mt-1.5 flex items-center gap-1">
-                      <CheckCircle size={12} /> Selesai dibaca
-                    </p>
-                  )}
+                    {item.type === "log" && item.detail.pages_read && (
+                      <p className="text-xs text-ink-muted mt-1.5">
+                        <span className="font-semibold text-amber">+{item.detail.pages_read}</span> halaman
+                      </p>
+                    )}
+
+                    {item.type === "shelf_add" && (
+                      <p className="text-xs font-medium text-ink-muted mt-1.5">
+                        {item.detail.status === "want" ? "Masuk daftar ingin baca" : "Menambahkan ke rak baca"}
+                      </p>
+                    )}
+
+                    {item.type === "shelf_status" && (
+                      <p className="text-xs font-medium text-ink-muted mt-1.5">
+                        {item.detail.from_status} → {item.detail.to_status}
+                      </p>
+                    )}
+
+                    {item.type === "review" && (
+                      <div className="mt-1.5 space-y-1">
+                        <div className="flex gap-0.5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <span key={s} className={`text-xs ${s <= (item.detail.rating ?? 0) ? "text-amber" : "text-border"}`}>★</span>
+                          ))}
+                        </div>
+                        {item.detail.excerpt && (
+                          <p className="text-xs text-ink-muted leading-relaxed line-clamp-2">"{item.detail.excerpt}"</p>
+                        )}
+                      </div>
+                    )}
+
+                    {item.type === "finish" && (
+                      <p className="text-xs font-semibold text-lime mt-1.5 flex items-center gap-1">
+                        <CheckCircle size={12} /> Selesai dibaca
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            )}
+
+            <div className="flex items-center gap-1 px-4 pb-3">
+              <button
+                onClick={(e) => { e.preventDefault(); shareItem(item); }}
+                className="flex items-center gap-1 text-[11px] text-ink-muted/50 hover:text-amber transition-colors"
+              >
+                <Share2 size={12} /> Bagikan
+              </button>
+            </div>
           </div>
         );
       })}

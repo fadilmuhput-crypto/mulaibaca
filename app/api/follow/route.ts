@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase-route";
+import { insertActivity } from "@/lib/activity-feed";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -35,6 +36,21 @@ export async function POST(req: NextRequest) {
     follower_id: session.memberId,
     following_id,
   });
+
+  const { data: followedMember } = await admin
+    .from("members")
+    .select("name, avatar, username")
+    .eq("id", following_id)
+    .single();
+  if (followedMember) {
+    insertActivity(session.memberId, session.familyId, "follow", {
+      following_id,
+      following_name: followedMember.name,
+      following_avatar: followedMember.avatar,
+      following_username: followedMember.username,
+    });
+  }
+
   return NextResponse.json({ following: true });
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient } from "@/lib/supabase-route";
 import { notifyFamily } from "@/lib/notifications";
+import { insertActivity } from "@/lib/activity-feed";
 
 async function getAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -84,6 +85,24 @@ export async function POST(req: NextRequest) {
       type: "info",
       link: `/review/${data.slug}`,
     }, memberId);
+
+    const { data: bookInfo } = await supabase
+      .from("shelf_items")
+      .select("books!inner(id, title, slug, cover_url)")
+      .eq("id", shelfItemId)
+      .single();
+    const b = bookInfo?.books as unknown as { id: string; title: string; slug: string; cover_url: string | null } | undefined;
+    if (b) {
+      insertActivity(memberId, familyId, "review", {
+        book_id: b.id,
+        book_title: b.title,
+        book_slug: b.slug,
+        book_cover: b.cover_url,
+        rating,
+        excerpt: (qAbout ?? "").slice(0, 120) || undefined,
+        review_slug: data.slug,
+      });
+    }
   }
 
   return NextResponse.json(data, { status: 201 });

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Check, Flame, Target, AlertTriangle, X, ImagePlus } from "lucide-react";
+import { BookOpen, Check, Flame, Target, AlertTriangle, X, ImagePlus, Share2 } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import BookTimer from "@/components/BookTimer";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -629,12 +629,25 @@ export default function LogClient({
                       );
                     })()}
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-amber">+{log.pages_read} hal</p>
-                    {log.duration_minutes && (
-                      <p className="text-xs text-ink-muted">{log.duration_minutes} mnt</p>
-                    )}
-                  </div>
+                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
+                      <p className="text-sm font-bold text-amber">+{log.pages_read} hal</p>
+                      {log.duration_minutes && (
+                        <p className="text-xs text-ink-muted">{log.duration_minutes} mnt</p>
+                      )}
+                      <button
+                        onClick={() => {
+                          const ogUrl = `${location.origin}/api/og/log/${log.id}`;
+                          if (navigator.share) {
+                            navigator.share({ title: "mulaibaca", text: `Aku baca ${book?.title ?? ""} di mulaibaca 📚`, url: ogUrl }).catch(() => {});
+                          } else {
+                            window.open(ogUrl, "_blank");
+                          }
+                        }}
+                        className="text-[10px] text-ink-muted/50 hover:text-amber transition-colors flex items-center gap-0.5"
+                      >
+                        <Share2 size={10} /> Bagikan
+                      </button>
+                    </div>
                 </div>
               );
             })}

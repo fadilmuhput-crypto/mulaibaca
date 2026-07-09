@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveAuth } from "@/lib/effective-auth";
+import { insertActivity } from "@/lib/activity-feed";
 
 export async function PATCH(
   req: NextRequest,
@@ -7,10 +8,17 @@ export async function PATCH(
 ) {
   const auth = await getEffectiveAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { dataClient: supabase, memberId } = auth;
+  const { dataClient: supabase, memberId, familyId } = auth;
 
   const { id } = await params;
   const body = await req.json();
+
+  const { data: current } = await supabase
+    .from("shelf_items")
+    .select("status, books!inner(id, title, slug, cover_url)")
+    .eq("id", id)
+    .eq("member_id", memberId)
+    .single();
 
   const updates: Record<string, unknown> = {};
   if (body.current_page !== undefined) updates.current_page = body.current_page;
@@ -28,6 +36,31 @@ export async function PATCH(
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (body.status && current) {
+    const book = current.books as unknown as { id: string; title: string; slug: string; cover_url: string | null };
+    if (book) {
+      const oldStatus = current.status;
+      if (body.status === "done" && oldStatus !== "done") {
+        insertActivity(memberId, familyId, "finish", {
+          book_id: book.id,
+          book_title: book.title,
+          book_slug: book.slug,
+          book_cover: book.cover_url,
+        });
+      } else if (oldStatus !== body.status) {
+        insertActivity(memberId, familyId, "shelf_status", {
+          book_id: book.id,
+          book_title: book.title,
+          book_slug: book.slug,
+          book_cover: book.cover_url,
+          from_status: oldStatus,
+          to_status: body.status,
+        });
+      }
+    }
+  }
+
   return NextResponse.json(data);
 }
 

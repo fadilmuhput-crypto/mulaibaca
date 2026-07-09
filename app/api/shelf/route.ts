@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
 import { getEffectiveAuth } from "@/lib/effective-auth";
+import { insertActivity } from "@/lib/activity-feed";
 
 async function getSelfAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -86,6 +87,18 @@ export async function POST(req: NextRequest) {
     if (shelfErr.code === "23505") return NextResponse.json({ error: "Buku sudah ada di rak" }, { status: 409 });
     return NextResponse.json({ error: shelfErr.message }, { status: 500 });
   }
+
+  const b = book as { title: string; cover_url?: string | null; open_library_id?: string | null };
+  const bookSlug = b.open_library_id
+    ? `${b.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-")}-${b.open_library_id.toLowerCase()}`
+    : bookId;
+  insertActivity(memberId, familyId, "shelf_add", {
+    book_id: bookId,
+    book_title: b.title,
+    book_slug: bookSlug,
+    book_cover: b.cover_url ?? null,
+    status: status || "reading",
+  });
 
   return NextResponse.json(shelfItem, { status: 201 });
 }
