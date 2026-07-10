@@ -40,7 +40,7 @@ export default function FollowButton({
       const res = await fetch("/api/follow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_id: targetId }),
+        body: JSON.stringify({ following_id: targetId }),
       });
       if (!res.ok) {
         const err = await res.json();

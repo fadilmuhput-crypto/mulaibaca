@@ -286,6 +286,21 @@ export default async function DashboardPage() {
           <FeedClient initial={feedItems} compact currentMemberId={session.memberId} />
         </section>
 
+        {/* ── CARI TEMAN ── */}
+        <Link
+          href="/cari-teman"
+          className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-lg bg-amber-soft flex items-center justify-center text-amber flex-shrink-0">
+            <Users size={15} strokeWidth={1.75} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-ink">Cari teman baru</p>
+            <p className="text-xs text-ink-muted">Temukan dan ikuti pengguna lain</p>
+          </div>
+          <span className="text-xs font-semibold text-amber flex-shrink-0">Cari →</span>
+        </Link>
+
         {/* ── EMPTY STATE: ajak tambah buku (hanya jika belum punya buku & belum selesai onboarding) */}
         {readingNow.length === 0 && hasFirstLog && (
           <Link
