@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     return monday.toISOString();
   })();
 
-  const [{ data: shelf }, { data: familyMembers }, { data: streaks }, { data: weeklyShelf }, { count: logCount }] = await Promise.all([
+  const [{ data: shelf }, { data: familyMembers }, { data: streaks }, { data: weekLogs }, { count: logCount }] = await Promise.all([
     supabase
       .from("shelf_items")
       .select("*, books(*)")
@@ -45,32 +45,25 @@ export default async function DashboardPage() {
       .eq("member_id", session.memberId)
       .maybeSingle(),
     supabase
-      .from("shelf_items")
-      .select("id")
-      .eq("member_id", session.memberId),
+      .from("reading_logs")
+      .select("pages_read")
+      .eq("member_id", session.memberId)
+      .gte("created_at", weekStart),
     supabase
       .from("reading_logs")
       .select("id", { count: "exact", head: true })
       .eq("member_id", session.memberId),
   ]);
 
-  const weeklyShelfIds = (weeklyShelf ?? []).map((s: { id: string }) => s.id);
-  let weeklyPagesRead = 0;
-  if (weeklyShelfIds.length > 0) {
-    const { data: weekLogs } = await supabase
-      .from("reading_logs")
-      .select("pages_read")
-      .in("shelf_item_id", weeklyShelfIds)
-      .gte("created_at", weekStart);
-    weeklyPagesRead = (weekLogs ?? []).reduce((sum: number, l: { pages_read: number }) => sum + l.pages_read, 0);
-  }
-
+  const weeklyPagesRead = (weekLogs ?? []).reduce((sum: number, l: { pages_read: number }) => sum + (l.pages_read ?? 0), 0);
   const currentStreak = streaks?.current_streak ?? 0;
   const readingNow = shelf ?? [];
   const memberCount = familyMembers?.length ?? 1;
-  const hasFirstBook = (weeklyShelf ?? []).length > 0;
+  const hasFirstBook = readingNow.length > 0 || (logCount ?? 0) > 0;
   const hasFirstLog = (logCount ?? 0) > 0;
   const hasWeeklyGoal = (session.weeklyPagesGoal ?? 0) > 0;
+  const goalMet = hasWeeklyGoal && weeklyPagesRead >= session.weeklyPagesGoal;
+  const shouldShowGoal = hasWeeklyGoal && !goalMet;
   const hasFamilyMember = memberCount > 1;
   const showFamily = hasFirstLog || hasFamilyMember;
   const checklistStepsDone = [hasFirstBook, hasFirstLog, hasWeeklyGoal];
@@ -120,12 +113,18 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-h1">Halo, {session.memberName}!</h1>
-            <p className="text-xs text-ink-muted mt-0.5">Selamat datang kembali</p>
+            {currentStreak > 0 && (
+              <p className="text-xs text-ink-muted mt-0.5">
+                🔥 {currentStreak} hari berturut-turut
+              </p>
+            )}
           </div>
-          <Link href="/log" className="flex items-center gap-3 bg-surface rounded-xl px-4 py-2 brutal-border brutal-shadow-sm hover:border-amber/40 transition-colors">
-            <div className="flex justify-center text-amber"><Flame size={20} strokeWidth={1.75} /></div>
-            <div className="font-display text-2xl font-black text-ink leading-none">{currentStreak}</div>
-            <div className="text-xs text-ink-muted font-semibold">hari</div>
+          <Link
+            href="/log"
+            className="flex items-center gap-2 bg-surface rounded-xl px-3.5 py-2.5 brutal-border brutal-shadow-sm hover:border-amber/40 transition-colors"
+          >
+            <Flame size={18} strokeWidth={1.75} className="text-amber" />
+            <span className="font-display text-xl font-black text-ink">{currentStreak}</span>
           </Link>
         </div>
 
@@ -160,13 +159,13 @@ export default async function DashboardPage() {
           </Link>
         </section>
 
-        {/* ── ONBOARDING CHECKLIST ── (hidden when all steps done) */}
+        {/* ── ONBOARDING: banner tipis (jika belum selesai) ── */}
         {!allOnboardingDone && (
-          <section className="bg-surface rounded-2xl brutal-border p-4 space-y-2.5">
-            <div className="flex items-center gap-2">
+          <section className="bg-surface rounded-2xl border-2 border-amber/30 p-4 space-y-2.5">
+            <div className="flex items-center gap-2 mb-0.5">
               <span className="text-xs font-black uppercase tracking-widest text-ink-muted">Mulai dari sini</span>
-              <span className="text-xs font-bold text-amber bg-amber-soft px-2 py-0.5 rounded-full">
-                {checklistStepsDone.filter(Boolean).length}/3 selesai
+              <span className="text-xs font-bold text-white bg-amber px-2 py-0.5 rounded-full">
+                {checklistStepsDone.filter(Boolean).length}/3
               </span>
             </div>
             <Link
@@ -175,18 +174,15 @@ export default async function DashboardPage() {
                 hasFirstBook ? "opacity-60" : "bg-parchment hover:bg-amber-soft/40"
               }`}
             >
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
                 hasFirstBook ? "bg-forest border-forest text-white" : "border-amber text-amber"
               }`}>
-                {hasFirstBook ? <Check size={13} strokeWidth={3} /> : <span className="text-xs font-bold">1</span>}
+                {hasFirstBook ? <Check size={11} strokeWidth={3} /> : <span className="text-[10px] font-bold">1</span>}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold ${hasFirstBook ? "line-through text-ink-muted" : "text-ink"}`}>
-                  Tambah buku pertama
-                </p>
-                <p className="text-xs text-ink-muted">Cari buku yang sedang kamu baca</p>
-              </div>
-              {!hasFirstBook && <span className="text-amber text-xs font-bold flex-shrink-0">Mulai →</span>}
+              <p className={`flex-1 text-sm ${hasFirstBook ? "line-through text-ink-muted" : "font-semibold text-ink"}`}>
+                Tambah buku pertama
+              </p>
+              {!hasFirstBook && <span className="text-amber text-xs font-bold">Mulai →</span>}
             </Link>
             <Link
               href="/log"
@@ -194,18 +190,15 @@ export default async function DashboardPage() {
                 hasFirstLog ? "opacity-60" : hasFirstBook ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
               }`}
             >
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
                 hasFirstLog ? "bg-forest border-forest text-white" : "border-border text-ink-muted"
               }`}>
-                {hasFirstLog ? <Check size={13} strokeWidth={3} /> : <span className="text-xs font-bold">2</span>}
+                {hasFirstLog ? <Check size={11} strokeWidth={3} /> : <span className="text-[10px] font-bold">2</span>}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold ${hasFirstLog ? "line-through text-ink-muted" : "text-ink"}`}>
-                  Catat log bacaan pertama
-                </p>
-                <p className="text-xs text-ink-muted">Berapa halaman sudah dibaca hari ini?</p>
-              </div>
-              {hasFirstBook && !hasFirstLog && <span className="text-amber text-xs font-bold flex-shrink-0">Catat →</span>}
+              <p className={`flex-1 text-sm ${hasFirstLog ? "line-through text-ink-muted" : "font-semibold text-ink"}`}>
+                Catat log bacaan pertama
+              </p>
+              {hasFirstBook && !hasFirstLog && <span className="text-amber text-xs font-bold">Catat →</span>}
             </Link>
             <Link
               href="/profil"
@@ -213,84 +206,47 @@ export default async function DashboardPage() {
                 hasWeeklyGoal ? "opacity-60" : hasFirstLog ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
               }`}
             >
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
                 hasWeeklyGoal ? "bg-forest border-forest text-white" : "border-border text-ink-muted"
               }`}>
-                {hasWeeklyGoal ? <Check size={13} strokeWidth={3} /> : <Target size={12} strokeWidth={2} />}
+                {hasWeeklyGoal ? <Check size={11} strokeWidth={3} /> : <Target size={10} strokeWidth={2} />}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold ${hasWeeklyGoal ? "line-through text-ink-muted" : "text-ink"}`}>
-                  Atur target mingguan
-                </p>
-                <p className="text-xs text-ink-muted">Tetapkan target halaman baca per minggu</p>
-              </div>
-              {hasFirstLog && !hasWeeklyGoal && <span className="text-amber text-xs font-bold flex-shrink-0">Atur →</span>}
+              <p className={`flex-1 text-sm ${hasWeeklyGoal ? "line-through text-ink-muted" : "font-semibold text-ink"}`}>
+                Atur target mingguan
+              </p>
+              {hasFirstLog && !hasWeeklyGoal && <span className="text-amber text-xs font-bold">Atur →</span>}
             </Link>
           </section>
         )}
 
-        {/* ── TIMELINE ── */}
-        <section>
-          <FeedClient initial={feedItems} compact />
-        </section>
-
-        {/* ── WEEKLY GOAL ── */}
-        {session.weeklyPagesGoal > 0 ? (
-          (() => {
-            const goal = session.weeklyPagesGoal;
-            const pct = Math.min(Math.round((weeklyPagesRead / goal) * 100), 100);
-            const met = weeklyPagesRead >= goal;
-            return (
-              <Link
-                href="/profil"
-                className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors"
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${met ? "bg-forest/10" : "bg-amber-soft"}`}>
-                  <Target size={15} strokeWidth={1.75} className={met ? "text-forest" : "text-amber"} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`text-xs font-semibold ${met ? "text-forest" : "text-ink-secondary"}`}>
-                      {met ? "Target mingguan tercapai!" : "Target minggu ini"}
-                    </span>
-                    <span className="text-xs font-bold text-ink">{weeklyPagesRead}/{goal}</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div className="progress-fill transition-all" style={{ width: `${pct}%`, backgroundColor: met ? "var(--color-forest)" : "var(--color-amber)" }} />
-                  </div>
-                </div>
-              </Link>
-            );
-          })()
-        ) : hasFirstLog ? (
+        {/* ── WEEKLY GOAL ── (hidden jika sudah achieved) */}
+        {shouldShowGoal && (
           <Link
             href="/profil"
-            className="flex items-center gap-3 bg-amber-soft rounded-xl p-3 border border-amber/20 hover:border-amber/40 transition-colors"
+            className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber/10 flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-soft">
               <Target size={15} strokeWidth={1.75} className="text-amber" />
             </div>
-            <p className="flex-1 text-sm font-semibold text-ink-secondary">Tetapkan target membaca mingguan</p>
-            <span className="text-amber text-xs font-semibold">Atur →</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-ink-secondary">Target minggu ini</span>
+                <span className="text-xs font-bold text-ink">{weeklyPagesRead}/{session.weeklyPagesGoal}</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-fill transition-all" style={{ width: `${Math.min(Math.round((weeklyPagesRead / session.weeklyPagesGoal) * 100), 100)}%` }} />
+              </div>
+            </div>
           </Link>
-        ) : null}
+        )}
 
-        {/* ── SEDANG DI BACA ── (compact horizontal scroll) */}
-        <section>
-          <div className="section-header">
-            <h2 className="section-title">Sedang dibaca</h2>
-            <Link href="/rak" className="section-link">Lihat semua →</Link>
-          </div>
-          {readingNow.length === 0 ? (
-            <Link
-              href="/jelajah"
-              className="group block border-2 border-dashed border-border rounded-2xl p-5 text-center hover:border-amber transition-colors"
-            >
-              <div className="flex justify-center text-ink-muted mb-2 group-hover:text-amber transition-colors"><BookOpen size={28} strokeWidth={1.5} /></div>
-              <p className="text-ink-secondary text-sm">Mau mulai baca apa hari ini?</p>
-              <p className="text-amber text-sm font-medium mt-1">+ Tambah buku pertamamu</p>
-            </Link>
-          ) : (
+        {/* ── SEDANG DI BACA ── (compact horizontal scroll, langsung di atas timeline) */}
+        {readingNow.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-2.5">
+              <h2 className="text-xs font-black uppercase tracking-widest text-ink-muted">Lanjut baca</h2>
+              <Link href="/rak" className="text-xs font-semibold text-ink-muted hover:text-amber transition-colors">Lihat semua →</Link>
+            </div>
             <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
               {readingNow.map((item: {
                 id: string;
@@ -315,17 +271,34 @@ export default async function DashboardPage() {
                         <div className="progress-fill" style={{ width: `${progress}%` }} />
                       </div>
                       <p className="text-[10px] text-ink-muted mt-1">
-                        {progress > 0 ? `${progress}%` : "Belum mulai"}
+                        {progress > 0 ? `${item.current_page}/${book.total_pages} · ${progress}%` : "Belum mulai"}
                       </p>
                     </div>
                   </Link>
                 );
               })}
             </div>
-          )}
+          </section>
+        )}
+
+        {/* ── TIMELINE ── (main content) */}
+        <section>
+          <FeedClient initial={feedItems} compact />
         </section>
 
-        {/* ── KELUARGA ── (compact, only if has family members) */}
+        {/* ── EMPTY STATE: ajak tambah buku (hanya jika belum punya buku & belum selesai onboarding) */}
+        {readingNow.length === 0 && hasFirstLog && (
+          <Link
+            href="/jelajah"
+            className="block border-2 border-dashed border-border rounded-2xl p-5 text-center hover:border-amber transition-colors"
+          >
+            <div className="flex justify-center text-ink-muted mb-2"><BookOpen size={24} strokeWidth={1.5} /></div>
+            <p className="text-ink-secondary text-sm">Belum ada buku yang sedang dibaca</p>
+            <p className="text-amber text-sm font-medium mt-1">Cari buku →</p>
+          </Link>
+        )}
+
+        {/* ── KELUARGA ── (compact, di bottom) */}
         {showFamily && familyMembers && familyMembers.length >= 1 && (
           <section className="border-t border-border pt-4">
             <div className="flex items-center justify-between mb-3">
@@ -335,7 +308,7 @@ export default async function DashboardPage() {
                 <KeluargaTooltip />
               </h2>
               <Link href="/keluarga" className="text-xs font-semibold text-ink-muted hover:text-amber transition-colors">
-                {session.memberRole === "admin" ? "Kelola" : "Lihat progress"} →
+                {session.memberRole === "admin" ? "Kelola" : "Lihat"} →
               </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
@@ -381,8 +354,8 @@ export default async function DashboardPage() {
           </section>
         )}
 
-        {/* ── AJAK KELUARGA (only if no family and onboarding done) */}
-        {allOnboardingDone && !hasFamilyMember && memberCount <= 1 && !showFamily && (
+        {/* ── AJAK KELUARGA (jika sendiri dan onboarding selesai) ── */}
+        {allOnboardingDone && !hasFamilyMember && !session.inviteCode && (
           <Link
             href="/keluarga"
             className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors"
@@ -392,7 +365,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-ink">Ajak keluarga baca bareng</p>
-              <p className="text-xs text-ink-muted">Opsional — pantau progres membaca bersama</p>
+              <p className="text-xs text-ink-muted">Pantau progres membaca bersama</p>
             </div>
             <span className="text-xs font-semibold text-amber flex-shrink-0">Lihat →</span>
           </Link>
