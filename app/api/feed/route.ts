@@ -16,6 +16,9 @@ export type FeedItem = {
   timestamp: string;
   detail: {
     pages_read?: number;
+    duration_minutes?: number | null;
+    from_page?: number | null;
+    to_page?: number | null;
     rating?: number;
     excerpt?: string;
     review_slug?: string;
@@ -92,7 +95,7 @@ export async function GET() {
       case "shelf_status":
         return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { from_status: d.from_status as string, to_status: d.to_status as string } };
       case "log":
-        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { pages_read: d.pages_read as number } };
+        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { pages_read: d.pages_read as number, duration_minutes: d.duration_minutes as number | null ?? null, from_page: d.from_page as number | null ?? null, to_page: d.to_page as number | null ?? null } };
       case "review":
         return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { rating: d.rating as number, excerpt: d.excerpt as string | undefined, review_slug: d.review_slug as string } };
       case "finish":

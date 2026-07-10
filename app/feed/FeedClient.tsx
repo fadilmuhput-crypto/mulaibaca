@@ -29,22 +29,60 @@ function timeAgo(date: string) {
 }
 
 function FeedList({ items }: { items: FeedItem[] }) {
-  const shareLabels: Record<FeedItem["type"], string> = {
-    log: "lagi baca",
-    review: "nulis review",
-    finish: "selesai baca",
-    shelf_add: "mulai baca",
-    shelf_status: "ubah status",
-    follow: "ikuti",
-  };
+  function shareText(item: FeedItem): string {
+    const base = "mulaibaca — baca, catat, review, semua di satu tempat 📚\n\nmulaibaca.id";
+    switch (item.type) {
+      case "log": {
+        let t = `Lagi baca "${item.book_title}" — `;
+        if (item.detail.pages_read) {
+          t += `selesai +${item.detail.pages_read} halaman`;
+          if (item.detail.duration_minutes) t += ` dalam ${item.detail.duration_minutes} menit`;
+          t += "! ";
+        }
+        t += `Catat progres bacamu juga di mulaibaca 📚`;
+        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+        return `${t}${profile ? `\n${profile}` : ""}`;
+      }
+      case "review": {
+        const slug = item.detail.review_slug;
+        const stars = item.detail.rating ? "⭐".repeat(item.detail.rating) : "";
+        let t = `Review "${item.book_title}" ${stars}`;
+        if (item.detail.excerpt) t += ` — "${item.detail.excerpt.slice(0, 100)}"`;
+        t += `\n\nBaca review lengkapnya di mulaibaca 📚`;
+        const link = slug ? `\nmulaibaca.id/review/${slug}` : "";
+        return `${t}${link}`;
+      }
+      case "finish": {
+        let t = `Selesai baca "${item.book_title}"! 🎉 Pantau progres dan temukan buku baru di mulaibaca 📚`;
+        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+        return `${t}${profile}`;
+      }
+      case "shelf_add": {
+        let t = `Mulai baca "${item.book_title}" 📖 Catat perjalanan bacamu biar makin semangat di mulaibaca 📚`;
+        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+        return `${t}${profile}`;
+      }
+      case "shelf_status": {
+        let t = `Update status bacaan "${item.book_title}" → ${item.detail.to_status} di mulaibaca. Atur rak dan catat progres bacaanmu! 📚`;
+        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+        return `${t}${profile}`;
+      }
+      case "follow": {
+        const name = item.detail.following_name;
+        const username = item.detail.following_username;
+        let t = `Ikutin ${name} di mulaibaca — lihat aktivitas dan rekomendasi buku dari teman! 📚`;
+        const link = username ? `\nmulaibaca.id/u/${username}` : "";
+        return `${t}${link}`;
+      }
+      default:
+        return base;
+    }
+  }
 
   async function shareItem(item: FeedItem) {
-    const shareText = item.book_title
-      ? `Aku ${shareLabels[item.type]} "${item.book_title}" di mulaibaca 📚`
-      : `Aku ${shareLabels[item.type]} ${item.detail.following_name} di mulaibaca 📚`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: "mulaibaca", text: shareText });
+        await navigator.share({ title: "mulaibaca", text: shareText(item) });
       } catch {}
     }
   }

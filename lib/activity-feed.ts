@@ -8,6 +8,9 @@ export type ActivityData = {
   book_slug?: string;
   book_cover?: string | null;
   pages_read?: number;
+  duration_minutes?: number | null;
+  from_page?: number | null;
+  to_page?: number | null;
   rating?: number;
   excerpt?: string;
   review_slug?: string;
