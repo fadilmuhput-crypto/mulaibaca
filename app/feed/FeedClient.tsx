@@ -6,6 +6,7 @@ import type { FeedItem } from "@/app/api/feed/route";
 import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus, Trash2 } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import AvatarIcon from "@/components/AvatarIcon";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string; icon: React.ReactNode }> = {
   log:          { verb: "lagi baca", color: "text-amber", icon: <BookOpen size={14} /> },
@@ -29,6 +30,8 @@ function timeAgo(date: string) {
 }
 
 function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; currentMemberId?: string; onDelete?: (id: string) => void }) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const deletingItem = items.find((i) => i.id === deletingId);
   function shareText(item: FeedItem): string {
     const base = "mulaibaca — baca, catat, review, semua di satu tempat 📚\n\nmulaibaca.id";
     switch (item.type) {
@@ -208,9 +211,7 @@ function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; cur
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    if (confirm("Hapus aktivitas ini dari timeline?")) {
-                      fetch(`/api/feed/${item.id}`, { method: "DELETE" }).then(() => onDelete?.(item.id));
-                    }
+                    setDeletingId(item.id);
                   }}
                   className="flex items-center gap-1 text-[11px] text-ink-muted/30 hover:text-error transition-colors ml-auto"
                 >
@@ -221,6 +222,24 @@ function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; cur
           </div>
         );
       })}
+
+      {deletingItem && (
+        <ConfirmDialog
+          open={!!deletingId}
+          title="Hapus aktivitas"
+          message={`Aktivitas "${deletingItem.book_title || deletingItem.detail.following_name || "ini"}" akan dihapus dari timeline.`}
+          confirmLabel="Hapus"
+          cancelLabel="Batal"
+          destructive
+          onConfirm={() => {
+            fetch(`/api/feed/${deletingItem.id}`, { method: "DELETE" }).then(() => {
+              onDelete?.(deletingItem.id);
+              setDeletingId(null);
+            });
+          }}
+          onCancel={() => setDeletingId(null)}
+        />
+      )}
     </div>
   );
 }
