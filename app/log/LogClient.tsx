@@ -570,13 +570,30 @@ export default function LogClient({
 
               {error && <p className="text-error text-xs text-center bg-error-soft rounded-xl px-3 py-2">{error}</p>}
 
-              <button
-                type="submit"
-                disabled={loading || !isValid}
-                className="btn-primary-full-lg"
-              >
-                {loading ? "Menyimpan…" : `Catat ${pagesRead > 0 ? `+${pagesRead} halaman` : "Bacaan"}`}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={loading || !isValid}
+                  className="btn-primary-full-lg flex-1"
+                >
+                  {loading ? "Menyimpan…" : `Catat ${pagesRead > 0 ? `+${pagesRead} halaman` : "Bacaan"}`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (defaultBookId) {
+                      window.history.back();
+                    } else {
+                      setSelected(null);
+                      setFromPage("");
+                      setToPage("");
+                    }
+                  }}
+                  className="btn-ghost-ink px-4 text-sm whitespace-nowrap"
+                >
+                  {defaultBookId ? "Kembali" : "Batal"}
+                </button>
+              </div>
             </form>
           )}
         </section>
