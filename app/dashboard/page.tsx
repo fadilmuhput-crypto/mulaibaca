@@ -283,7 +283,7 @@ export default async function DashboardPage() {
 
         {/* ── TIMELINE ── (main content) */}
         <section>
-          <FeedClient initial={feedItems} compact />
+          <FeedClient initial={feedItems} compact currentMemberId={session.memberId} />
         </section>
 
         {/* ── EMPTY STATE: ajak tambah buku (hanya jika belum punya buku & belum selesai onboarding) */}

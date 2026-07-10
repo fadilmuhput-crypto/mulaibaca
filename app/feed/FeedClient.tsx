@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { FeedItem } from "@/app/api/feed/route";
-import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus } from "lucide-react";
+import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus, Trash2 } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import AvatarIcon from "@/components/AvatarIcon";
 
@@ -28,7 +28,7 @@ function timeAgo(date: string) {
   return new Date(date).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 }
 
-function FeedList({ items }: { items: FeedItem[] }) {
+function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; currentMemberId?: string; onDelete?: (id: string) => void }) {
   function shareText(item: FeedItem): string {
     const base = "mulaibaca — baca, catat, review, semua di satu tempat 📚\n\nmulaibaca.id";
     switch (item.type) {
@@ -204,6 +204,19 @@ function FeedList({ items }: { items: FeedItem[] }) {
               >
                 <Share2 size={12} /> Bagikan
               </button>
+              {currentMemberId && item.member_id === currentMemberId && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (confirm("Hapus aktivitas ini dari timeline?")) {
+                      fetch(`/api/feed/${item.id}`, { method: "DELETE" }).then(() => onDelete?.(item.id));
+                    }
+                  }}
+                  className="flex items-center gap-1 text-[11px] text-ink-muted/30 hover:text-error transition-colors ml-auto"
+                >
+                  <Trash2 size={12} /> Hapus
+                </button>
+              )}
             </div>
           </div>
         );
@@ -212,9 +225,13 @@ function FeedList({ items }: { items: FeedItem[] }) {
   );
 }
 
-export default function FeedClient({ initial, compact }: { initial: FeedItem[]; compact?: boolean }) {
+export default function FeedClient({ initial, compact, currentMemberId }: { initial: FeedItem[]; compact?: boolean; currentMemberId?: string }) {
   const [items, setItems] = useState<FeedItem[]>(initial);
   const [loading, setLoading] = useState(false);
+
+  function handleDelete(id: string) {
+    setItems((prev) => prev.filter((i) => i.id !== id));
+  }
 
   async function refresh() {
     setLoading(true);
@@ -255,7 +272,7 @@ export default function FeedClient({ initial, compact }: { initial: FeedItem[]; 
             </p>
           </div>
         ) : (
-          <FeedList items={display} />
+          <FeedList items={display} currentMemberId={currentMemberId} onDelete={handleDelete} />
         )}
       </div>
     );
@@ -295,7 +312,7 @@ export default function FeedClient({ initial, compact }: { initial: FeedItem[]; 
             </Link>
           </div>
         ) : (
-          <FeedList items={items} />
+          <FeedList items={items} currentMemberId={currentMemberId} onDelete={handleDelete} />
         )}
       </main>
     </div>
