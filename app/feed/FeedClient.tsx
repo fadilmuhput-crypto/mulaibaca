@@ -149,7 +149,17 @@ function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; cur
               </div>
             ) : (
               /* Book-related activity */
-              <Link href={item.book_id ? `/log?bookId=${item.book_id}` : "#"} className="block px-4 pb-4">
+              <Link href={(() => {
+                if (!item.book_id) return "#";
+                switch (item.type) {
+                  case "log": return `/log?bookId=${item.book_id}`;
+                  case "review": return item.detail.review_slug ? `/review/${item.detail.review_slug}` : "#";
+                  case "finish": return "/rak";
+                  case "shelf_add": return "/rak";
+                  case "shelf_status": return "/rak";
+                  default: return "#";
+                }
+              })()} className="block px-4 pb-4">
                 <div className="flex gap-4">
                   {item.book_cover && (
                     <div className="flex-shrink-0">
