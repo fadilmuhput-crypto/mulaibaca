@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     const slug = book.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
     insertActivity(memberId, familyId, "log", {
-      book_id: book.id, book_title: book.title, book_slug: slug, book_cover: book.cover_url, pages_read: pagesRead, duration_minutes: durationMinutes ?? null, from_page: fromPage ?? null, to_page: toPage ?? null,
+      book_id: book.id, book_title: book.title, book_slug: slug, book_cover: book.cover_url, pages_read: pagesRead, duration_minutes: durationMinutes ?? null, from_page: fromPage ?? null, to_page: toPage ?? null, images: images ?? null,
     });
     if (autoFinished) {
       insertActivity(memberId, familyId, "finish", {

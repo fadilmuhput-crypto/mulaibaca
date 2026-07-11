@@ -207,6 +207,23 @@ function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; cur
                     )}
                   </div>
                 </div>
+
+                {/* Images */}
+                {item.detail.images && item.detail.images.length > 0 && (
+                  <div className="mt-2 mb-1 overflow-x-auto no-scrollbar">
+                    <div className="flex gap-2">
+                      {item.detail.images.map((url, idx) => (
+                        <img
+                          key={idx}
+                          src={url}
+                          alt=""
+                          className="h-24 w-auto rounded-lg object-cover border border-border flex-shrink-0"
+                          loading="lazy"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Link>
             )}
 

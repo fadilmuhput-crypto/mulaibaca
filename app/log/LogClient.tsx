@@ -219,7 +219,7 @@ export default function LogClient({
       }
       if (shelf.length > 1) setSelected(null);
       router.refresh();
-      setTimeout(() => setCelebrated(false), 3000);
+      setTimeout(() => router.push("/dashboard"), 4000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
@@ -290,17 +290,42 @@ export default function LogClient({
         </div>
       )}
 
-      {/* ── CELEBRATION ── */}
+      {/* ── CELEBRATION POPUP ── */}
       {celebrated && (
-        <div className="rounded-2xl p-4 text-center bg-forest brutal-border brutal-shadow-sm">
-          <div className="text-3xl font-display font-black text-white mb-0.5">
-            +{lastPages} halaman!
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => router.push("/dashboard")}>
+          <div className="bg-forest rounded-2xl brutal-border brutal-shadow-sm p-6 text-center max-w-sm w-full mx-4 animate-in fade-in zoom-in-95" onClick={(e) => e.stopPropagation()}>
+            <div className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3">
+              <Check size={28} strokeWidth={2.5} className="text-white" />
+            </div>
+            <div className="text-3xl font-display font-black text-white mb-1">
+              +{lastPages} halaman!
+            </div>
+            <p className="text-white/70 text-sm mb-2">
+              {streak.current_streak > 1
+                ? `🔥 Streak ${streak.current_streak} hari! Terus pertahankan!`
+                : "Bacaan hari ini tercatat. Keep going!"}
+            </p>
+            <p className="text-white/40 text-[11px] mb-4">
+              Berhasil dicatat — akan kembali ke dashboard
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="flex-1 bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-colors"
+              >
+                Ke Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  setCelebrated(false);
+                  if (shelf.length === 1) setSelected(shelf[0]);
+                }}
+                className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
+              >
+                Catat Lagi
+              </button>
+            </div>
           </div>
-          <p className="text-white/80 text-sm">
-            {streak.current_streak > 1
-              ? `🔥 Streak ${streak.current_streak} hari! Terus pertahankan!`
-              : "Bacaan hari ini tercatat. Keep going!"}
-          </p>
         </div>
       )}
 

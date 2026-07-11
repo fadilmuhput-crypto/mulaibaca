@@ -11,6 +11,7 @@ export type ActivityData = {
   duration_minutes?: number | null;
   from_page?: number | null;
   to_page?: number | null;
+  images?: string[] | null;
   rating?: number;
   excerpt?: string;
   review_slug?: string;
