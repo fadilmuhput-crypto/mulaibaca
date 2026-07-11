@@ -137,13 +137,23 @@ export async function POST(req: NextRequest) {
 
   const streakVal = streak?.current_streak ?? 0;
   if ([7, 14, 21, 30, 60, 100].includes(streakVal)) {
-    createNotification({
-      memberId,
-      title: `🔥 Streak ${streakVal} hari!`,
-      body: `Luar biasa! Kamu sudah membaca ${streakVal} hari berturut-turut. Terus pertahankan!`,
-      type: "achievement",
-      link: "/log",
-    });
+    // Cek apakah notifikasi streak ini sudah pernah dikirim
+    const { data: existingNotif } = await supabase
+      .from("notifications")
+      .select("id")
+      .eq("member_id", memberId)
+      .eq("title", `🔥 Streak ${streakVal} hari!`)
+      .maybeSingle();
+
+    if (!existingNotif) {
+      createNotification({
+        memberId,
+        title: `🔥 Streak ${streakVal} hari!`,
+        body: `Luar biasa! Kamu sudah membaca ${streakVal} hari berturut-turut. Terus pertahankan!`,
+        type: "achievement",
+        link: "/log",
+      });
+    }
   }
 
   return NextResponse.json({ log, streak, is_first_log: isFirstLog }, { status: 201 });

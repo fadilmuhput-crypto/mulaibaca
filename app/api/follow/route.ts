@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase-route";
-import { insertActivity } from "@/lib/activity-feed";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -37,17 +37,19 @@ export async function POST(req: NextRequest) {
     following_id,
   });
 
-  const { data: followedMember } = await admin
+  // Notify the followed user
+  const { data: follower } = await admin
     .from("members")
-    .select("name, avatar, username")
-    .eq("id", following_id)
+    .select("name, username")
+    .eq("id", session.memberId)
     .single();
-  if (followedMember) {
-    insertActivity(session.memberId, session.familyId, "follow", {
-      following_id,
-      following_name: followedMember.name,
-      following_avatar: followedMember.avatar,
-      following_username: followedMember.username,
+  if (follower) {
+    createNotification({
+      memberId: following_id,
+      title: `${follower.name} mengikutimu`,
+      body: "Ikuti balik untuk lihat aktivitas bacaan mereka.",
+      type: "info",
+      link: follower.username ? `/u/${follower.username}` : null,
     });
   }
 
