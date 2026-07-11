@@ -214,12 +214,15 @@ export default function LogClient({
       setImages([]);
       const doneItem = shelf.find((s) => s.id === selected!.id);
       const totalPages = doneItem?.books?.total_pages;
-      if (totalPages && toNum >= totalPages) {
+      const isBookDone = totalPages && toNum >= totalPages;
+      if (isBookDone) {
         setDoneShelfId(selected!.id);
       }
       if (shelf.length > 1) setSelected(null);
       router.refresh();
-      setTimeout(() => router.push("/dashboard"), 4000);
+      if (!isBookDone) {
+        setTimeout(() => router.push("/dashboard"), 4000);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
@@ -290,68 +293,83 @@ export default function LogClient({
         </div>
       )}
 
-      {/* ── CELEBRATION POPUP ── */}
+      {/* ── CELEBRATION POPUP (includes book done state) ── */}
       {celebrated && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => router.push("/dashboard")}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setCelebrated(false); setDoneShelfId(null); router.push("/dashboard"); }}>
           <div className="bg-forest rounded-2xl brutal-border brutal-shadow-sm p-6 text-center max-w-sm w-full mx-4 animate-in fade-in zoom-in-95" onClick={(e) => e.stopPropagation()}>
-            <div className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3">
-              <Check size={28} strokeWidth={2.5} className="text-white" />
-            </div>
-            <div className="text-3xl font-display font-black text-white mb-1">
-              +{lastPages} halaman!
-            </div>
-            <p className="text-white/70 text-sm mb-2">
-              {streak.current_streak > 1
-                ? `🔥 Streak ${streak.current_streak} hari! Terus pertahankan!`
-                : "Bacaan hari ini tercatat. Keep going!"}
-            </p>
-            <p className="text-white/40 text-[11px] mb-4">
-              Berhasil dicatat — akan kembali ke dashboard
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="flex-1 bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-colors"
-              >
-                Ke Dashboard
-              </button>
-              <button
-                onClick={() => {
-                  setCelebrated(false);
-                  if (shelf.length === 1) setSelected(shelf[0]);
-                }}
-                className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
-              >
-                Catat Lagi
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── BOOK DONE CONFIRMATION ── */}
-      {doneShelfId && (
-        <div className="rounded-2xl p-4 bg-amber-soft border border-amber/30">
-          <p className="font-display font-bold text-ink text-lg mb-1">
-            🎉 Selesai baca buku ini!
-          </p>
-          <p className="text-sm text-ink-secondary mb-3">
-            Mau tulis review-nya? Atau lanjut baca buku lain dulu.
-          </p>
-          <div className="flex gap-2">
-            <Link
-              href={`/review/tulis?shelf=${doneShelfId}`}
-              className="btn-primary-sm flex-1 text-center"
-            >
-              Tulis Review
-            </Link>
-            <button
-              type="button"
-              onClick={() => setDoneShelfId(null)}
-              className="btn-ghost-ink flex-1 text-center text-sm"
-            >
-              Nanti
-            </button>
+            {doneShelfId ? (
+              <>
+                <div className="text-4xl mb-3">🎉</div>
+                <div className="text-xl font-display font-black text-white mb-1">
+                  Selesai baca buku ini!
+                </div>
+                <p className="text-white/70 text-sm mb-1">
+                  +{lastPages} halaman terakhir
+                </p>
+                {streak.current_streak > 1 && (
+                  <p className="text-white/60 text-xs mb-4">
+                    🔥 Streak {streak.current_streak} hari berturut-turut
+                  </p>
+                )}
+                {streak.current_streak <= 1 && (
+                  <p className="text-white/40 text-[11px] mb-4">Berhasil dicatat</p>
+                )}
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href={`/review/tulis?shelf=${doneShelfId}`}
+                    className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-colors text-center"
+                  >
+                    Tulis Review
+                  </Link>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => router.push("/dashboard")}
+                      className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
+                    >
+                      Ke Dashboard
+                    </button>
+                    <button
+                      onClick={() => { setCelebrated(false); setDoneShelfId(null); if (shelf.length === 1) setSelected(shelf[0]); }}
+                      className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
+                    >
+                      Catat Lagi
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3">
+                  <Check size={28} strokeWidth={2.5} className="text-white" />
+                </div>
+                <div className="text-3xl font-display font-black text-white mb-1">
+                  +{lastPages} halaman!
+                </div>
+                {streak.current_streak > 1 ? (
+                  <p className="text-white/70 text-sm mb-2">🔥 Streak {streak.current_streak} hari! Terus pertahankan!</p>
+                ) : (
+                  <p className="text-white/70 text-sm mb-2">Bacaan hari ini tercatat. Keep going!</p>
+                )}
+                <p className="text-white/40 text-[11px] mb-4">Berhasil dicatat — akan kembali ke dashboard</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    className="flex-1 bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-colors"
+                  >
+                    Ke Dashboard
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCelebrated(false);
+                      if (shelf.length === 1) setSelected(shelf[0]);
+                    }}
+                    className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
+                  >
+                    Catat Lagi
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
