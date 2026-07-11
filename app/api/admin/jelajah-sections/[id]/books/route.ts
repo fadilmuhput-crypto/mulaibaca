@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
+import { createAdminClient } from "@/lib/supabase-route";
 import { getSession } from "@/lib/session";
 
-async function assertAdmin(req: NextRequest) {
-  const supabase = createRouteClient(req);
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+async function assertAdmin() {
   const session = await getSession();
   if (!session?.isCmsAdmin) return null;
   return session;
@@ -13,7 +10,7 @@ async function assertAdmin(req: NextRequest) {
 
 // POST — tambah buku ke section
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await assertAdmin(req);
+  const session = await assertAdmin();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id: section_id } = await params;
@@ -45,7 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
 // DELETE — hapus buku dari section
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await assertAdmin(req);
+  const session = await assertAdmin();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id: section_id } = await params;
@@ -64,7 +61,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
 // PUT — update urutan buku (kirim array of { curated_book_id, sort_order })
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await assertAdmin(req);
+  const session = await assertAdmin();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id: section_id } = await params;

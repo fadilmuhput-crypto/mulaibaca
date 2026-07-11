@@ -75,12 +75,21 @@ export default function SectionEditClient({
 
   async function addBook(book: AdminBook) {
     if (maxBooks > 0 && linked.length >= maxBooks) return;
-    const res = await fetch(`/api/admin/jelajah-sections/${section.id}/books`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ curated_book_id: book.id }),
-    });
-    if (res.ok) setLinked((prev) => [...prev, book]);
+    try {
+      const res = await fetch(`/api/admin/jelajah-sections/${section.id}/books`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ curated_book_id: book.id }),
+      });
+      if (res.ok) {
+        setLinked((prev) => [...prev, book]);
+      } else {
+        const err = await res.json().catch(() => ({ error: "Gagal menambahkan buku" }));
+        alert(err.error);
+      }
+    } catch (e) {
+      alert("Network error: " + (e instanceof Error ? e.message : "Gagal terhubung ke server"));
+    }
   }
 
   async function removeBook(book: AdminBook) {
