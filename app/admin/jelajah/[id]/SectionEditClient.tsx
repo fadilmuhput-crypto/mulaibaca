@@ -79,7 +79,7 @@ export default function SectionEditClient({
       const res = await fetch(`/api/admin/jelajah-sections/${section.id}/books`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ curated_book_id: book.id }),
+        body: JSON.stringify({ book_id: book.id }),
       });
       if (res.ok) {
         setLinked((prev) => [...prev, book]);
@@ -96,7 +96,7 @@ export default function SectionEditClient({
     await fetch(`/api/admin/jelajah-sections/${section.id}/books`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ curated_book_id: book.id }),
+      body: JSON.stringify({ book_id: book.id }),
     });
     setLinked((prev) => prev.filter((b) => b.id !== book.id));
   }
@@ -109,7 +109,7 @@ export default function SectionEditClient({
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        order: next.map((b, i) => ({ curated_book_id: b.id, sort_order: i })),
+        order: next.map((b, i) => ({ book_id: b.id, sort_order: i })),
       }),
     });
   }
