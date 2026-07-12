@@ -48,15 +48,6 @@ export async function PATCH(
           book_slug: book.slug,
           book_cover: book.cover_url,
         });
-      } else if (oldStatus !== body.status) {
-        insertActivity(memberId, familyId, "shelf_status", {
-          book_id: book.id,
-          book_title: book.title,
-          book_slug: book.slug,
-          book_cover: book.cover_url,
-          from_status: oldStatus,
-          to_status: body.status,
-        });
       }
     }
   }
