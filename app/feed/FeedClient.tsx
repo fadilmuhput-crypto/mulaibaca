@@ -170,9 +170,21 @@ function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; cur
                     <p className="text-sm font-semibold text-ink leading-snug line-clamp-2">{item.book_title}</p>
 
                     {item.type === "log" && item.detail.pages_read && (
-                      <p className="text-xs text-ink-muted mt-1.5">
-                        <span className="font-semibold text-amber">+{item.detail.pages_read}</span> halaman
-                      </p>
+                      <div className="mt-1.5 space-y-1">
+                        <p className="text-xs text-ink-muted">
+                          <span className="font-semibold text-amber">+{item.detail.pages_read}</span> halaman
+                        </p>
+                        {(item.detail.from_page != null || item.detail.to_page != null) && (
+                          <p className="text-[11px] text-ink-muted/60">
+                            Hal {item.detail.from_page ?? "—"} → {item.detail.to_page ?? "—"}
+                          </p>
+                        )}
+                        {item.detail.duration_minutes != null && item.detail.duration_minutes > 0 && (
+                          <p className="text-[11px] text-ink-muted/60">
+                            {item.detail.duration_minutes} menit
+                          </p>
+                        )}
+                      </div>
                     )}
 
                     {item.type === "shelf_add" && (
@@ -188,22 +200,29 @@ function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; cur
                     )}
 
                     {item.type === "review" && (
-                      <div className="mt-1.5 space-y-1">
-                        <div className="flex gap-0.5">
+                      <div className="mt-1.5 space-y-1.5">
+                        <div className="flex gap-1">
                           {[1, 2, 3, 4, 5].map((s) => (
-                            <span key={s} className={`text-xs ${s <= (item.detail.rating ?? 0) ? "text-amber" : "text-border"}`}>★</span>
+                            <span key={s} className={`text-sm ${s <= (item.detail.rating ?? 0) ? "text-amber" : "text-border"}`}>★</span>
                           ))}
                         </div>
                         {item.detail.excerpt && (
-                          <p className="text-xs text-ink-muted leading-relaxed line-clamp-2">"{item.detail.excerpt}"</p>
+                          <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 italic">"{item.detail.excerpt}"</p>
                         )}
                       </div>
                     )}
 
                     {item.type === "finish" && (
-                      <p className="text-xs font-semibold text-lime mt-1.5 flex items-center gap-1">
-                        <CheckCircle size={12} /> Selesai dibaca
-                      </p>
+                      <div className="mt-1.5 space-y-1">
+                        <p className="text-xs font-semibold text-lime flex items-center gap-1">
+                          <CheckCircle size={12} /> Selesai dibaca
+                        </p>
+                        {item.book_total_pages && (
+                          <p className="text-[11px] text-ink-muted/60">
+                            {item.book_total_pages} halaman · 100%
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

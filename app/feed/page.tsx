@@ -59,6 +59,21 @@ export default async function FeedPage() {
     }
   });
 
+  // Enrich finish items with total_pages from books table
+  const finishBookIds = [...new Set(items.filter((i) => i.type === "finish" && i.book_id).map((i) => i.book_id!))];
+  if (finishBookIds.length > 0) {
+    const { data: books } = await admin
+      .from("books")
+      .select("id, total_pages")
+      .in("id", finishBookIds);
+    const pagesMap = new Map((books ?? []).map((b) => [b.id, b.total_pages as number | null]));
+    for (const item of items) {
+      if (item.type === "finish" && item.book_id) {
+        (item as Record<string, unknown>).book_total_pages = pagesMap.get(item.book_id) ?? null;
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-parchment">
       <FeedClient initial={items} currentMemberId={session.memberId} />

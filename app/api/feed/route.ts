@@ -13,6 +13,7 @@ export type FeedItem = {
   book_title?: string;
   book_slug?: string;
   book_cover?: string | null;
+  book_total_pages?: number | null;
   timestamp: string;
   detail: {
     pages_read?: number;
@@ -107,6 +108,21 @@ export async function GET() {
         return { ...base, detail: {} };
     }
   });
+
+  // Enrich finish items with total_pages from books table
+  const finishBookIds = [...new Set(items.filter((i) => i.type === "finish" && i.book_id).map((i) => i.book_id!))];
+  if (finishBookIds.length > 0) {
+    const { data: books } = await admin
+      .from("books")
+      .select("id, total_pages")
+      .in("id", finishBookIds);
+    const pagesMap = new Map((books ?? []).map((b) => [b.id, b.total_pages as number | null]));
+    for (const item of items) {
+      if (item.type === "finish" && item.book_id) {
+        item.book_total_pages = pagesMap.get(item.book_id) ?? null;
+      }
+    }
+  }
 
   return NextResponse.json(items);
 }
