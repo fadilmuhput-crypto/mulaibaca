@@ -5,6 +5,8 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import ProfilClient from "./ProfilClient";
 
+const DUMMY_DOMAIN = "@child.mulaibaca.app";
+
 export type ProfilStats = {
   booksFinished: number;
   totalPagesRead: number;
@@ -24,89 +26,63 @@ export type ActingAsInfo = {
   isDummy: boolean;
 } | null;
 
-type DailyReading = {
-  date: string;
-  pages: number;
-};
-
-type Activity = {
-  id: string;
-  type: string;
-  book_title?: string;
-  book_slug?: string;
-  book_cover?: string | null;
-  detail: Record<string, unknown>;
-  timestamp: string;
-};
-
 export default async function ProfilPage() {
   const session = await getSession();
   if (!session) redirect("/masuk");
 
   const supabase = await createClient();
-  const admin = createAdminClient();
+  const adminClient = createAdminClient();
 
-  const sixtyDaysAgo = new Date();
-  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-  const cutoff = sixtyDaysAgo.toISOString().split("T")[0];
-
-  const [{ data: doneShelf }, { data: logs }, { data: streak }, { data: feed }] = await Promise.all([
+  const [{ data: doneShelf }, { data: logs }, { data: streak }, { count: memberCount }, { data: familyMembersRaw }, { data: familyData }] = await Promise.all([
     supabase.from("shelf_items").select("id").eq("member_id", session.memberId).eq("status", "done"),
-    supabase
-      .from("reading_logs")
-      .select("log_date, pages_read")
-      .eq("member_id", session.memberId)
-      .gte("log_date", cutoff),
-    supabase.from("streaks").select("current_streak, longest_streak").eq("member_id", session.memberId).maybeSingle(),
-    admin
-      .from("activity_feed")
-      .select("id, activity_type, data, created_at")
-      .eq("member_id", session.memberId)
-      .order("created_at", { ascending: false })
-      .limit(50),
+    supabase.from("reading_logs").select("pages_read").eq("member_id", session.memberId),
+    supabase.from("streaks").select("longest_streak").eq("member_id", session.memberId).maybeSingle(),
+    adminClient.from("members").select("id", { count: "exact", head: true }).eq("family_id", session.familyId),
+    adminClient.from("members").select("id, name, avatar").eq("family_id", session.familyId).order("created_at", { ascending: true }),
+    adminClient.from("families").select("weekly_challenge_pages").eq("id", session.familyId).maybeSingle(),
   ]);
 
-  // Aggregate logs by date
-  const dateMap = new Map<string, number>();
-  for (const log of logs ?? []) {
-    const d = (log as { log_date: string; pages_read: number }).log_date;
-    const p = (log as { log_date: string; pages_read: number }).pages_read;
-    dateMap.set(d, (dateMap.get(d) ?? 0) + p);
+  let actingAsInfo: ActingAsInfo = null;
+  if (session.actingAs) {
+    const { data: targetMember } = await adminClient
+      .from("members")
+      .select("auth_user_id")
+      .eq("id", session.actingAs)
+      .maybeSingle();
+    if (targetMember?.auth_user_id) {
+      const { data: authUser } = await adminClient.auth.admin.getUserById(targetMember.auth_user_id as string);
+      if (authUser?.user) {
+        const email = authUser.user.email ?? "";
+        actingAsInfo = {
+          email,
+          emailVerified: !!authUser.user.email_confirmed_at,
+          isDummy: email.endsWith(DUMMY_DOMAIN),
+        };
+      }
+    }
   }
-  const dailyReadings: DailyReading[] = Array.from(dateMap.entries()).map(([date, pages]) => ({ date, pages }));
 
-  // Transform activity feed
-  const activities: Activity[] = (feed ?? []).map((r: Record<string, unknown>) => {
-    const d = (r.data ?? {}) as Record<string, unknown>;
-    const base: Activity = {
-      id: r.id as string,
-      type: r.activity_type as string,
-      timestamp: r.created_at as string,
-      detail: d,
-    };
-    if (typeof d.book_title === "string") base.book_title = d.book_title;
-    if (typeof d.book_slug === "string") base.book_slug = d.book_slug;
-    if (typeof d.book_cover === "string") base.book_cover = d.book_cover;
-    return base;
-  });
+  const stats: ProfilStats = {
+    booksFinished: doneShelf?.length ?? 0,
+    totalPagesRead: (logs ?? []).reduce((s, l) => s + ((l as { pages_read: number }).pages_read), 0),
+    longestStreak: (streak?.longest_streak as number) ?? 0,
+    familyMemberCount: memberCount ?? 1,
+  };
 
-  const booksFinished = doneShelf?.length ?? 0;
-  const totalPagesRead = dailyReadings.reduce((s, r) => s + r.pages, 0);
-  const currentStreak = (streak?.current_streak as number) ?? 0;
-  const longestStreak = (streak?.longest_streak as number) ?? 0;
+  const familyMembers: FamilyMember[] = (familyMembersRaw ?? []) as FamilyMember[];
+  const familyWeeklyChallenge = (familyData?.weekly_challenge_pages as number) ?? 0;
 
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
       <NavBar session={session} />
       <main className="max-w-lg mx-auto px-4 py-6">
+        <h1 className="text-h1 mb-6">Profil</h1>
         <ProfilClient
           session={session}
-          dailyReadings={dailyReadings}
-          currentStreak={currentStreak}
-          longestStreak={longestStreak}
-          totalPagesRead={totalPagesRead}
-          booksFinished={booksFinished}
-          activities={activities}
+          stats={stats}
+          actingAsInfo={actingAsInfo}
+          familyMembers={familyMembers}
+          familyWeeklyChallenge={familyWeeklyChallenge}
         />
       </main>
     </div>

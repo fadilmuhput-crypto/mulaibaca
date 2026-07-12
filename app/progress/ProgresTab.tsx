@@ -20,7 +20,6 @@ export default function ProgresTab({
   totalPagesRead: number;
   booksFinished: number;
 }) {
-  // Last 30 days
   const now = new Date();
   const dayStrings: string[] = [];
   for (let i = 29; i >= 0; i--) {
@@ -33,17 +32,12 @@ export default function ProgresTab({
   const chartData = dayStrings.map((d) => ({ date: d, pages: readingByDate.get(d) ?? 0 }));
   const maxPages = Math.max(...chartData.map((d) => d.pages), 1);
 
-  // Stats
   const pagesThisWeek = chartData.slice(-7).reduce((s, d) => s + d.pages, 0);
   const pagesThisMonth = chartData.reduce((s, d) => s + d.pages, 0);
   const daysReadThisMonth = chartData.filter((d) => d.pages > 0).length;
 
-  // Week labels
-  const weekDays = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
-
   return (
     <div className="space-y-5">
-      {/* Streak row */}
       <div className="flex gap-3">
         <div className="flex-1 bg-surface rounded-xl border border-border p-4 text-center">
           <Flame size={18} strokeWidth={1.75} className="text-amber mx-auto mb-1" />
@@ -62,7 +56,6 @@ export default function ProgresTab({
         </div>
       </div>
 
-      {/* Bar chart — 30 hari terakhir */}
       <div className="bg-surface rounded-xl border border-border p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -93,7 +86,6 @@ export default function ProgresTab({
           })}
         </div>
 
-        {/* Day labels */}
         <div className="flex justify-between text-[9px] text-ink-muted">
           {chartData.filter((_, i) => i % 5 === 0 || i === chartData.length - 1).map((d) => {
             const date = new Date(d.date + "T00:00:00");
@@ -106,7 +98,6 @@ export default function ProgresTab({
         </div>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-surface rounded-xl border border-border p-4">
           <p className="text-[10px] text-ink-muted font-medium uppercase tracking-wider">Total Halaman</p>

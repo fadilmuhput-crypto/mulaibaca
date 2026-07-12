@@ -16,7 +16,6 @@ type Activity = {
 
 export default function AktivitasTab({
   activities,
-  memberName,
 }: {
   activities: Activity[];
   memberName: string;
@@ -37,7 +36,7 @@ export default function AktivitasTab({
   return (
     <div className="space-y-2">
       {displayed.map((a) => (
-        <ActivityCard key={a.id} activity={a} memberName={memberName} />
+        <ActivityCard key={a.id} activity={a} />
       ))}
       {activities.length > 20 && !showAll && (
         <button
@@ -52,7 +51,7 @@ export default function AktivitasTab({
   );
 }
 
-function ActivityCard({ activity, memberName }: { activity: Activity; memberName: string }) {
+function ActivityCard({ activity }: { activity: Activity }) {
   const date = new Date(activity.timestamp);
   const timeStr = date.toLocaleDateString("id-ID", {
     day: "numeric",
@@ -62,8 +61,8 @@ function ActivityCard({ activity, memberName }: { activity: Activity; memberName
   });
 
   switch (activity.type) {
-    case "log": {
-      const pages = activity.detail.pages_read as number | undefined;
+    case "log":
+      const logPages = activity.detail.pages_read as number | undefined;
       return (
         <div className="bg-surface rounded-xl border border-border p-3 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-forest/10 flex items-center justify-center flex-shrink-0">
@@ -72,14 +71,13 @@ function ActivityCard({ activity, memberName }: { activity: Activity; memberName
           <div className="flex-1 min-w-0">
             <p className="text-sm text-ink">
               Membaca <span className="font-semibold">{activity.book_title}</span>
-              {pages && <> — {pages} halaman</>}
+              {logPages ? <> — {logPages} halaman</> : null}
             </p>
             <p className="text-[10px] text-ink-muted mt-0.5">{timeStr}</p>
           </div>
         </div>
       );
-    }
-    case "review": {
+    case "review":
       const rating = activity.detail.rating as number | undefined;
       const reviewSlug = activity.detail.review_slug as string | undefined;
       return (
@@ -90,18 +88,17 @@ function ActivityCard({ activity, memberName }: { activity: Activity; memberName
           <div className="flex-1 min-w-0">
             <p className="text-sm text-ink">
               Review <span className="font-semibold">{activity.book_title}</span>
-              {rating && <> ⭐{rating}</>}
+              {rating ? <> ⭐{rating}</> : null}
             </p>
             <p className="text-[10px] text-ink-muted mt-0.5">{timeStr}</p>
           </div>
-          {reviewSlug && (
+          {reviewSlug ? (
             <Link href={`/review/${reviewSlug}`} className="text-xs font-semibold text-amber hover:text-amber-hover flex-shrink-0">
               Lihat →
             </Link>
-          )}
+          ) : null}
         </div>
       );
-    }
     case "finish":
       return (
         <div className="bg-surface rounded-xl border border-border p-3 flex items-center gap-3">
