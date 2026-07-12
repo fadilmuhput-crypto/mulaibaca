@@ -359,7 +359,7 @@ export default async function BookDetailPage({
   };
 
   return (
-    <div className="min-h-screen pb-10">
+    <div className="min-h-screen pb-32">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -432,11 +432,6 @@ export default async function BookDetailPage({
           </section>
         )}
 
-        {/* Add to shelf */}
-        <div className="divider mb-5" />
-        <h2 className="text-h3 mb-3">Tambah ke Rak</h2>
-        <AddToShelfButtons book={bookPayload} />
-
         {/* Reviews section */}
         {reviews.length > 0 && (
           <>
@@ -478,6 +473,13 @@ export default async function BookDetailPage({
           </>
         )}
       </main>
+
+      {/* Sticky bottom bar — Add to Shelf */}
+      <div className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-10 px-4 py-3">
+        <div className="max-w-lg mx-auto">
+          <AddToShelfButtons book={bookPayload} />
+        </div>
+      </div>
     </div>
   );
 }

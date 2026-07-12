@@ -102,7 +102,7 @@ export default async function PublicReviewPage({
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-28">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -190,30 +190,33 @@ export default async function PublicReviewPage({
           </div>
         )}
 
-        {/* CTA */}
-        {session ? (
-          <div className="mt-6 flex flex-col gap-3">
-            <Link href="/dashboard" className="btn-primary-lg w-full text-center">
-              ← Kembali ke Dashboard
+      </main>
+
+      {/* Sticky bottom bar — CTA */}
+      {session ? (
+        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-10 px-4 py-3">
+          <div className="max-w-lg mx-auto flex items-center gap-3">
+            <Link href="/dashboard" className="flex-1 btn-primary-lg text-center text-sm">
+              ← Dashboard
             </Link>
-            <Link href="/rak" className="btn-ghost-ink w-full text-center text-sm">
-              Lihat Rak Buku
+            <Link href="/rak" className="flex-1 btn-ghost-ink text-center text-sm">
+              Rak Buku
             </Link>
           </div>
-        ) : (
-          <div className="mt-6 bg-forest rounded-2xl p-6 text-center">
-            <p className="text-white font-display font-bold text-lg mb-1">
-              Mulai bangun kebiasaan membaca
-            </p>
-            <p className="text-white/70 text-sm mb-4">
-              Catat progres, tulis review, jaga streak baca harian
-            </p>
-            <Link href="/daftar" className="btn-primary-lg inline-flex">
+        </div>
+      ) : (
+        <div className="fixed bottom-0 left-0 right-0 bg-forest z-10 px-4 py-4">
+          <div className="max-w-lg mx-auto flex items-center justify-between">
+            <div>
+              <p className="text-white font-display font-bold text-sm">Mulai baca & review</p>
+              <p className="text-white/60 text-xs mt-0.5">Gratis, tanpa ribet</p>
+            </div>
+            <Link href="/daftar" className="bg-white text-forest text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-parchment transition-colors whitespace-nowrap">
               Mulai Gratis →
             </Link>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }
