@@ -118,9 +118,7 @@ export default async function PublicReviewPage({
             title={`Review ${book?.title ?? "Buku"} oleh ${reviewerName} — Mulaibaca`}
             text={`Review "${book?.title}" oleh ${reviewerName}${!review.is_anonymous ? ` dari ${family?.name}` : ""} ⭐${"⭐".repeat(review.rating)} — baca selengkapnya di mulaibaca 📚`}
           />
-          {session ? (
-            <Link href="/dashboard" className="btn-primary-sm">Dashboard</Link>
-          ) : (
+          {!session && (
             <Link href="/daftar" className="btn-primary-sm">Mulai Gratis →</Link>
           )}
         </div>
