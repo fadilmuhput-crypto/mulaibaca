@@ -6,6 +6,7 @@ import BookCover from "@/components/BookCover";
 import { createAdminClient } from "@/lib/supabase-route";
 import { getSession } from "@/lib/session";
 import LikeButton from "@/components/LikeButton";
+import ShareButton from "@/components/ShareButton";
 
 type OLWork = {
   title?: string;
@@ -373,7 +374,13 @@ export default async function BookDetailPage({
             <path d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <span className="text-h3 truncate">{book.title}</span>
+        <span className="text-h3 truncate flex-1">{book.title}</span>
+        <ShareButton
+          url={`https://mulaibaca.id/buku/${book.slug}`}
+          title={`${book.title} — Mulaibaca`}
+          text={`Rekomendasi buku: ${book.title}${book.author ? ` oleh ${book.author}` : ""} — lihat detail dan review di mulaibaca 📚`}
+          className="flex-shrink-0"
+        />
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6">

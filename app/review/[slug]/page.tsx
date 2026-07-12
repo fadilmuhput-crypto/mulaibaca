@@ -7,6 +7,7 @@ import AvatarIcon from "@/components/AvatarIcon";
 import { BookOpen } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import ReviewSettings from "@/components/ReviewSettings";
+import ShareButton from "@/components/ShareButton";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -111,11 +112,18 @@ export default async function PublicReviewPage({
         <Link href="/" className="text-xl font-display font-bold text-forest">
           mulaibaca
         </Link>
-        {session ? (
-          <Link href="/dashboard" className="btn-primary-sm">Dashboard</Link>
-        ) : (
-          <Link href="/daftar" className="btn-primary-sm">Mulai Gratis →</Link>
-        )}
+        <div className="flex items-center gap-3">
+          <ShareButton
+            url={`https://mulaibaca.id/review/${slug}`}
+            title={`Review ${book?.title ?? "Buku"} oleh ${reviewerName} — Mulaibaca`}
+            text={`Review "${book?.title}" oleh ${reviewerName}${!review.is_anonymous ? ` dari ${family?.name}` : ""} ⭐${"⭐".repeat(review.rating)} — baca selengkapnya di mulaibaca 📚`}
+          />
+          {session ? (
+            <Link href="/dashboard" className="btn-primary-sm">Dashboard</Link>
+          ) : (
+            <Link href="/daftar" className="btn-primary-sm">Mulai Gratis →</Link>
+          )}
+        </div>
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-8">
