@@ -200,8 +200,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: `${b.title} — Mulaibaca`,
       description: b.description ?? `Detail buku ${b.title} di Mulaibaca.`,
       alternates: { canonical: url },
-      openGraph: { title: `${b.title} — Mulaibaca`, description: b.description ?? "", url, type: "book" },
-      twitter: { card: "summary", title: `${b.title} — Mulaibaca`, description: b.description ?? "" },
+      openGraph: { title: `${b.title} — Mulaibaca`, description: b.description ?? "", url, type: "book", images: [`${url}/opengraph-image`] },
+      twitter: { card: "summary_large_image", title: `${b.title} — Mulaibaca`, description: b.description ?? "", images: [`${url}/opengraph-image`] },
     };
   }
   const curated = findCurated(id);
@@ -213,7 +213,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     description,
     alternates: { canonical: url },
     openGraph: { title, description, url, type: "book" },
-    twitter: { card: "summary", title, description },
+    twitter: { card: "summary_large_image", title, description, images: [`${url}/opengraph-image`] },
   };
 }
 

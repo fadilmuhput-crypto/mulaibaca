@@ -17,7 +17,7 @@ export const metadata = {
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Review Buku — Mulaibaca",
     description: "Kumpulan review buku dari keluarga Indonesia. Temukan rekomendasi buku terbaik.",
   },

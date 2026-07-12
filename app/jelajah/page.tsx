@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     locale: "id_ID",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Jelajah Buku — Mulaibaca",
     description: "Temukan buku baru untuk dibaca bersama keluarga.",
   },

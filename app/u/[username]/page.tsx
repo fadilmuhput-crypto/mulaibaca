@@ -39,11 +39,13 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
       title: `${displayName} (@${username}) — mulaibaca`,
       description: `Profil pembaca ${displayName} di Mulaibaca.`,
       url,
+      images: [`https://mulaibaca.id/api/og/profile/${username}`],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: `${displayName} (@${username}) — mulaibaca`,
       description: `Profil pembaca ${displayName} di Mulaibaca.`,
+      images: [`https://mulaibaca.id/api/og/profile/${username}`],
     },
   };
 }

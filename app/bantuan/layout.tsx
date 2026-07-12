@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     url: "https://mulaibaca.id/bantuan",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Bantuan — Mulaibaca",
     description: "Hubungi tim Mulaibaca atau temukan jawaban dari pertanyaan umum.",
   },
