@@ -88,7 +88,7 @@ export default function FindFriends({ memberId }: { memberId: string }) {
             <div key={r.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
               <Link href={`/u/${r.username ?? r.id}`} className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-8 h-8 rounded-full bg-amber-soft flex items-center justify-center text-amber flex-shrink-0">
-                  <AvatarIcon avatar={r.avatar} size={16} />
+                  <AvatarIcon avatar={r.avatar ?? ""} size={16} />
                 </div>
                 <div className="min-w-0">
                   <p className="font-semibold text-sm text-ink truncate">{r.name}</p>
