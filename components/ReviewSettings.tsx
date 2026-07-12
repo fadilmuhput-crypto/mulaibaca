@@ -73,13 +73,13 @@ export default function ReviewSettings({
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-ink">{isPublic ? "Publik" : "Privat"}</p>
+        <p className="text-sm text-ink">Publik</p>
         <Toggle checked={isPublic} onChange={() => update("is_public", !isPublic)} disabled={saving} />
       </div>
 
       {isPublic && (
         <div className="flex items-center justify-between pt-1.5 border-t border-border/60">
-          <p className="text-sm text-ink">{isAnonymous ? "Sembunyikan nama" : "Tampilkan nama"}</p>
+          <p className="text-sm text-ink">Tampil anonim</p>
           <Toggle checked={isAnonymous} onChange={() => update("is_anonymous", !isAnonymous)} disabled={saving} />
         </div>
       )}
