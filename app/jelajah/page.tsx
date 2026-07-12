@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-route";
+import NavBar from "@/components/NavBar";
 import JelajahClient from "./JelajahClient";
 import type { Book } from "@/lib/books";
 import type { JelajahSection } from "@/lib/jelajah-sections";
@@ -190,15 +191,18 @@ export default async function JelajahPage() {
     : [];
 
   return (
-    <JelajahClient
-      familyBooks={familyBooks}
-      allBooks={enrichedBooks}
-      sections={sections}
-      trendingBooks={trendingBooks}
-      personalBooks={personalBooks}
-      memberType={session?.memberType ?? "dewasa"}
-      memberAge={session?.memberAge ?? null}
-      memberName={session?.memberName ?? "Pengunjung"}
-    />
+    <div className="min-h-screen pb-20 sm:pb-0">
+      {session && <NavBar session={session} />}
+      <JelajahClient
+        familyBooks={familyBooks}
+        allBooks={enrichedBooks}
+        sections={sections}
+        trendingBooks={trendingBooks}
+        personalBooks={personalBooks}
+        memberType={session?.memberType ?? "dewasa"}
+        memberAge={session?.memberAge ?? null}
+        memberName={session?.memberName ?? "Pengunjung"}
+      />
+    </div>
   );
 }

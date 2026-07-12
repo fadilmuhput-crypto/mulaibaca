@@ -349,7 +349,7 @@ export default function JelajahClient({
   const noResultsAtAll = isSearching && mergedResults.length === 0 && !olLoading;
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen">
 
       {/* ── Sticky header ── */}
       <header className="bg-surface border-b-2 border-ink sticky top-0 z-10">
