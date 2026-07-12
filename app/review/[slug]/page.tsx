@@ -47,11 +47,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       url,
       type: "article",
+      images: [`https://mulaibaca.id/api/og/review/${slug}`],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: `Review ${title} oleh ${reviewer} — Mulaibaca`,
       description,
+      images: [`https://mulaibaca.id/api/og/review/${slug}`],
     },
   };
 }
