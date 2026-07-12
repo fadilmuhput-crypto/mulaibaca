@@ -233,58 +233,60 @@ export default function LogClient({
   return (
     <div className="space-y-5">
 
-      {/* ── STREAK HERO ── */}
-      <section className="rounded-2xl p-5 bg-ink brutal-border brutal-shadow-sm">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-amber flex items-center justify-center brutal-shadow-xs">
-              <Flame size={26} strokeWidth={1.75} className="text-white" />
-            </div>
-            <div>
-              <div className="font-display text-4xl font-black text-white leading-none">
-                {streak.current_streak}
+      {/* ── STREAK HERO — only when no book selected ── */}
+      {!selected && (
+        <section className="rounded-2xl p-5 bg-ink brutal-border brutal-shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-amber flex items-center justify-center brutal-shadow-xs">
+                <Flame size={26} strokeWidth={1.75} className="text-white" />
               </div>
-              <div className="text-xs text-white/60 mt-0.5">hari berturut-turut</div>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs text-white/40 mb-0.5">terpanjang</div>
-            <div className="font-display text-2xl font-bold text-white/70">
-              {streak.longest_streak}
-            </div>
-          </div>
-        </div>
-
-        {/* 7-day dots */}
-        <div className="grid grid-cols-7 gap-1">
-          {weekDays.map(({ date, label }) => {
-            const pages = pagesPerDay[date] ?? 0;
-            const isToday = date === today;
-            const hasRead = pages > 0;
-            return (
-              <div key={date} className="flex flex-col items-center gap-1.5">
-                <div className={`w-full aspect-square rounded-lg flex items-center justify-center transition-all ${
-                  hasRead
-                    ? isToday ? "bg-amber" : "bg-white/20"
-                    : isToday ? "bg-white/10 border border-dashed border-white/30" : "bg-white/5"
-                }`}>
-                  {hasRead ? (
-                    <Check size={14} strokeWidth={3} className={isToday ? "text-white" : "text-white/60"} />
-                  ) : isToday ? (
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
-                  ) : null}
+              <div>
+                <div className="font-display text-4xl font-black text-white leading-none">
+                  {streak.current_streak}
                 </div>
-                <span className={`text-[9px] font-semibold ${isToday ? "text-amber" : "text-white/40"}`}>
-                  {label}
-                </span>
+                <div className="text-xs text-white/60 mt-0.5">hari berturut-turut</div>
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-white/40 mb-0.5">terpanjang</div>
+              <div className="font-display text-2xl font-bold text-white/70">
+                {streak.longest_streak}
+              </div>
+            </div>
+          </div>
 
-      {/* ── STREAK AT RISK ── */}
-      {streakAtRisk && (
+          {/* 7-day dots */}
+          <div className="grid grid-cols-7 gap-1">
+            {weekDays.map(({ date, label }) => {
+              const pages = pagesPerDay[date] ?? 0;
+              const isToday = date === today;
+              const hasRead = pages > 0;
+              return (
+                <div key={date} className="flex flex-col items-center gap-1.5">
+                  <div className={`w-full aspect-square rounded-lg flex items-center justify-center transition-all ${
+                    hasRead
+                      ? isToday ? "bg-amber" : "bg-white/20"
+                      : isToday ? "bg-white/10 border border-dashed border-white/30" : "bg-white/5"
+                  }`}>
+                    {hasRead ? (
+                      <Check size={14} strokeWidth={3} className={isToday ? "text-white" : "text-white/60"} />
+                    ) : isToday ? (
+                      <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
+                    ) : null}
+                  </div>
+                  <span className={`text-[9px] font-semibold ${isToday ? "text-amber" : "text-white/40"}`}>
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── STREAK AT RISK — only when no book selected ── */}
+      {!selected && streakAtRisk && (
         <div className="flex items-center gap-3 bg-amber-soft border border-amber/30 rounded-2xl px-4 py-3">
           <AlertTriangle size={18} strokeWidth={1.75} className="text-amber flex-shrink-0" />
           <p className="text-sm text-ink-secondary flex-1">
@@ -374,8 +376,8 @@ export default function LogClient({
         </div>
       )}
 
-      {/* ── DAILY GOAL PROGRESS ── */}
-      {dailyGoal > 0 && !celebrated && (
+      {/* ── DAILY GOAL PROGRESS — only when no book selected ── */}
+      {!selected && dailyGoal > 0 && !celebrated && (
         <Link
           href="/profil"
           className="flex items-center gap-3 bg-surface rounded-2xl brutal-border brutal-shadow-xs px-4 py-3"
@@ -411,7 +413,7 @@ export default function LogClient({
         </div>
       ) : (
         <section className="space-y-3">
-          <h2 className="text-h3">Catat sesi baca</h2>
+          <h2 className="text-h3">{selected ? "Catat sesi baca" : "Pilih buku"}</h2>
 
           {/* ── BOOK SELECTOR ── */}
           {shelf.length > 1 && (
