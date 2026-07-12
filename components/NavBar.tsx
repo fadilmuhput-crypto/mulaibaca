@@ -44,12 +44,12 @@ function IconPencil({ active }: { active: boolean }) {
   );
 }
 
-function IconCompass({ active }: { active: boolean }) {
+function IconSearch({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.75} strokeLinecap="round" strokeLinejoin="round">
       {active
-        ? <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4 6l-6 2.5L7.5 16 14 13.5 16 8z" />
-        : <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.5-4.5 4.5-7.5-7.5 4.5L6.5 17.5zM12 13c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />
+        ? <path d="M21 21l-5.197-5.197a7.5 7.5 0 10-1.414 1.414L21 21zM10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" fill="currentColor" />
+        : <path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
       }
     </svg>
   );
@@ -89,7 +89,7 @@ const NAV = [
   { href: "/dashboard", label: "Beranda",  Icon: IconHome },
   { href: "/rak",       label: "Rak Buku", Icon: IconBooks },
   { href: "/log",       label: "Catat",    Icon: IconPencil },
-  { href: "/jelajah",   label: "Explore",  Icon: IconCompass },
+  { href: "/jelajah",   label: "Jelajah",  Icon: IconSearch },
   { href: "/profil",    label: "Profil",   Icon: IconUser },
 ];
 
