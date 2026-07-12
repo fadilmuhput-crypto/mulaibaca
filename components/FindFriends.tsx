@@ -86,17 +86,28 @@ export default function FindFriends({ memberId }: { memberId: string }) {
         <div className="divide-y divide-border/60">
           {results.map((r) => (
             <div key={r.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-              <Link href={`/u/${r.username ?? r.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-amber-soft flex items-center justify-center text-amber flex-shrink-0">
-                  <AvatarIcon avatar={r.avatar ?? ""} size={16} />
+              {r.username ? (
+                <Link href={`/u/${r.username}`} className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-amber-soft flex items-center justify-center text-amber flex-shrink-0">
+                    <AvatarIcon avatar={r.avatar ?? ""} size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-ink truncate">{r.name}</p>
+                    {r.username && (
+                      <p className="text-[10px] text-ink-muted truncate">@{r.username}</p>
+                    )}
+                  </div>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-amber-soft flex items-center justify-center text-amber flex-shrink-0">
+                    <AvatarIcon avatar={r.avatar ?? ""} size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-ink truncate">{r.name}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-sm text-ink truncate">{r.name}</p>
-                  {r.username && (
-                    <p className="text-[10px] text-ink-muted truncate">@{r.username}</p>
-                  )}
-                </div>
-              </Link>
+              )}
               <FollowButton
                 targetId={r.id}
                 initialFollowers={0}
