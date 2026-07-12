@@ -6,7 +6,6 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import BookCover from "@/components/BookCover";
 import FeedClient from "@/app/feed/FeedClient";
-import FindFriends from "@/components/FindFriends";
 import type { FeedItem } from "@/app/api/feed/route";
 import { Flame, Target, Check } from "lucide-react";
 
@@ -245,9 +244,6 @@ export default async function DashboardPage() {
         <section>
           <FeedClient initial={feedItems} compact currentMemberId={session.memberId} />
         </section>
-
-        {/* ── CARI TEMAN ── */}
-        <FindFriends memberId={session.memberId} />
       </main>
     </div>
   );

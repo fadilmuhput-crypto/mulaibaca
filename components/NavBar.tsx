@@ -7,6 +7,7 @@ import type { Session } from "@/lib/session";
 import { createClient } from "@/lib/supabase";
 import AvatarIcon from "@/components/AvatarIcon";
 import FeedbackModal from "@/components/FeedbackModal";
+import FindFriendsModal from "@/components/FindFriendsModal";
 import NotificationBell from "@/components/NotificationBell";
 import GuestBanner from "@/components/GuestBanner";
 
@@ -98,6 +99,7 @@ export default function NavBar({ session }: { session: Session }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [findFriendsOpen, setFindFriendsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -211,8 +213,18 @@ export default function NavBar({ session }: { session: Session }) {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                   </svg>
-                  Profil
+                  Progress
                 </Link>
+                <button
+                  onClick={() => { setOpen(false); setFindFriendsOpen(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-ink hover:bg-parchment transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    <path d="M19.5 21v-4.5a2.25 2.25 0 00-2.25-2.25h-1.5" />
+                  </svg>
+                  Cari Teman
+                </button>
                 <Link
                   href="/bantuan"
                   onClick={() => setOpen(false)}
@@ -259,6 +271,7 @@ export default function NavBar({ session }: { session: Session }) {
       </header>
 
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
+      {findFriendsOpen && <FindFriendsModal memberId={session.memberId} onClose={() => setFindFriendsOpen(false)} />}
 
       {/* ── Bottom nav (mobile) ──────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-20 sm:hidden">
