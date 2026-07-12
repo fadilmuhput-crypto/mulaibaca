@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { FeedItem } from "@/app/api/feed/route";
-import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus, Trash2 } from "lucide-react";
+import type { FeedComment } from "@/app/api/feed/[id]/comments/route";
+import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus, Trash2, Heart, MessageCircle, Send } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import AvatarIcon from "@/components/AvatarIcon";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -29,263 +30,380 @@ function timeAgo(date: string) {
   return new Date(date).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 }
 
-function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; currentMemberId?: string; onDelete?: (id: string) => void }) {
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const deletingItem = items.find((i) => i.id === deletingId);
-  function shareText(item: FeedItem): string {
-    const base = "mulaibaca — baca, catat, review, semua di satu tempat 📚\n\nmulaibaca.id";
-    switch (item.type) {
-      case "log": {
-        let t = `Lagi baca "${item.book_title}" — `;
-        if (item.detail.pages_read) {
-          t += `selesai +${item.detail.pages_read} halaman`;
-          if (item.detail.duration_minutes) t += ` dalam ${item.detail.duration_minutes} menit`;
-          t += "! ";
-        }
-        t += `Catat progres bacamu juga di mulaibaca 📚`;
-        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
-        return `${t}${profile ? `\n${profile}` : ""}`;
-      }
-      case "review": {
-        const slug = item.detail.review_slug;
-        const stars = item.detail.rating ? "⭐".repeat(item.detail.rating) : "";
-        let t = `Review "${item.book_title}" ${stars}`;
-        if (item.detail.excerpt) t += ` — "${item.detail.excerpt.slice(0, 100)}"`;
-        t += `\n\nBaca review lengkapnya di mulaibaca 📚`;
-        const link = slug ? `\nmulaibaca.id/review/${slug}` : "";
-        return `${t}${link}`;
-      }
-      case "finish": {
-        let t = `Selesai baca "${item.book_title}"! 🎉 Pantau progres dan temukan buku baru di mulaibaca 📚`;
-        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
-        return `${t}${profile}`;
-      }
-      case "shelf_add": {
-        let t = `Mulai baca "${item.book_title}" 📖 Catat perjalanan bacamu biar makin semangat di mulaibaca 📚`;
-        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
-        return `${t}${profile}`;
-      }
-      case "shelf_status": {
-        let t = `Update status bacaan "${item.book_title}" → ${item.detail.to_status} di mulaibaca. Atur rak dan catat progres bacaanmu! 📚`;
-        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
-        return `${t}${profile}`;
-      }
-      case "follow": {
-        const name = item.detail.following_name;
-        const username = item.detail.following_username;
-        let t = `Ikutin ${name} di mulaibaca — lihat aktivitas dan rekomendasi buku dari teman! 📚`;
-        const link = username ? `\nmulaibaca.id/u/${username}` : "";
-        return `${t}${link}`;
-      }
-      default:
-        return base;
+/* ── Like & comment state per card ── */
+function useLikeState(feedId: string) {
+  const [count, setCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/feed/${feedId}/like`).then((r) => r.ok && r.json()).then((d) => {
+      if (d) { setCount(d.count); setLiked(d.liked_by_me); setLoaded(true); }
+    });
+  }, [feedId]);
+
+  async function toggle() {
+    if (liked) {
+      setLiked(false); setCount((c) => Math.max(c - 1, 0));
+      await fetch(`/api/feed/${feedId}/like`, { method: "DELETE" });
+    } else {
+      setLiked(true); setCount((c) => c + 1);
+      await fetch(`/api/feed/${feedId}/like`, { method: "POST" });
     }
   }
 
-  async function shareItem(item: FeedItem) {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "mulaibaca", text: shareText(item) });
-      } catch {}
-    }
+  return { count, liked, toggle, loaded };
+}
+
+function useCommentsState(feedId: string) {
+  const [comments, setComments] = useState<FeedComment[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function fetchComments() {
+    setLoading(true);
+    const res = await fetch(`/api/feed/${feedId}/comments`);
+    if (res.ok) setComments(await res.json());
+    setLoading(false);
+  }
+
+  function toggleOpen() {
+    if (!open && comments.length === 0) fetchComments();
+    setOpen((v) => !v);
+  }
+
+  async function addComment(content: string) {
+    const res = await fetch(`/api/feed/${feedId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+    if (!res.ok) return false;
+    await fetchComments();
+    return true;
+  }
+
+  return { comments, open, loading, toggleOpen, addComment, fetchComments };
+}
+
+function FeedCard({ item, currentMemberId, onDelete }: { item: FeedItem; currentMemberId?: string; onDelete?: (id: string) => void }) {
+  const [deleting, setDeleting] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const commentInputRef = useRef<HTMLInputElement>(null);
+  const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id);
+  const { comments, open: commentsOpen, toggleOpen: toggleComments, addComment } = useCommentsState(item.id);
+  const label = ACTIVITY_LABELS[item.type];
+
+  async function handleAddComment(e: React.FormEvent) {
+    e.preventDefault();
+    const text = commentText.trim();
+    if (!text) return;
+    const ok = await addComment(text);
+    if (ok) setCommentText("");
   }
 
   return (
-    <div className="space-y-4">
-      {      items.map((item) => {
-        const label = ACTIVITY_LABELS[item.type];
-        return (
-          <div
-            key={item.id}
-            className="bg-surface rounded-2xl border border-border overflow-hidden hover:border-amber/30 transition-colors"
-          >
-            {/* Header: avatar + name + timestamp + action */}
-            <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-2">
-              <Link href={`/u/${item.member_username}`} className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden">
-                  {item.member_avatar ? (
-                    <AvatarIcon avatar={item.member_avatar} size={18} />
-                  ) : (
-                    <span className="text-base font-bold">{item.member_name.charAt(0)}</span>
-                  )}
-                </div>
-              </Link>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <Link
-                    href={`/u/${item.member_username}`}
-                    className="text-sm font-bold text-ink hover:text-amber transition-colors truncate"
-                  >
-                    {item.member_name}
-                  </Link>
-                  <span className="text-xs text-ink-muted/50">·</span>
-                  <span className="text-[11px] text-ink-muted/60">{timeAgo(item.timestamp)}</span>
-                </div>
-                <span className={`text-xs font-medium ${label.color} flex items-center gap-1`}>
-                  {label.icon} {label.verb}
-                </span>
-              </div>
-            </div>
-
-            {/* Main content */}
-            {(item.type === "follow") ? (
-              /* Follow activity — show followed person */
-              <div className="px-4 pb-4">
-                <Link href={`/u/${item.detail.following_username}`} className="flex items-center gap-3 bg-parchment rounded-xl p-3 hover:bg-amber-soft/30 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden flex-shrink-0">
-                    {item.detail.following_avatar ? (
-                      <AvatarIcon avatar={item.detail.following_avatar} size={18} />
-                    ) : (
-                      <span className="text-base font-bold">{item.detail.following_name?.charAt(0)}</span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-ink truncate">{item.detail.following_name}</p>
-                    {item.detail.following_username && (
-                      <p className="text-xs text-ink-muted truncate">@{item.detail.following_username}</p>
-                    )}
-                  </div>
-                </Link>
-              </div>
+    <div className="bg-surface rounded-2xl border border-border overflow-hidden hover:border-amber/30 transition-colors">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-2">
+        <Link href={`/u/${item.member_username}`} className="flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden">
+            {item.member_avatar ? (
+              <AvatarIcon avatar={item.member_avatar} size={18} />
             ) : (
-              /* Book-related activity */
-              <Link href={(() => {
-                if (!item.book_id) return "#";
-                switch (item.type) {
-                  case "log": return `/log?bookId=${item.book_id}`;
-                  case "review": return item.detail.review_slug ? `/review/${item.detail.review_slug}` : "#";
-                  case "finish": return "/rak";
-                  case "shelf_add": return "/rak";
-                  case "shelf_status": return "/rak";
-                  default: return "#";
-                }
-              })()} className="block px-4 pb-4">
-                <div className="flex gap-4">
-                  {item.book_cover && (
-                    <div className="flex-shrink-0">
-                      <BookCover src={item.book_cover} title={item.book_title ?? ""} className="w-16 h-22 rounded-lg shadow-sm" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0 pt-1">
-                    <p className="text-sm font-semibold text-ink leading-snug line-clamp-2">{item.book_title}</p>
-
-                    {item.type === "log" && item.detail.pages_read && (
-                      <div className="mt-1.5 space-y-1">
-                        <p className="text-xs text-ink-muted">
-                          <span className="font-semibold text-amber">+{item.detail.pages_read}</span> halaman
-                        </p>
-                        {(item.detail.from_page != null || item.detail.to_page != null) && (
-                          <p className="text-[11px] text-ink-muted/60">
-                            Hal {item.detail.from_page ?? "—"} → {item.detail.to_page ?? "—"}
-                          </p>
-                        )}
-                        {item.detail.duration_minutes != null && item.detail.duration_minutes > 0 && (
-                          <p className="text-[11px] text-ink-muted/60">
-                            {item.detail.duration_minutes} menit
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {item.type === "shelf_add" && (
-                      <p className="text-xs font-medium text-ink-muted mt-1.5">
-                        {item.detail.status === "want" ? "Masuk daftar ingin baca" : "Menambahkan ke rak baca"}
-                      </p>
-                    )}
-
-                    {item.type === "shelf_status" && (
-                      <p className="text-xs font-medium text-ink-muted mt-1.5">
-                        {item.detail.from_status} → {item.detail.to_status}
-                      </p>
-                    )}
-
-                    {item.type === "review" && (
-                      <div className="mt-1.5 space-y-1.5">
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <span key={s} className={`text-sm ${s <= (item.detail.rating ?? 0) ? "text-amber" : "text-border"}`}>★</span>
-                          ))}
-                        </div>
-                        {item.detail.excerpt && (
-                          <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 italic">"{item.detail.excerpt}"</p>
-                        )}
-                      </div>
-                    )}
-
-                    {item.type === "finish" && (
-                      <div className="mt-1.5 space-y-1">
-                        <p className="text-xs font-semibold text-lime flex items-center gap-1">
-                          <CheckCircle size={12} /> Selesai dibaca
-                        </p>
-                        {item.book_total_pages && (
-                          <p className="text-[11px] text-ink-muted/60">
-                            {item.book_total_pages} halaman · 100%
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Images */}
-                {item.detail.images && item.detail.images.length > 0 && (
-                  <div className="mt-2 mb-1 overflow-x-auto no-scrollbar">
-                    <div className="flex gap-2">
-                      {item.detail.images.map((url, idx) => (
-                        <img
-                          key={idx}
-                          src={url}
-                          alt=""
-                          className="h-24 w-auto rounded-lg object-cover border border-border flex-shrink-0"
-                          loading="lazy"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </Link>
+              <span className="text-base font-bold">{item.member_name.charAt(0)}</span>
             )}
+          </div>
+        </Link>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Link
+              href={`/u/${item.member_username}`}
+              className="text-sm font-bold text-ink hover:text-amber transition-colors truncate"
+            >
+              {item.member_name}
+            </Link>
+            <span className="text-xs text-ink-muted/50">·</span>
+            <span className="text-[11px] text-ink-muted/60">{timeAgo(item.timestamp)}</span>
+          </div>
+          <span className={`text-xs font-medium ${label.color} flex items-center gap-1`}>
+            {label.icon} {label.verb}
+          </span>
+        </div>
+      </div>
 
-            <div className="flex items-center gap-1 px-4 pb-3">
-              <button
-                onClick={(e) => { e.preventDefault(); shareItem(item); }}
-                className="flex items-center gap-1 text-[11px] text-ink-muted/50 hover:text-amber transition-colors"
-              >
-                <Share2 size={12} /> Bagikan
-              </button>
-              {currentMemberId && item.member_id === currentMemberId && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setDeletingId(item.id);
-                  }}
-                  className="flex items-center gap-1 text-[11px] text-ink-muted/30 hover:text-error transition-colors ml-auto"
-                >
-                  <Trash2 size={12} /> Hapus
-                </button>
+      {/* Main content */}
+      {(item.type === "follow") ? (
+        <div className="px-4 pb-4">
+          <Link href={`/u/${item.detail.following_username}`} className="flex items-center gap-3 bg-parchment rounded-xl p-3 hover:bg-amber-soft/30 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden flex-shrink-0">
+              {item.detail.following_avatar ? (
+                <AvatarIcon avatar={item.detail.following_avatar} size={18} />
+              ) : (
+                <span className="text-base font-bold">{item.detail.following_name?.charAt(0)}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink truncate">{item.detail.following_name}</p>
+              {item.detail.following_username && (
+                <p className="text-xs text-ink-muted truncate">@{item.detail.following_username}</p>
+              )}
+            </div>
+          </Link>
+        </div>
+      ) : (
+        <Link href={(() => {
+          if (!item.book_id) return "#";
+          switch (item.type) {
+            case "log": return `/log?bookId=${item.book_id}`;
+            case "review": return item.detail.review_slug ? `/review/${item.detail.review_slug}` : "#";
+            case "finish": return "/rak";
+            case "shelf_add": return "/rak";
+            case "shelf_status": return "/rak";
+            default: return "#";
+          }
+        })()} className="block px-4 pb-4">
+          <div className="flex gap-4">
+            {item.book_cover && (
+              <div className="flex-shrink-0">
+                <BookCover src={item.book_cover} title={item.book_title ?? ""} className="w-16 h-22 rounded-lg shadow-sm" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0 pt-1">
+              <p className="text-sm font-semibold text-ink leading-snug line-clamp-2">{item.book_title}</p>
+              {item.type === "log" && item.detail.pages_read && (
+                <div className="mt-1.5 space-y-1">
+                  <p className="text-xs text-ink-muted">
+                    <span className="font-semibold text-amber">+{item.detail.pages_read}</span> halaman
+                  </p>
+                  {(item.detail.from_page != null || item.detail.to_page != null) && (
+                    <p className="text-[11px] text-ink-muted/60">
+                      Hal {item.detail.from_page ?? "—"} → {item.detail.to_page ?? "—"}
+                    </p>
+                  )}
+                  {item.detail.duration_minutes != null && item.detail.duration_minutes > 0 && (
+                    <p className="text-[11px] text-ink-muted/60">{item.detail.duration_minutes} menit</p>
+                  )}
+                </div>
+              )}
+              {item.type === "shelf_add" && (
+                <p className="text-xs font-medium text-ink-muted mt-1.5">
+                  {item.detail.status === "want" ? "Masuk daftar ingin baca" : "Menambahkan ke rak baca"}
+                </p>
+              )}
+              {item.type === "shelf_status" && (
+                <p className="text-xs font-medium text-ink-muted mt-1.5">
+                  {item.detail.from_status} → {item.detail.to_status}
+                </p>
+              )}
+              {item.type === "review" && (
+                <div className="mt-1.5 space-y-1.5">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <span key={s} className={`text-sm ${s <= (item.detail.rating ?? 0) ? "text-amber" : "text-border"}`}>★</span>
+                    ))}
+                  </div>
+                  {item.detail.excerpt && (
+                    <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 italic">"{item.detail.excerpt}"</p>
+                  )}
+                </div>
+              )}
+              {item.type === "finish" && (
+                <div className="mt-1.5 space-y-1">
+                  <p className="text-xs font-semibold text-lime flex items-center gap-1">
+                    <CheckCircle size={12} /> Selesai dibaca
+                  </p>
+                  {item.book_total_pages && (
+                    <p className="text-[11px] text-ink-muted/60">{item.book_total_pages} halaman · 100%</p>
+                  )}
+                </div>
               )}
             </div>
           </div>
-        );
-      })}
+          {item.detail.images && item.detail.images.length > 0 && (
+            <div className="mt-2 mb-1 overflow-x-auto no-scrollbar">
+              <div className="flex gap-2">
+                {item.detail.images.map((url: string, idx: number) => (
+                  <img key={idx} src={url} alt="" className="h-24 w-auto rounded-lg object-cover border border-border flex-shrink-0" loading="lazy" />
+                ))}
+              </div>
+            </div>
+          )}
+        </Link>
+      )}
 
-      {deletingItem && (
+      {/* Action bar */}
+      <div className="flex items-center px-4 pb-2">
+        <button
+          onClick={(e) => { e.preventDefault(); toggleLike(); }}
+          className={`flex items-center gap-1 text-xs transition-colors ${
+            liked ? "text-error" : "text-ink-muted/50 hover:text-error"
+          }`}
+        >
+          <Heart size={13} fill={liked ? "currentColor" : "none"} />
+          <span>{likeCount > 0 ? likeCount : ""}</span>
+        </button>
+        <button
+          onClick={(e) => { e.preventDefault(); toggleComments(); }}
+          className={`flex items-center gap-1 text-xs ml-4 transition-colors ${
+            commentsOpen ? "text-amber" : "text-ink-muted/50 hover:text-amber"
+          }`}
+        >
+          <MessageCircle size={13} fill={commentsOpen ? "currentColor" : "none"} />
+          <span>{comments.length > 0 ? comments.length : ""}</span>
+        </button>
+        <button
+          onClick={(e) => { e.preventDefault(); shareItem(item); }}
+          className="flex items-center gap-1 text-xs text-ink-muted/50 hover:text-amber transition-colors ml-4"
+        >
+          <Share2 size={12} /> Bagikan
+        </button>
+        {currentMemberId && item.member_id === currentMemberId && (
+          <button
+            onClick={(e) => { e.preventDefault(); setDeleting(true); }}
+            className="flex items-center gap-1 text-xs text-ink-muted/30 hover:text-error transition-colors ml-auto"
+          >
+            <Trash2 size={12} /> Hapus
+          </button>
+        )}
+      </div>
+
+      {/* Comment section */}
+      {commentsOpen && (
+        <div className="border-t border-border bg-parchment/40 px-4 py-3 space-y-3">
+          {comments.length === 0 ? (
+            <p className="text-xs text-ink-muted/60 text-center">Belum ada komentar</p>
+          ) : (
+            <div className="space-y-2.5 max-h-48 overflow-y-auto">
+              {comments.map((c) => (
+                <div key={c.id} className="flex items-start gap-2">
+                  <Link href={`/u/${c.member_username}`} className="flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden">
+                      {c.member_avatar ? (
+                        <AvatarIcon avatar={c.member_avatar} size={10} />
+                      ) : (
+                        <span className="text-[9px] font-bold">{c.member_name?.charAt(0) ?? "?"}</span>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-1.5">
+                      <Link href={`/u/${c.member_username}`} className="text-xs font-semibold text-ink hover:text-amber truncate">
+                        {c.member_name ?? "?"}
+                      </Link>
+                      <span className="text-[10px] text-ink-muted/50">{timeAgo(c.created_at)}</span>
+                    </div>
+                    <p className="text-xs text-ink-secondary mt-0.5">{c.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <form onSubmit={handleAddComment} className="flex items-center gap-2">
+            <input
+              ref={commentInputRef}
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Tulis komentar..."
+              className="flex-1 bg-surface rounded-xl border border-border px-3 py-2 text-xs text-ink placeholder:text-ink-muted/50 focus:outline-none focus:border-amber/50 transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={!commentText.trim()}
+              className="flex-shrink-0 w-8 h-8 rounded-full bg-amber text-white flex items-center justify-center disabled:opacity-40 hover:bg-amber-dark transition-colors"
+            >
+              <Send size={13} />
+            </button>
+          </form>
+        </div>
+      )}
+
+      {deleting && (
         <ConfirmDialog
-          open={!!deletingId}
+          open={deleting}
           title="Hapus aktivitas"
-          message={`Aktivitas "${deletingItem.book_title || deletingItem.detail.following_name || "ini"}" akan dihapus dari timeline.`}
+          message={`Aktivitas "${item.book_title || item.detail.following_name || "ini"}" akan dihapus dari timeline.`}
           confirmLabel="Hapus"
           cancelLabel="Batal"
           destructive
           onConfirm={() => {
-            fetch(`/api/feed/${deletingItem.id}`, { method: "DELETE" }).then(() => {
-              onDelete?.(deletingItem.id);
-              setDeletingId(null);
+            fetch(`/api/feed/${item.id}`, { method: "DELETE" }).then(() => {
+              onDelete?.(item.id);
+              setDeleting(false);
             });
           }}
-          onCancel={() => setDeletingId(null)}
+          onCancel={() => setDeleting(false)}
         />
       )}
+    </div>
+  );
+}
+
+function shareText(item: FeedItem): string {
+  const base = "mulaibaca — baca, catat, review, semua di satu tempat 📚\n\nmulaibaca.id";
+  switch (item.type) {
+    case "log": {
+      let t = `Lagi baca "${item.book_title}" — `;
+      if (item.detail.pages_read) {
+        t += `selesai +${item.detail.pages_read} halaman`;
+        if (item.detail.duration_minutes) t += ` dalam ${item.detail.duration_minutes} menit`;
+        t += "! ";
+      }
+      t += `Catat progres bacamu juga di mulaibaca 📚`;
+      const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+      return `${t}${profile ? `\n${profile}` : ""}`;
+    }
+    case "review": {
+      const slug = item.detail.review_slug;
+      const stars = item.detail.rating ? "⭐".repeat(item.detail.rating) : "";
+      let t = `Review "${item.book_title}" ${stars}`;
+      if (item.detail.excerpt) t += ` — "${item.detail.excerpt.slice(0, 100)}"`;
+      t += `\n\nBaca review lengkapnya di mulaibaca 📚`;
+      const link = slug ? `\nmulaibaca.id/review/${slug}` : "";
+      return `${t}${link}`;
+    }
+    case "finish": {
+      let t = `Selesai baca "${item.book_title}"! 🎉 Pantau progres dan temukan buku baru di mulaibaca 📚`;
+      const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+      return `${t}${profile}`;
+    }
+    case "shelf_add": {
+      let t = `Mulai baca "${item.book_title}" 📖 Catat perjalanan bacamu biar makin semangat di mulaibaca 📚`;
+      const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+      return `${t}${profile}`;
+    }
+    case "shelf_status": {
+      let t = `Update status bacaan "${item.book_title}" → ${item.detail.to_status} di mulaibaca. Atur rak dan catat progres bacaanmu! 📚`;
+      const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+      return `${t}${profile}`;
+    }
+    case "follow": {
+      const name = item.detail.following_name;
+      const username = item.detail.following_username;
+      let t = `Ikutin ${name} di mulaibaca — lihat aktivitas dan rekomendasi buku dari teman! 📚`;
+      const link = username ? `\nmulaibaca.id/u/${username}` : "";
+      return `${t}${link}`;
+    }
+    default:
+      return base;
+  }
+}
+
+async function shareItem(item: FeedItem) {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "mulaibaca", text: shareText(item) });
+    } catch {}
+  }
+}
+
+function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; currentMemberId?: string; onDelete?: (id: string) => void }) {
+  return (
+    <div className="space-y-4">
+      {items.map((item) => (
+        <FeedCard key={item.id} item={item} currentMemberId={currentMemberId} onDelete={onDelete} />
+      ))}
     </div>
   );
 }
