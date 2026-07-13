@@ -56,10 +56,16 @@ export default function ProgressClient({
       {/* Header */}
       <div className="bg-surface rounded-2xl border border-border p-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
+          {session.memberUsername ? (
+            <Link href={`/u/${session.memberUsername}`} className="w-14 h-14 rounded-full bg-amber-soft border-2 border-amber/30 flex items-center justify-center text-amber flex-shrink-0 hover:border-amber transition-colors">
+              <AvatarIcon avatar={session.memberAvatar} size={24} />
+            </Link>
+          ) : (
             <div className="w-14 h-14 rounded-full bg-amber-soft border-2 border-amber/30 flex items-center justify-center text-amber flex-shrink-0">
               <AvatarIcon avatar={session.memberAvatar} size={24} />
             </div>
+          )}
             <div>
               <h1 className="font-display font-bold text-xl text-ink">{session.memberName}</h1>
               {session.memberUsername ? (
