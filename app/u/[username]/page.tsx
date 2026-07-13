@@ -158,7 +158,11 @@ export default async function PublicProfilePage({
             text={`Lihat profil ${member.name} di mulaibaca 📚 mulaibaca.id/u/${username}`}
             className="text-ink-muted hover:text-amber"
           />
-          <Link href="/masuk" className="btn-primary-sm">Masuk</Link>
+          {viewerMemberId === memberId ? (
+            <Link href="/edit-profil" className="btn-primary-sm">Edit Profil</Link>
+          ) : (
+            <Link href="/masuk" className="btn-primary-sm">Masuk</Link>
+          )}
         </div>
       </header>
 
@@ -183,14 +187,23 @@ export default async function PublicProfilePage({
             <strong className="text-ink font-semibold">{followingCount ?? 0}</strong> mengikuti
           </span>
           <div className="ml-auto">
-            <FollowButton
-              targetId={memberId}
-              initialFollowers={followerCount ?? 0}
-              initialIsFollowing={initialIsFollowing}
-              viewerMemberId={viewerMemberId}
-              hideCount
-              prefetched
-            />
+            {viewerMemberId === memberId ? (
+              <Link
+                href="/edit-profil"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-parchment text-ink border border-border rounded-xl hover:bg-amber-soft/40 transition-colors"
+              >
+                Edit Profil
+              </Link>
+            ) : (
+              <FollowButton
+                targetId={memberId}
+                initialFollowers={followerCount ?? 0}
+                initialIsFollowing={initialIsFollowing}
+                viewerMemberId={viewerMemberId}
+                hideCount
+                prefetched
+              />
+            )}
           </div>
         </div>
 

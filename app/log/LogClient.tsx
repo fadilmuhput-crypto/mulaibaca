@@ -379,7 +379,7 @@ export default function LogClient({
       {/* ── DAILY GOAL PROGRESS — only when no book selected ── */}
       {!selected && dailyGoal > 0 && !celebrated && (
         <Link
-          href="/profil"
+          href="/edit-profil"
           className="flex items-center gap-3 bg-surface rounded-2xl brutal-border brutal-shadow-xs px-4 py-3"
         >
           <Target size={18} strokeWidth={1.75} className={dailyMet ? "text-forest flex-shrink-0" : "text-amber flex-shrink-0"} />

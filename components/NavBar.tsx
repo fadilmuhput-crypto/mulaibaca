@@ -204,7 +204,7 @@ export default function NavBar({ session }: { session: Session }) {
               {/* Menu items */}
               <div className="py-1">
                 <Link
-                  href="/profil"
+                  href={session.memberUsername ? `/u/${session.memberUsername}` : "/edit-profil"}
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-ink hover:bg-parchment transition-colors"
                 >

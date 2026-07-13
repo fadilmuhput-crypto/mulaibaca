@@ -160,7 +160,7 @@ export default async function DashboardPage() {
               {hasFirstBook && !hasFirstLog && <span className="text-amber text-xs font-bold">Catat →</span>}
             </Link>
             <Link
-              href="/profil"
+              href="/edit-profil"
               className={`flex items-center gap-3 rounded-xl p-2.5 transition-colors ${
                 hasWeeklyGoal ? "opacity-60" : hasFirstLog ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
               }`}
@@ -181,7 +181,7 @@ export default async function DashboardPage() {
         {/* ── WEEKLY GOAL ── (hidden jika sudah achieved) */}
         {shouldShowGoal && (
           <Link
-            href="/profil"
+            href="/edit-profil"
             className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors"
           >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-soft">

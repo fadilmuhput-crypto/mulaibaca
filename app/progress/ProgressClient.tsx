@@ -84,7 +84,7 @@ export default function ProgressClient({
             </div>
           </div>
           <Link
-            href="/profil"
+            href="/edit-profil"
             className="w-9 h-9 rounded-xl bg-parchment border border-border flex items-center justify-center text-ink-muted hover:text-ink hover:border-amber/40 transition-all"
             aria-label="Pengaturan"
           >
