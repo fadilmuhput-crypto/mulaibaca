@@ -74,3 +74,40 @@ export async function POST(
 
   return NextResponse.json(data);
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id: feedId } = await params;
+  const commentId = req.nextUrl.searchParams.get("comment_id");
+  if (!commentId) {
+    return NextResponse.json({ error: "comment_id is required" }, { status: 400 });
+  }
+
+  const admin = createAdminClient();
+
+  const { data: comment } = await admin
+    .from("feed_comments")
+    .select("id, member_id")
+    .eq("id", commentId)
+    .eq("feed_id", feedId)
+    .maybeSingle();
+
+  if (!comment) {
+    return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+  }
+
+  if (comment.member_id !== session.memberId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { error } = await admin.from("feed_comments").delete().eq("id", commentId);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ success: true });
+}

@@ -87,7 +87,16 @@ function useCommentsState(feedId: string) {
     return true;
   }
 
-  return { comments, open, loading, toggleOpen, addComment, fetchComments };
+  async function deleteComment(commentId: string) {
+    const res = await fetch(`/api/feed/${feedId}/comments?comment_id=${commentId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) return false;
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+    return true;
+  }
+
+  return { comments, open, loading, toggleOpen, addComment, deleteComment, fetchComments };
 }
 
 function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: FeedItem; currentMemberId?: string; onDelete?: (id: string) => void; initialLike?: LikeState | null }) {
@@ -95,7 +104,7 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<HTMLInputElement>(null);
   const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id, initialLike);
-  const { comments, open: commentsOpen, toggleOpen: toggleComments, addComment } = useCommentsState(item.id);
+  const { comments, open: commentsOpen, toggleOpen: toggleComments, addComment, deleteComment } = useCommentsState(item.id);
   const label = ACTIVITY_LABELS[item.type];
 
   async function handleAddComment(e: React.FormEvent) {
@@ -280,7 +289,7 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
           ) : (
             <div className="space-y-2.5 max-h-48 overflow-y-auto">
               {comments.map((c) => (
-                <div key={c.id} className="flex items-start gap-2">
+                <div key={c.id} className="flex items-start gap-2 group">
                   <Link href={`/u/${c.member_username}`} className="flex-shrink-0 mt-0.5">
                     <div className="w-6 h-6 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden">
                       {c.member_avatar ? (
@@ -299,6 +308,15 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
                     </div>
                     <p className="text-xs text-ink-secondary mt-0.5">{c.content}</p>
                   </div>
+                  {currentMemberId && c.member_id === currentMemberId && (
+                    <button
+                      onClick={() => deleteComment(c.id)}
+                      className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-ink-muted/40 hover:text-error transition-all mt-1"
+                      aria-label="Hapus komentar"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
