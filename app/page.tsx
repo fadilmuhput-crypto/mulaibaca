@@ -49,27 +49,28 @@ export default function LandingPage() {
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", height: "60px", alignItems: "center", justifyContent: "space-between", padding: "0 1.25rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Mulaibaca" width={32} height={32} style={{ borderRadius: "50%" }} />
-            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.25rem", color: INK, letterSpacing: "-0.03em" }}>
+            <img src="/logo.png" alt="Mulaibaca" width={28} height={28} style={{ borderRadius: "50%" }} />
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.125rem", color: INK, letterSpacing: "-0.03em" }}>
               mulaibaca
             </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <Link href="/blog" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Link href="/blog" className="hidden sm:inline" style={{ fontSize: "0.8125rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
               Blog
             </Link>
-            <Link href="/masuk" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
+            <Link href="/masuk" style={{ fontSize: "0.8125rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none", whiteSpace: "nowrap" }}>
               Masuk
             </Link>
             <TrackedLink href="/daftar" eventLabel="navbar_mulai_gratis" style={{
               display: "inline-flex", alignItems: "center",
-              padding: "0.5rem 1rem",
+              padding: "0.375rem 0.75rem",
               backgroundColor: INK, color: PARCHMENT,
-              fontWeight: 700, fontSize: "0.875rem",
+              fontWeight: 700, fontSize: "0.8125rem",
               border: `1.5px solid ${INK}`,
               borderRadius: "5px",
               boxShadow: `2px 2px 0 ${FOREST}`,
               textDecoration: "none",
+              whiteSpace: "nowrap",
             }}>
               Mulai Gratis →
             </TrackedLink>
