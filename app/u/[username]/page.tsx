@@ -60,14 +60,13 @@ export default async function PublicProfilePage({
 
   const { data: member } = await supabase
     .from("members")
-    .select("id, name, avatar, member_type, families(name)")
+    .select("id, name, avatar")
     .eq("username", username.toLowerCase())
     .maybeSingle();
 
   if (!member) notFound();
 
   const memberId = member.id as string;
-  const familyName = (member.families as unknown as { name: string } | null)?.name ?? "";
 
   const [
     { data: logs },
@@ -135,10 +134,6 @@ export default async function PublicProfilePage({
   const totalPages = (logs ?? []).reduce((s, l) => s + ((l as { pages_read: number }).pages_read), 0);
   const longestStreak = (streak?.longest_streak as number) ?? 0;
 
-  const memberTypeLabel: Record<string, string> = {
-    ayah: "Ayah", ibu: "Ibu", anak: "Anak", dewasa: "Pembaca",
-  };
-
   type ShelfBook = { title: string; cover_url: string | null; open_library_id: string | null };
 
   function getBook(item: unknown): ShelfBook | null {
@@ -164,9 +159,6 @@ export default async function PublicProfilePage({
           </div>
           <div>
             <h1 className="font-display font-bold text-xl text-ink">{member.name as string}</h1>
-            <p className="text-sm text-ink-muted">
-              {memberTypeLabel[member.member_type as string] ?? "Pembaca"} · {familyName}
-            </p>
             <p className="text-xs text-ink-muted mt-0.5">@{username}</p>
           </div>
         </div>
