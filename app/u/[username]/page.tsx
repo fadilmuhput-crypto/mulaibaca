@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import AvatarIcon from "@/components/AvatarIcon";
 import BookCover from "@/components/BookCover";
 import FollowButton from "@/components/FollowButton";
+import ShareButton from "@/components/ShareButton";
 import { BookCheck, BookText, Flame, Star, BookOpen, Bookmark } from "lucide-react";
 
 const STARS = [1, 2, 3, 4, 5];
@@ -171,7 +172,12 @@ export default async function PublicProfilePage({
           <span className="text-ink-muted">
             <strong className="text-ink font-semibold">{followingCount ?? 0}</strong> mengikuti
           </span>
-          <div className="ml-auto">
+          <div className="flex items-center gap-2 ml-auto">
+            <ShareButton
+              url={`https://mulaibaca.id/u/${username}`}
+              title={`${member.name} (@${username}) — mulaibaca`}
+              text={`Lihat profil ${member.name} di mulaibaca — catat progres baca, review buku, dan temukan rekomendasi! 📚 mulaibaca.id/u/${username}`}
+            />
             <FollowButton
               targetId={memberId}
               initialFollowers={followerCount ?? 0}
