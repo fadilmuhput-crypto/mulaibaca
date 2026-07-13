@@ -60,6 +60,7 @@ export default function FollowListClient({
               initialFollowers={0}
               initialIsFollowing={isFollowingMap[m.id] ?? false}
               viewerMemberId={viewerMemberId}
+              hideCount
             />
           )}
         </div>

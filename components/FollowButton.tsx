@@ -8,6 +8,7 @@ type Props = {
   initialFollowers: number;
   initialIsFollowing: boolean;
   viewerMemberId: string | null;
+  hideCount?: boolean;
 };
 
 export default function FollowButton({
@@ -15,6 +16,7 @@ export default function FollowButton({
   initialFollowers,
   initialIsFollowing,
   viewerMemberId,
+  hideCount,
 }: Props) {
   const router = useRouter();
   const [followers, setFollowers] = useState(initialFollowers);
@@ -73,9 +75,11 @@ export default function FollowButton({
       >
         {loading ? "..." : isFollowing ? "Mengikuti" : "+ Ikuti"}
       </button>
-      <span className="text-xs text-ink-muted">
-        <strong className="text-ink font-semibold">{followers}</strong> pengikut
-      </span>
+      {!hideCount && (
+        <span className="text-xs text-ink-muted">
+          <strong className="text-ink font-semibold">{followers}</strong> pengikut
+        </span>
+      )}
     </div>
   );
 }
