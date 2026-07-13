@@ -36,6 +36,8 @@ export default function ProgressClient({
   totalPagesRead,
   booksFinished,
   activities,
+  followerCount,
+  followingCount,
 }: {
   session: Session;
   dailyReadings: DailyReading[];
@@ -44,6 +46,8 @@ export default function ProgressClient({
   totalPagesRead: number;
   booksFinished: number;
   activities: Activity[];
+  followerCount: number;
+  followingCount: number;
 }) {
   const [tab, setTab] = useState<"progres" | "aktivitas">("progres");
 
@@ -63,6 +67,14 @@ export default function ProgressClient({
               ) : (
                 <p className="text-xs text-ink-muted">{session.email}</p>
               )}
+              <div className="flex items-center gap-3 mt-2 text-xs">
+                <Link href="/progress/pengikut" className="text-ink-muted hover:text-ink transition-colors">
+                  <strong className="text-ink font-semibold">{followerCount}</strong> pengikut
+                </Link>
+                <Link href="/progress/mengikuti" className="text-ink-muted hover:text-ink transition-colors">
+                  <strong className="text-ink font-semibold">{followingCount}</strong> mengikuti
+                </Link>
+              </div>
             </div>
           </div>
           <Link

@@ -20,6 +20,13 @@ type Activity = {
   timestamp: string;
 };
 
+type FollowInfo = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  username: string | null;
+};
+
 export default async function ProgressPage() {
   const session = await getSession();
   if (!session) redirect("/masuk");
@@ -31,7 +38,7 @@ export default async function ProgressPage() {
   sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
   const cutoff = sixtyDaysAgo.toISOString().split("T")[0];
 
-  const [{ data: doneShelf }, { data: logs }, { data: streak }, { data: feed }] = await Promise.all([
+  const [{ data: doneShelf }, { data: logs }, { data: streak }, { data: feed }, { count: followerCount }, { count: followingCount }] = await Promise.all([
     supabase.from("shelf_items").select("id").eq("member_id", session.memberId).eq("status", "done"),
     supabase
       .from("reading_logs")
@@ -45,6 +52,8 @@ export default async function ProgressPage() {
       .eq("member_id", session.memberId)
       .order("created_at", { ascending: false })
       .limit(50),
+    admin.from("follows").select("*", { count: "exact", head: true }).eq("following_id", session.memberId),
+    admin.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", session.memberId),
   ]);
 
   const dateMap = new Map<string, number>();
@@ -86,6 +95,8 @@ export default async function ProgressPage() {
           totalPagesRead={totalPagesRead}
           booksFinished={booksFinished}
           activities={activities}
+          followerCount={followerCount ?? 0}
+          followingCount={followingCount ?? 0}
         />
       </main>
     </div>
