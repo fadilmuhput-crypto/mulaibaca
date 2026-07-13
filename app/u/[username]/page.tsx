@@ -8,6 +8,8 @@ import FollowButton from "@/components/FollowButton";
 import ShareButton from "@/components/ShareButton";
 import { BookCheck, BookText, Flame, Star, BookOpen, Bookmark } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 const STARS = [1, 2, 3, 4, 5];
 
 function toSlug(s: string) {
