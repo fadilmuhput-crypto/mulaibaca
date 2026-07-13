@@ -54,6 +54,7 @@ export default function ProfilClient({
   const [setupError, setSetupError] = useState("");
   const [setupSuccess, setSetupSuccess] = useState(false);
   const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const checkSeq = useRef(0);
   const usernameAlreadySet = !!session.memberUsername;
 
   const isDirty =
@@ -74,9 +75,11 @@ export default function ProfilClient({
     }
     if (checkRef.current) clearTimeout(checkRef.current);
     setUsernameStatus("checking");
+    const seq = ++checkSeq.current;
     checkRef.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/profil/username-check?u=${encodeURIComponent(username)}`);
+        if (seq !== checkSeq.current) return;
         const data = await res.json();
         if (data.error) { setUsernameStatus("invalid"); setUsernameError(data.error); }
         else if (data.available) { setUsernameStatus("available"); setUsernameError(""); }
@@ -87,6 +90,7 @@ export default function ProfilClient({
   }, [username, usernameAlreadySet]);
 
   async function handleSave() {
+    if (!name.trim()) { setError("Nama tampilan tidak boleh kosong"); return; }
     setSaving(true); setSaved(false); setError("");
     try {
       const body: Record<string, unknown> = {
@@ -102,7 +106,7 @@ export default function ProfilClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      if (!res.ok) { let msg = "Gagal menyimpan"; try { const d = await res.json(); msg = d.error || msg; } catch {} throw new Error(msg); }
       setSaved(true);
       router.refresh();
     } catch (e) {

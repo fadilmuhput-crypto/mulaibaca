@@ -283,7 +283,8 @@ export default async function PublicProfilePage({
             <div className="grid grid-cols-2 gap-3">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {(reviews ?? []).map((review: any) => {
-                const book = review.shelf_items?.books;
+                const raw = review.shelf_items;
+                const book = Array.isArray(raw) ? raw[0]?.books : raw?.books;
                 if (!review.slug) return null;
                 const displayName = review.is_anonymous ? "Anonim" : (member.name as string);
                 return (

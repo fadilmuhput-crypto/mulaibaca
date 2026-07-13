@@ -64,7 +64,7 @@ export default function FindFriends({ memberId }: { memberId: string }) {
         {q && (
           <button
             type="button"
-            onClick={() => { setQ(""); setResults([]); setHasSearched(false); }}
+            onClick={() => { if (timer.current) clearTimeout(timer.current); setQ(""); setResults([]); setHasSearched(false); }}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-ink-muted hover:text-ink"
           >
             <X size={14} strokeWidth={2} />
