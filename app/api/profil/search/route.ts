@@ -17,13 +17,6 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q")?.trim() || "";
   const admin = createAdminClient();
 
-  // Get IDs already followed
-  const { data: follows } = await admin
-    .from("follows")
-    .select("following_id")
-    .eq("follower_id", memberId);
-  const followedIds = new Set((follows ?? []).map((f: { following_id: string }) => f.following_id));
-
   let query = admin
     .from("members")
     .select("id, name, avatar, username")
@@ -39,14 +32,12 @@ export async function GET(req: NextRequest) {
 
   const { data: members } = await query;
 
-  const results = (members ?? [])
-    .filter((m) => !followedIds.has(m.id as string))
-    .map((m) => ({
-      id: m.id as string,
-      name: m.name as string,
-      avatar: m.avatar as string | null,
-      username: m.username as string | null,
-    }));
+  const results = (members ?? []).map((m) => ({
+    id: m.id as string,
+    name: m.name as string,
+    avatar: m.avatar as string | null,
+    username: m.username as string | null,
+  }));
 
   return NextResponse.json({ results });
 }
