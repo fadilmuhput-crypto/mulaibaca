@@ -10,6 +10,7 @@ create extension if not exists "pgcrypto";
 create table families (
   id          uuid primary key default gen_random_uuid(),
   name        text not null,
+  type        text not null default 'family' check (type in ('family', 'circle')),
   invite_code text unique not null default substring(gen_random_uuid()::text, 1, 8),
   created_at  timestamptz default now()
 );

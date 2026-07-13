@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Loader2, Users, Heart, User, Baby, Smile, ChevronLeft } from "lucide-react";
+import { Users, Heart, User, Smile, Baby, Loader2, ChevronLeft, BookOpen, Share2, Target } from "lucide-react";
+import type { Session } from "@/lib/session";
 
 const MEMBER_TYPES = [
   { key: "ayah",   label: "Ayah",   icon: User,  desc: "Ayah dalam keluarga" },
@@ -11,24 +11,23 @@ const MEMBER_TYPES = [
   { key: "dewasa", label: "Dewasa", icon: Smile, desc: "Anggota dewasa lainnya" },
 ] as const;
 
-export default function BuatLingkarForm() {
+export default function OnboardingFlow({ session }: { session: Session }) {
   const router = useRouter();
-  const [step, setStep] = useState<"type" | "form">("type");
+  const [step, setStep] = useState<"intro" | "type" | "form" | "done">("intro");
   const [type, setType] = useState<"family" | "circle" | null>(null);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(session.familyName ?? "");
   const [role, setRole] = useState("ayah");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) { setError("Nama lingkar wajib diisi"); return; }
+  async function handleSave() {
+    if (!name.trim()) { setError("Nama wajib diisi"); return; }
     if (type === "family" && !role) { setError("Pilih peran kamu"); return; }
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/lingkar-baca", {
-        method: "POST",
+      const res = await fetch("/api/lingkar-baca/setup", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
@@ -38,13 +37,70 @@ export default function BuatLingkarForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      router.push("/lingkar-baca/saya");
-      router.refresh();
+      setStep("done");
+      setTimeout(() => {
+        router.refresh();
+      }, 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (step === "done") {
+    return (
+      <main className="max-w-lg mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-forest/10 flex items-center justify-center mx-auto">
+          <BookOpen size={32} className="text-forest" />
+        </div>
+        <h2 className="font-display text-2xl font-black text-ink">Siap!</h2>
+        <p className="text-sm text-ink-muted">Lingkar bacamu sudah siap. Yuk ajak anggota bergabung!</p>
+      </main>
+    );
+  }
+
+  if (step === "intro") {
+    return (
+      <main className="max-w-lg mx-auto px-4 py-10 space-y-8">
+        <div className="text-center space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-amber-soft flex items-center justify-center mx-auto">
+            <Users size={28} className="text-amber" />
+          </div>
+          <h1 className="font-display text-2xl font-black text-ink leading-tight">
+            Selamat datang di<br />Lingkar Baca!
+          </h1>
+          <p className="text-sm text-ink-muted max-w-xs mx-auto leading-relaxed">
+            Lingkar Baca adalah ruang bersama untuk saling memantau progres membaca.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            { Icon: Users, title: "Pantau anggota", desc: "Lihat streak, halaman, dan buku yang dibaca setiap orang." },
+            { Icon: Share2, title: "Undang dengan kode", desc: "Anggota baru tinggal masuk pakai kode undangan. Praktis." },
+            { Icon: Target, title: "Tantangan mingguan", desc: "Setel target halaman untuk lingkar dan capai bersama." },
+          ].map(({ Icon, title, desc }) => (
+            <div key={title} className="flex items-start gap-3 bg-surface rounded-xl p-4 border border-border">
+              <div className="w-9 h-9 rounded-lg bg-forest/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Icon size={18} className="text-forest" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-ink text-sm">{title}</h3>
+                <p className="text-xs text-ink-muted">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setStep("type")}
+          className="btn-primary-full-lg"
+        >
+          Mulai Setup →
+        </button>
+      </main>
+    );
   }
 
   if (step === "type") {
@@ -93,13 +149,6 @@ export default function BuatLingkarForm() {
             </p>
           </div>
         </button>
-
-        <p className="text-center text-sm text-ink-muted">
-          Punya kode undangan?{" "}
-          <Link href="/lingkar-baca/gabung" className="text-amber hover:text-amber-dark font-semibold">
-            Gabung
-          </Link>
-        </p>
       </main>
     );
   }
@@ -111,10 +160,10 @@ export default function BuatLingkarForm() {
         className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink mb-4 transition-colors"
       >
         <ChevronLeft size={16} strokeWidth={2} />
-        {type === "family" ? "Lingkar Keluarga" : "Lingkar Teman"}
+        Kembali
       </button>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-6">
         <div>
           <label className="input-label">
             {type === "family" ? "Nama Keluarga" : "Nama Lingkar"}
@@ -163,15 +212,15 @@ export default function BuatLingkarForm() {
         )}
 
         <button
-          type="submit"
+          onClick={handleSave}
           disabled={loading || !name.trim()}
           className="btn-primary-full-lg flex items-center justify-center gap-2"
         >
           {loading ? (
             <><Loader2 size={16} className="animate-spin" /> Menyimpan…</>
-          ) : "Buat Lingkar →"}
+          ) : "Simpan & Selesai →"}
         </button>
-      </form>
+      </div>
     </main>
   );
 }

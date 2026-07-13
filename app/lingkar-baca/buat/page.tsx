@@ -23,7 +23,7 @@ export default async function BuatLingkarPage() {
         <Link href="/lingkar-baca" className="p-2 -ml-2 rounded-lg hover:bg-parchment transition-colors">
           <ChevronLeft size={20} strokeWidth={2} className="text-ink" />
         </Link>
-        <h1 className="font-semibold text-ink">Buat Lingkar Baca Baru</h1>
+        <h1 className="font-semibold text-ink">Buat Lingkar Baca</h1>
       </header>
       <BuatLingkarForm />
     </div>

@@ -8,13 +8,23 @@ import BookCover from "@/components/BookCover";
 import { Flame, BookOpen, UserPlus } from "lucide-react";
 import MemberSwitcher from "./MemberSwitcher";
 import SetUsernameForm from "./SetUsernameForm";
+import OnboardingFlow from "./OnboardingFlow";
 import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Lingkar Baca Saya",
+  robots: { index: false },
+};
 
 type MemberProgress = {
   id: string;
   name: string;
   avatar: string;
   role: string;
+  memberType: string;
+  age: number | null;
+  hasAuth: boolean;
+  username: string | null;
   streak: number;
   longestStreak: number;
   reading: { title: string; cover_url: string | null; progress: number } | null;
@@ -30,10 +40,14 @@ function getWeekStart(): string {
   return monday.toISOString();
 }
 
-export const metadata: Metadata = {
-  title: "Lingkar Baca Saya",
-  robots: { index: false },
-};
+function computeAgeLocal(birthDate: string | null): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const dob = new Date(birthDate);
+  let age = today.getFullYear() - dob.getFullYear();
+  if (today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) age--;
+  return age;
+}
 
 export default async function LingkarSayaPage() {
   const session = await getSession();
@@ -49,6 +63,16 @@ export default async function LingkarSayaPage() {
     .order("created_at", { ascending: true });
 
   const memberIds = (members ?? []).map((m: { id: string }) => m.id);
+  const isAlone = (members?.length ?? 0) <= 1;
+
+  if (isAlone) {
+    return (
+      <div className="min-h-screen pb-20 sm:pb-0">
+        <NavBar session={session} />
+        <OnboardingFlow session={session} />
+      </div>
+    );
+  }
 
   const [{ data: streaks }, { data: readingItems }, { data: allShelfItems }] = await Promise.all([
     supabase.from("streaks").select("member_id, current_streak, longest_streak").in("member_id", memberIds),
@@ -64,7 +88,6 @@ export default async function LingkarSayaPage() {
       .in("member_id", memberIds),
   ]);
 
-  // Weekly pages
   const shelfMap: Record<string, string> = {};
   for (const s of allShelfItems ?? []) {
     shelfMap[(s as { id: string; member_id: string }).id] = (s as { id: string; member_id: string }).member_id;
@@ -87,7 +110,6 @@ export default async function LingkarSayaPage() {
     }
   }
 
-  // Build per-member current book (first one if multiple)
   const readingByMember: Record<string, { title: string; cover_url: string | null; progress: number }> = {};
   for (const item of readingItems ?? []) {
     const m = item as unknown as { member_id: string; current_page: number; books: { title: string; cover_url: string | null; total_pages: number | null } | null };
@@ -99,20 +121,10 @@ export default async function LingkarSayaPage() {
     }
   }
 
-  // Build per-member streak map
   const streakByMember: Record<string, { current: number; longest: number }> = {};
   for (const s of streaks ?? []) {
     const st = s as { member_id: string; current_streak: number; longest_streak: number };
     streakByMember[st.member_id] = { current: st.current_streak, longest: st.longest_streak };
-  }
-
-  function computeAgeLocal(birthDate: string | null): number | null {
-    if (!birthDate) return null;
-    const today = new Date();
-    const dob = new Date(birthDate);
-    let age = today.getFullYear() - dob.getFullYear();
-    if (today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) age--;
-    return age;
   }
 
   type MemberMeta = { id: string; name: string; avatar: string; role: string; memberType: string; age: number | null; hasAuth: boolean; username: string | null; };
@@ -133,6 +145,10 @@ export default async function LingkarSayaPage() {
       name: m.name,
       avatar: m.avatar,
       role: m.role,
+      memberType: m.memberType,
+      age: m.age,
+      hasAuth: m.hasAuth,
+      username: m.username,
       streak: streakByMember[m.id]?.current ?? 0,
       longestStreak: streakByMember[m.id]?.longest ?? 0,
       reading: readingByMember[m.id] ?? null,
@@ -143,6 +159,7 @@ export default async function LingkarSayaPage() {
   const totalStreak = progress.reduce((s, m) => s + m.streak, 0);
   const totalPagesWeek = progress.reduce((s, m) => s + m.pagesThisWeek, 0);
   const activeReaders = progress.filter((m) => m.reading !== null).length;
+  const isCircle = session.familyType === "circle";
 
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
@@ -155,7 +172,7 @@ export default async function LingkarSayaPage() {
             <p className="text-overline mb-1">Progress</p>
             <h1 className="text-h1">{session.familyName}</h1>
           </div>
-          {session.memberRole === "admin" && (
+          {session.memberRole === "admin" && !isCircle && (
             <Link href="/lingkar-baca/saya/tambah" className="btn-secondary flex items-center gap-1.5 text-sm">
               <UserPlus size={14} strokeWidth={2} />
               Tambah
@@ -163,8 +180,8 @@ export default async function LingkarSayaPage() {
           )}
         </div>
 
-        {/* Acting-as banner */}
-        {session.actingAs && (
+        {/* Acting-as banner — only for child accounts in family type */}
+        {session.actingAs && !isCircle && (
           <div className="bg-amber rounded-2xl px-4 py-3 flex items-center justify-between brutal-border">
             <p className="text-sm font-semibold text-white">
               Mengelola sebagai <strong>{session.memberName}</strong>
@@ -198,7 +215,6 @@ export default async function LingkarSayaPage() {
               className="bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm"
             >
               <div className="flex items-start gap-3">
-                {/* Rank + avatar */}
                 <div className="flex flex-col items-center gap-1 flex-shrink-0">
                   <span className="text-[10px] font-black text-ink-muted">#{i + 1}</span>
                   <div className={`w-11 h-11 rounded-full flex items-center justify-center border-2 ${
@@ -208,7 +224,6 @@ export default async function LingkarSayaPage() {
                   </div>
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -216,26 +231,21 @@ export default async function LingkarSayaPage() {
                       {m.id === session.memberId && !session.actingAs && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber text-white font-medium">Kamu</span>
                       )}
-                      {m.role === "admin" && (
+                      {m.role === "admin" && !isCircle && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-forest/10 text-forest font-medium">Admin</span>
                       )}
-                      {(() => {
-                        const meta = membersMeta.find((mm) => mm.id === m.id);
-                        if (!meta) return null;
-                        const typeLabel: Record<string, string> = { ayah: "Ayah", ibu: "Ibu", anak: "Anak", dewasa: "Dewasa" };
-                        return (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-parchment border border-border text-ink-muted font-medium">
-                            {typeLabel[meta.memberType] ?? "Anggota"}{meta.age !== null ? `, ${meta.age} th` : ""}
-                          </span>
-                        );
-                      })()}
+                      {!isCircle && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-parchment border border-border text-ink-muted font-medium">
+                          {({ ayah: "Ayah", ibu: "Ibu", anak: "Anak", dewasa: "Dewasa" } as Record<string, string>)[m.memberType] ?? "Anggota"}{m.age !== null ? `, ${m.age} th` : ""}
+                        </span>
+                      )}
                     </div>
-                    {session.memberRole === "admin" && m.id !== (session.adminMemberId ?? session.memberId) && (
+                    {/* MemberSwitcher only for child members in family type */}
+                    {!isCircle && session.memberRole === "admin" && m.memberType === "anak" && m.id !== (session.adminMemberId ?? session.memberId) && (
                       <MemberSwitcher targetId={m.id} label="Kelola" variant="switch" />
                     )}
                   </div>
 
-                  {/* Profile link / Set username */}
                   {(() => {
                     const meta = membersMeta.find((mm) => mm.id === m.id);
                     if (meta?.username) {
@@ -245,13 +255,12 @@ export default async function LingkarSayaPage() {
                         </Link>
                       );
                     }
-                    if (session.memberRole === "admin") {
+                    if (!isCircle && session.memberRole === "admin") {
                       return <SetUsernameForm memberId={m.id} />;
                     }
                     return null;
                   })()}
 
-                  {/* Streak + pages */}
                   <div className="flex items-center gap-3 mt-1">
                     <span className="flex items-center gap-1 text-xs text-amber font-semibold">
                       <Flame size={12} strokeWidth={2} />
@@ -264,7 +273,6 @@ export default async function LingkarSayaPage() {
                     )}
                   </div>
 
-                  {/* Current reading */}
                   {m.reading ? (
                     <div className="flex items-center gap-2 mt-2.5 bg-parchment rounded-lg p-2">
                       <BookCover src={m.reading.cover_url} title={m.reading.title} className="w-8 h-11 rounded-md" />
@@ -293,7 +301,7 @@ export default async function LingkarSayaPage() {
         {/* Invite reminder */}
         {session.memberRole === "admin" && progress.length < 8 && (
           <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
-            <p className="text-xs text-ink-muted mb-1">Undang anggota keluarga</p>
+            <p className="text-xs text-ink-muted mb-1">Undang anggota</p>
             <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase">{session.inviteCode}</p>
             <p className="text-xs text-ink-muted mt-1">Bagikan kode ini · {progress.length}/8 anggota</p>
           </div>

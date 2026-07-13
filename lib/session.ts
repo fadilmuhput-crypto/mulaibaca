@@ -22,6 +22,7 @@ export type Session = {
   isAnonymous: boolean;
   familyId: string;
   familyName: string;
+  familyType: "family" | "circle";
   inviteCode: string;
   memberId: string;
   memberName: string;
@@ -45,13 +46,13 @@ export async function getSession(): Promise<Session | null> {
 
   const { data: self } = await supabase
     .from("members")
-    .select("*, families(name, invite_code), weekly_pages_goal, is_cms_admin, username, member_type")
+    .select("*, families(name, invite_code, type), weekly_pages_goal, is_cms_admin, username, member_type")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
   if (!self) return null;
 
-  const family = self.families as { name: string; invite_code: string } | null;
+  const family = self.families as { name: string; invite_code: string; type: string } | null;
   const selfId = self.id as string;
 
   // Check acting_as cookie (only valid for admin)
@@ -76,7 +77,7 @@ export async function getSession(): Promise<Session | null> {
     const admin = createAdminClient();
     const { data: target } = await admin
       .from("members")
-      .select("*, families(name, invite_code), weekly_pages_goal, is_cms_admin, username, member_type")
+      .select("*, families(name, invite_code, type), weekly_pages_goal, is_cms_admin, username, member_type")
       .eq("id", activeId)
       .eq("family_id", self.family_id) // must be same family
       .maybeSingle();
@@ -91,6 +92,7 @@ export async function getSession(): Promise<Session | null> {
     isAnonymous: user.is_anonymous ?? false,
     familyId: member.family_id,
     familyName: family?.name ?? "",
+    familyType: (family?.type as "family" | "circle") ?? "family",
     inviteCode: family?.invite_code ?? "",
     memberId: activeId,
     memberName: member.name,

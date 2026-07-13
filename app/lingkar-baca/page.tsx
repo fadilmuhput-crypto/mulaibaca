@@ -1,28 +1,5 @@
 import Link from "next/link";
-import { Users, Target, Heart, Share2, ArrowRight, BookOpen } from "lucide-react";
-
-const benefits = [
-  {
-    Icon: Users,
-    title: "Pantau Bersama",
-    desc: "Lihat progres membaca seluruh anggota lingkar dalam satu tampilan. Siapa yang paling rajin? Siapa yang lagi asyik baca buku apa?",
-  },
-  {
-    Icon: Target,
-    title: "Tantangan Mingguan",
-    desc: "Setel target halaman mingguan untuk lingkar. Capai bersama, rayakan bersama.",
-  },
-  {
-    Icon: Heart,
-    title: "Saling Semangat",
-    desc: "Setiap anggota punya streak sendiri. Streak tertinggi, halaman terbanyak — semua terlihat dan bisa saling memotivasi.",
-  },
-  {
-    Icon: Share2,
-    title: "Undang Mudah",
-    desc: "Bagikan kode undangan ke pasangan, anak, atau teman. Mereka langsung join dan bisa ikut mencatat bacaan.",
-  },
-];
+import { Users, Heart, Share2, ArrowRight, BookOpen, Target, Baby, User } from "lucide-react";
 
 export default function LingkarBacaLanding() {
   return (
@@ -55,18 +32,48 @@ export default function LingkarBacaLanding() {
             Ajak pasangan, anak, atau teman dalam satu Lingkar Baca. Pantau progres,
             saling menyemangati, dan rayakan pencapaian membaca bersama.
           </p>
-          <div className="flex items-center justify-center gap-3 pt-2">
+        </section>
+
+        {/* Two types */}
+        <section className="grid sm:grid-cols-2 gap-4">
+          <div className="bg-surface rounded-3xl border-2 border-border p-6 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-forest/10 flex items-center justify-center">
+              <Users size={24} className="text-forest" />
+            </div>
+            <h2 className="font-display text-xl font-black text-ink">Lingkar Keluarga</h2>
+            <p className="text-sm text-ink-muted leading-relaxed">
+              Untuk keluarga dengan anak. Pantau bacaan anak, setel tantangan,
+              dan kelola akun bacaan anak tanpa perlu email.
+            </p>
+            <div className="flex gap-2">
+              {[Baby, Heart, User].map((Icon, i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-parchment border border-border flex items-center justify-center">
+                  <Icon size={14} className="text-ink-muted" />
+                </div>
+              ))}
+            </div>
             <Link
               href="/lingkar-baca/buat"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-ink text-parchment font-bold rounded-xl border-2 border-ink shadow-[3px_3px_0_#1E4530] hover:shadow-[1px_1px_0_#1E4530] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-forest hover:text-forest/80 transition-colors"
             >
-              Buat Lingkar Baru <ArrowRight size={16} strokeWidth={2.5} />
+              Buat Lingkar Keluarga <ArrowRight size={14} strokeWidth={2.5} />
             </Link>
+          </div>
+
+          <div className="bg-surface rounded-3xl border-2 border-border p-6 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-soft flex items-center justify-center">
+              <Heart size={24} className="text-amber" />
+            </div>
+            <h2 className="font-display text-xl font-black text-ink">Lingkar Teman</h2>
+            <p className="text-sm text-ink-muted leading-relaxed">
+              Untuk teman, pasangan, atau komunitas. Saling lihat progres dan
+              streak tanpa fitur peran keluarga.
+            </p>
             <Link
-              href="/lingkar-baca/gabung"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-surface text-ink font-bold rounded-xl border-2 border-border hover:border-amber/40 transition-colors"
+              href="/lingkar-baca/buat"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-amber hover:text-amber/80 transition-colors"
             >
-              Punya Kode? Gabung
+              Buat Lingkar Teman <ArrowRight size={14} strokeWidth={2.5} />
             </Link>
           </div>
         </section>
@@ -76,9 +83,9 @@ export default function LingkarBacaLanding() {
           <h2 className="text-center font-display text-2xl font-black text-ink">Cara Kerja</h2>
           <div className="grid sm:grid-cols-3 gap-4">
             {[
-              { step: "1", title: "Buat Lingkar", desc: "Beri nama lingkar bacamu. Jadi admin dan atur tantangan mingguan." },
+              { step: "1", title: "Buat Lingkar", desc: "Pilih tipe (keluarga atau teman), beri nama, atur peran." },
               { step: "2", title: "Undang Anggota", desc: "Bagikan kode undangan. Anggota tinggal masuk & mulai mencatat." },
-              { step: "3", title: "Tumbuh Bareng", desc: "Pantau streak, halaman, dan progres setiap anggota dalam satu dashboard." },
+              { step: "3", title: "Tumbuh Bareng", desc: "Pantau streak, halaman, dan progres setiap anggota." },
             ].map((s) => (
               <div key={s.step} className="bg-surface rounded-2xl border border-border p-5 text-center space-y-2">
                 <div className="w-10 h-10 rounded-full bg-amber-soft flex items-center justify-center mx-auto font-display font-black text-lg text-amber">
@@ -91,44 +98,15 @@ export default function LingkarBacaLanding() {
           </div>
         </section>
 
-        {/* Benefits */}
-        <section className="space-y-6">
-          <h2 className="text-center font-display text-2xl font-black text-ink">Kenapa Lingkar Baca?</h2>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {benefits.map(({ Icon, title, desc }) => (
-              <div key={title} className="bg-surface rounded-2xl border border-border p-5 space-y-2">
-                <div className="w-10 h-10 rounded-xl bg-forest/10 flex items-center justify-center">
-                  <Icon size={20} className="text-forest" />
-                </div>
-                <h3 className="font-bold text-ink">{title}</h3>
-                <p className="text-xs text-ink-muted leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Manage kids */}
-        <section className="bg-surface rounded-3xl border-2 border-ink p-6 sm:p-8 text-center space-y-3">
-          <BookOpen size={32} strokeWidth={1.25} className="text-forest mx-auto" />
-          <h2 className="font-display text-xl font-black text-ink">Punya Anak yang Baru Belajar Baca?</h2>
-          <p className="text-sm text-ink-muted max-w-sm mx-auto leading-relaxed">
-            Admin bisa menambahkan anggota tanpa email — cocok untuk anak yang belum punya akun.
-            Pantau bacaan mereka, setel target, dan lihat progres dari dashboard lingkar.
-          </p>
-          <Link href="/lingkar-baca/saya/tambah" className="inline-flex items-center gap-1.5 text-sm font-bold text-amber hover:text-amber-dark transition-colors">
-            Cara tambah anggota <ArrowRight size={14} strokeWidth={2.5} />
-          </Link>
-        </section>
-
-        {/* CTA */}
+        {/* Join */}
         <section className="text-center space-y-4 pb-8">
-          <h2 className="font-display text-2xl font-black text-ink">Siap Membaca Bareng?</h2>
-          <p className="text-ink-muted text-sm">Gratis. Tidak perlu kartu kredit.</p>
+          <h2 className="font-display text-2xl font-black text-ink">Punya Kode Undangan?</h2>
+          <p className="text-ink-muted text-sm">Langsung gabung ke lingkar yang sudah ada.</p>
           <Link
-            href="/daftar"
+            href="/lingkar-baca/gabung"
             className="inline-flex items-center gap-2 px-8 py-4 bg-ink text-parchment font-bold rounded-xl border-2 border-ink shadow-[3px_3px_0_#1E4530] hover:shadow-[1px_1px_0_#1E4530] hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-lg"
           >
-            Mulai Sekarang <ArrowRight size={18} strokeWidth={2.5} />
+            Gabung Sekarang <ArrowRight size={18} strokeWidth={2.5} />
           </Link>
         </section>
       </main>

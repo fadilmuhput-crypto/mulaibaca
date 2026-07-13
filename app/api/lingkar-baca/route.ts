@@ -11,16 +11,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Kamu sudah punya lingkar baca" }, { status: 400 });
   }
 
-  const { name } = await req.json();
+  const { name, type, memberType } = await req.json();
   if (!name?.trim()) {
     return NextResponse.json({ error: "Nama lingkar tidak boleh kosong" }, { status: 400 });
   }
+  const circleType = type === "circle" ? "circle" : "family";
 
   const supabase = createAdminClient();
 
   const { data: family, error: familyErr } = await supabase
     .from("families")
-    .insert({ name: name.trim() })
+    .insert({ name: name.trim(), type: circleType })
     .select()
     .single();
 
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
     .update({
       family_id: family.id,
       role: "admin",
+      member_type: memberType ?? "dewasa",
     })
     .eq("auth_user_id", session.userId);
 

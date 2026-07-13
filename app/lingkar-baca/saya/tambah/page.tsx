@@ -42,18 +42,10 @@ function ageGroupLabel(age: number | null): string {
   return "Remaja (13+)";
 }
 
-const MEMBER_TYPES = [
-  { value: "anak", label: "Anak" },
-  { value: "ayah", label: "Ayah" },
-  { value: "ibu", label: "Ibu" },
-  { value: "dewasa", label: "Dewasa" },
-];
-
 export default function TambahAnakPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("book");
-  const [memberType, setMemberType] = useState("anak");
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -82,7 +74,7 @@ export default function TambahAnakPage() {
         body: JSON.stringify({
           name: name.trim(),
           avatar,
-          memberType,
+          memberType: "anak",
           birthDate,
         }),
       });
@@ -103,10 +95,14 @@ export default function TambahAnakPage() {
         <Link href="/lingkar-baca/saya" className="p-2 -ml-2 rounded-lg hover:bg-parchment transition-colors">
           <ChevronLeft size={20} strokeWidth={2} className="text-ink" />
         </Link>
-        <h1 className="font-semibold text-ink">Tambah Anggota</h1>
+        <h1 className="font-semibold text-ink">Tambah Akun Anak</h1>
       </header>
 
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
+        <p className="text-xs text-ink-muted mb-6 -mt-2 leading-relaxed">
+          Buatkan akun bacaan untuk anak yang belum punya email. Kamu bisa kelola
+          progres dan pantau bacaannya dari dashboard.
+        </p>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
           <div>
@@ -120,27 +116,6 @@ export default function TambahAnakPage() {
               autoFocus
               maxLength={50}
             />
-          </div>
-
-          {/* Member type */}
-          <div>
-            <label className="input-label">Peran dalam keluarga</label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              {MEMBER_TYPES.map((t) => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => setMemberType(t.value)}
-                  className={`py-2.5 px-4 rounded-xl border-2 text-sm font-medium transition-all ${
-                    memberType === t.value
-                      ? "border-amber bg-amber-soft text-amber"
-                      : "border-border bg-surface text-ink-secondary hover:border-amber/40"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Date of birth */}
@@ -235,7 +210,7 @@ export default function TambahAnakPage() {
           >
             {loading ? (
               <><Loader2 size={16} className="animate-spin" /> Menyimpan…</>
-            ) : "Tambah Anggota →"}
+            ) : "Tambah Akun Anak →"}
           </button>
         </form>
       </main>

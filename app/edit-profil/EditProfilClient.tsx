@@ -126,7 +126,7 @@ export default function ProfilClient({
     setJoinError("");
     setJoinSuccess("");
     try {
-      const res = await fetch("/api/keluarga/gabung", {
+      const res = await fetch("/api/lingkar-baca/gabung", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inviteCode: joinCode.trim() }),
