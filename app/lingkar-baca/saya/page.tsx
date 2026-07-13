@@ -35,7 +35,7 @@ function getWeekStart(): string {
   const now = new Date();
   const day = now.getDay();
   const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(now.setDate(diff));
+  const monday = new Date(now.getFullYear(), now.getMonth(), diff);
   monday.setHours(0, 0, 0, 0);
   return monday.toISOString();
 }
@@ -301,9 +301,9 @@ export default async function LingkarSayaPage() {
         {/* Invite reminder */}
         {session.memberRole === "admin" && progress.length < 8 && (
           <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
-            <p className="text-xs text-ink-muted mb-1">Undang anggota</p>
+            <p className="text-xs text-ink-muted mb-1">{isCircle ? "Undang teman" : "Undang anggota"}</p>
             <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase">{session.inviteCode}</p>
-            <p className="text-xs text-ink-muted mt-1">Bagikan kode ini · {progress.length}/8 anggota</p>
+            <p className="text-xs text-ink-muted mt-1">Bagikan kode ini · {progress.length}/8 {isCircle ? "teman" : "anggota"}</p>
           </div>
         )}
       </main>

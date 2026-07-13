@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import BookCover from "@/components/BookCover";
 import FeedClient from "@/app/feed/FeedClient";
-import type { FeedItem } from "@/app/api/feed/route";
+import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -78,20 +78,7 @@ export default async function DashboardPage() {
       .in("member_id", memberIds)
       .order("created_at", { ascending: false })
       .limit(20);
-    feedItems = (rows ?? []).map((r: Record<string, unknown>) => {
-      const d = (r.data ?? {}) as Record<string, unknown>;
-      const m = (r.members ?? {}) as { name: string; avatar: string; username: string | null };
-      const base = { id: r.id as string, type: r.activity_type as FeedItem["type"], member_id: r.member_id as string, member_name: m.name, member_avatar: m.avatar, member_username: m.username, timestamp: r.created_at as string };
-      switch (r.activity_type as string) {
-        case "shelf_add": return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { status: d.status as string } };
-        case "shelf_status": return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { from_status: d.from_status as string, to_status: d.to_status as string } };
-        case "log": return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { pages_read: d.pages_read as number } };
-        case "review": return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { rating: d.rating as number, excerpt: d.excerpt as string | undefined, review_slug: d.review_slug as string } };
-        case "finish": return { ...base, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: {} };
-        case "follow": return { ...base, detail: { following_id: d.following_id as string, following_name: d.following_name as string, following_avatar: d.following_avatar as string | undefined, following_username: d.following_username as string | undefined } };
-        default: return { ...base, detail: {} };
-      }
-    });
+    feedItems = (rows ?? []).map((r: unknown) => rowToFeedItem(r as Parameters<typeof rowToFeedItem>[0]));
   }
 
   return (

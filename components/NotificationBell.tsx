@@ -73,7 +73,6 @@ export default function NotificationBell() {
 
   function handleOpen() {
     setOpen((v) => !v);
-    if (!open && unread > 0) markAllRead();
   }
 
   return (
@@ -146,12 +145,20 @@ export default function NotificationBell() {
                   </div>
                 );
 
+                async function handleClick() {
+                  setOpen(false);
+                  if (!n.is_read) {
+                    try { await fetch(`/api/notifications/${n.id}/read`, { method: "PATCH" }); } catch {}
+                    setNotifs((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true } : x));
+                  }
+                }
+
                 return n.link ? (
-                  <Link key={n.id} href={n.link} onClick={() => setOpen(false)}>
+                  <Link key={n.id} href={n.link} onClick={handleClick}>
                     {content}
                   </Link>
                 ) : (
-                  <div key={n.id}>{content}</div>
+                  <div key={n.id} onClick={handleClick} className="cursor-pointer">{content}</div>
                 );
               })
             )}

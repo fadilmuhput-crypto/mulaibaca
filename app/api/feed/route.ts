@@ -1,53 +1,9 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase-route";
+import { rowToFeedItem, enrichFinishItems, type FeedItem, type FeedDetail } from "@/lib/feed";
 
-export type FeedItem = {
-  id: string;
-  type: "shelf_add" | "shelf_status" | "log" | "review" | "finish" | "follow";
-  member_id: string;
-  member_name: string;
-  member_avatar: string;
-  member_username: string | null;
-  book_id?: string;
-  book_title?: string;
-  book_slug?: string;
-  book_cover?: string | null;
-  book_total_pages?: number | null;
-  timestamp: string;
-  detail: {
-    pages_read?: number;
-    duration_minutes?: number | null;
-    from_page?: number | null;
-    to_page?: number | null;
-    images?: string[] | null;
-    rating?: number;
-    excerpt?: string;
-    review_slug?: string;
-    status?: string;
-    from_status?: string;
-    to_status?: string;
-    following_id?: string;
-    following_name?: string;
-    following_avatar?: string;
-    following_username?: string;
-  };
-};
-
-type ActivityMember = {
-  name: string;
-  avatar: string;
-  username: string | null;
-};
-
-type ActivityRow = {
-  id: string;
-  activity_type: FeedItem["type"];
-  data: Record<string, unknown>;
-  created_at: string;
-  member_id: string;
-  members: ActivityMember;
-};
+export type { FeedItem, FeedDetail };
 
 export async function GET() {
   const session = await getSession();
@@ -77,52 +33,8 @@ export async function GET() {
     .order("created_at", { ascending: false })
     .limit(20);
 
-  const items: FeedItem[] = (rows ?? []).map((row: unknown) => {
-    const r = row as ActivityRow;
-    const d = r.data ?? {};
-    const m = r.members;
-    const base = {
-      id: r.id,
-      type: r.activity_type,
-      member_id: r.member_id,
-      member_name: m.name,
-      member_avatar: m.avatar,
-      member_username: m.username,
-      timestamp: r.created_at,
-    };
-
-    switch (r.activity_type) {
-      case "shelf_add":
-        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { status: d.status as string } };
-      case "shelf_status":
-        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { from_status: d.from_status as string, to_status: d.to_status as string } };
-      case "log":
-        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { pages_read: d.pages_read as number, duration_minutes: d.duration_minutes as number | null ?? null, from_page: d.from_page as number | null ?? null, to_page: d.to_page as number | null ?? null, images: d.images as string[] | null ?? null } };
-      case "review":
-        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { rating: d.rating as number, excerpt: d.excerpt as string | undefined, review_slug: d.review_slug as string } };
-      case "finish":
-        return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: {} };
-      case "follow":
-        return { ...base, detail: { following_id: d.following_id as string, following_name: d.following_name as string, following_avatar: d.following_avatar as string | undefined, following_username: d.following_username as string | undefined } };
-      default:
-        return { ...base, detail: {} };
-    }
-  });
-
-  // Enrich finish items with total_pages from books table
-  const finishBookIds = [...new Set(items.filter((i) => i.type === "finish" && i.book_id).map((i) => i.book_id!))];
-  if (finishBookIds.length > 0) {
-    const { data: books } = await admin
-      .from("books")
-      .select("id, total_pages")
-      .in("id", finishBookIds);
-    const pagesMap = new Map((books ?? []).map((b) => [b.id, b.total_pages as number | null]));
-    for (const item of items) {
-      if (item.type === "finish" && item.book_id) {
-        item.book_total_pages = pagesMap.get(item.book_id) ?? null;
-      }
-    }
-  }
+  const items: FeedItem[] = (rows ?? []).map((r: unknown) => rowToFeedItem(r as Parameters<typeof rowToFeedItem>[0]));
+  await enrichFinishItems(items, admin);
 
   return NextResponse.json(items);
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import type { FeedItem } from "@/app/api/feed/route";
+import type { FeedItem } from "@/lib/feed";
 import type { FeedComment } from "@/app/api/feed/[id]/comments/route";
 import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus, Trash2, Heart, MessageCircle, Send } from "lucide-react";
 import BookCover from "@/components/BookCover";
