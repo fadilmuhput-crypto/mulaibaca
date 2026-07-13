@@ -29,6 +29,7 @@ export default async function MengikutiPage() {
           members={(memberRows ?? []) as { id: string; name: string; avatar: string | null; username: string | null }[]}
           viewerMemberId={session.memberId}
           emptyMessage="Belum mengikuti siapa pun"
+          isFollowingMap={Object.fromEntries(((memberRows ?? []) as { id: string }[]).map((m) => [m.id, true]))}
         />
       </main>
     </div>

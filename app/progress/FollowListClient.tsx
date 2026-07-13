@@ -15,10 +15,12 @@ export default function FollowListClient({
   members,
   viewerMemberId,
   emptyMessage,
+  isFollowingMap = {},
 }: {
   members: Member[];
   viewerMemberId: string;
   emptyMessage: string;
+  isFollowingMap?: Record<string, boolean>;
 }) {
   if (members.length === 0) {
     return (
@@ -56,7 +58,7 @@ export default function FollowListClient({
             <FollowButton
               targetId={m.id}
               initialFollowers={0}
-              initialIsFollowing={false}
+              initialIsFollowing={isFollowingMap[m.id] ?? false}
               viewerMemberId={viewerMemberId}
             />
           )}

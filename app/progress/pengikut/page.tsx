@@ -20,6 +20,19 @@ export default async function PengikutPage() {
     ? await admin.from("members").select("id, name, avatar, username").in("id", followerIds)
     : { data: [] };
 
+  // Check mutual follows: which followers does the viewer also follow?
+  let mutualMap: Record<string, boolean> = {};
+  if (followerIds.length > 0) {
+    const { data: mutualFollows } = await admin
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", session.memberId)
+      .in("following_id", followerIds);
+    for (const f of mutualFollows ?? []) {
+      mutualMap[(f as { following_id: string }).following_id] = true;
+    }
+  }
+
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
       <NavBar session={session} />
@@ -29,6 +42,7 @@ export default async function PengikutPage() {
           members={(memberRows ?? []) as { id: string; name: string; avatar: string | null; username: string | null }[]}
           viewerMemberId={session.memberId}
           emptyMessage="Belum ada pengikut"
+          isFollowingMap={mutualMap}
         />
       </main>
     </div>
