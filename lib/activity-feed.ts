@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase-route";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type ActivityType = "shelf_add" | "shelf_status" | "log" | "review" | "finish" | "follow";
 
@@ -28,10 +29,11 @@ export async function insertActivity(
   memberId: string,
   familyId: string,
   activityType: ActivityType,
-  data: ActivityData = {}
+  data: ActivityData = {},
+  admin?: SupabaseClient
 ) {
-  const admin = createAdminClient();
-  const { error } = await admin.from("activity_feed").insert({
+  const client = admin ?? createAdminClient();
+  const { error } = await client.from("activity_feed").insert({
     member_id: memberId,
     family_id: familyId,
     activity_type: activityType,

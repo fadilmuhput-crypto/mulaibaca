@@ -189,6 +189,7 @@ export default async function PublicProfilePage({
               initialIsFollowing={initialIsFollowing}
               viewerMemberId={viewerMemberId}
               hideCount
+              prefetched
             />
           </div>
         </div>

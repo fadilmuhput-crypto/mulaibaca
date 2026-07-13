@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase-route";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type NotificationType = "info" | "achievement" | "system";
 
@@ -14,9 +15,12 @@ export type CreateNotificationInput = {
  * createNotification — inserts a notification for a specific member.
  * Uses admin client (bypasses RLS), safe to call from any server-side API route.
  */
-export async function createNotification(input: CreateNotificationInput) {
-  const admin = createAdminClient();
-  const { data, error } = await admin
+export async function createNotification(
+  input: CreateNotificationInput,
+  admin?: SupabaseClient
+) {
+  const client = admin ?? createAdminClient();
+  const { data, error } = await client
     .from("notifications")
     .insert({
       member_id: input.memberId,
@@ -42,10 +46,11 @@ export async function createNotification(input: CreateNotificationInput) {
 export async function notifyFamily(
   familyId: string,
   notification: Omit<CreateNotificationInput, "memberId">,
-  excludeMemberId?: string
+  excludeMemberId?: string,
+  admin?: SupabaseClient
 ) {
-  const admin = createAdminClient();
-  const { data: members } = await admin
+  const client = admin ?? createAdminClient();
+  const { data: members } = await client
     .from("members")
     .select("id")
     .eq("family_id", familyId);
@@ -62,7 +67,7 @@ export async function notifyFamily(
       link: notification.link ?? null,
     }));
 
-  const { data, error } = await admin
+  const { data, error } = await client
     .from("notifications")
     .insert(records)
     .select();

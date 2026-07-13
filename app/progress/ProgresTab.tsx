@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { BookCheck, BookText, Flame, CalendarDays } from "lucide-react";
 
 type DailyReading = {
@@ -20,21 +21,23 @@ export default function ProgresTab({
   totalPagesRead: number;
   booksFinished: number;
 }) {
-  const now = new Date();
-  const dayStrings: string[] = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    dayStrings.push(d.toISOString().split("T")[0]);
-  }
+  const { chartData, maxPages, pagesThisWeek, pagesThisMonth, daysReadThisMonth } = useMemo(() => {
+    const now = new Date();
+    const dayStrings: string[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      dayStrings.push(d.toISOString().split("T")[0]);
+    }
 
-  const readingByDate = new Map(dailyReadings.map((r) => [r.date, r.pages]));
-  const chartData = dayStrings.map((d) => ({ date: d, pages: readingByDate.get(d) ?? 0 }));
-  const maxPages = Math.max(...chartData.map((d) => d.pages), 1);
-
-  const pagesThisWeek = chartData.slice(-7).reduce((s, d) => s + d.pages, 0);
-  const pagesThisMonth = chartData.reduce((s, d) => s + d.pages, 0);
-  const daysReadThisMonth = chartData.filter((d) => d.pages > 0).length;
+    const readingByDate = new Map(dailyReadings.map((r) => [r.date, r.pages]));
+    const data = dayStrings.map((d) => ({ date: d, pages: readingByDate.get(d) ?? 0 }));
+    const max = Math.max(...data.map((d) => d.pages), 1);
+    const week = data.slice(-7).reduce((s, d) => s + d.pages, 0);
+    const month = data.reduce((s, d) => s + d.pages, 0);
+    const days = data.filter((d) => d.pages > 0).length;
+    return { chartData: data, maxPages: max, pagesThisWeek: week, pagesThisMonth: month, daysReadThisMonth: days };
+  }, [dailyReadings]);
 
   return (
     <div className="space-y-5">

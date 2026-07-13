@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteClient } from "@/lib/supabase-route";
+import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
 import { getEffectiveAuth } from "@/lib/effective-auth";
 import { createNotification } from "@/lib/notifications";
 import { insertActivity } from "@/lib/activity-feed";
@@ -88,73 +88,71 @@ export async function POST(req: NextRequest) {
     log = data;
   }
 
-  // Fetch shelf item + book separately (avoids join issues)
-  const { data: shelf } = await supabase
+  // Fetch shelf (needed for book_id) then book + stats in parallel
+  const admin = createAdminClient();
+  const { data: shelf } = await admin
     .from("shelf_items").select("id, current_page, book_id, status").eq("id", shelfItemId).maybeSingle();
-  const { data: book } = shelf?.book_id
-    ? await supabase.from("books").select("id, title, cover_url, total_pages").eq("id", shelf.book_id).maybeSingle()
-    : { data: null };
 
-  if (shelf && book) {
-    const newPage = endPage != null ? endPage : (shelf.current_page ?? 0) + pagesRead;
-    const updates: Record<string, unknown> = { current_page: newPage };
-    const autoFinished = book.total_pages != null && newPage >= book.total_pages;
-    if (autoFinished) {
-      updates.status = "done";
-      updates.finished_at = new Date().toISOString();
-    }
-    await supabase.from("shelf_items").update(updates).eq("id", shelfItemId);
+  if (shelf) {
+    const [{ data: book }, { data: streak }, { count }] = await Promise.all([
+      shelf.book_id
+        ? admin.from("books").select("id, title, cover_url, total_pages").eq("id", shelf.book_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+      admin.from("streaks").select("current_streak, longest_streak").eq("member_id", memberId).maybeSingle(),
+      admin.from("reading_logs").select("id", { count: "exact", head: true }).eq("member_id", memberId),
+    ]);
 
-    const slug = book.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
-    insertActivity(memberId, familyId, "log", {
-      book_id: book.id, book_title: book.title, book_slug: slug, book_cover: book.cover_url, pages_read: pagesRead, duration_minutes: durationMinutes ?? null, from_page: fromPage ?? null, to_page: toPage ?? null, images: images ?? null,
-    });
-    if (autoFinished) {
-      insertActivity(memberId, familyId, "finish", {
-        book_id: book.id, book_title: book.title, book_slug: slug, book_cover: book.cover_url,
-      });
+    const isFirstLog = count === 1;
+
+    if (book) {
+      const newPage = endPage != null ? endPage : (shelf.current_page ?? 0) + pagesRead;
+      const updates: Record<string, unknown> = { current_page: newPage };
+      const autoFinished = book.total_pages != null && newPage >= book.total_pages;
+      if (autoFinished) {
+        updates.status = "done";
+        updates.finished_at = new Date().toISOString();
+      }
+      await admin.from("shelf_items").update(updates).eq("id", shelfItemId);
+
+      // Fire-and-forget activity inserts + notifications (reuse admin client)
+      const slug = book.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60);
+      const promises: Promise<unknown>[] = [
+        insertActivity(memberId, familyId, "log", {
+          book_id: book.id, book_title: book.title, book_slug: slug, book_cover: book.cover_url, pages_read: pagesRead, duration_minutes: durationMinutes ?? null, from_page: fromPage ?? null, to_page: toPage ?? null, images: images ?? null,
+        }, admin),
+      ];
+      if (autoFinished) {
+        promises.push(insertActivity(memberId, familyId, "finish", {
+          book_id: book.id, book_title: book.title, book_slug: slug, book_cover: book.cover_url,
+        }, admin));
+      }
+      if (isFirstLog) {
+        promises.push(createNotification({
+          memberId,
+          title: "📖 Catatan bacaan pertama!",
+          body: "Kamu baru saja mencatat bacaan pertamamu. Tidak ada kata terlambat untuk memulai!",
+          type: "achievement",
+          link: "/log",
+        }, admin));
+      }
+      const streakVal = streak?.current_streak ?? 0;
+      if ([7, 14, 21, 30, 60, 100].includes(streakVal)) {
+        const checkNotif = async () => {
+          const { data: existingNotif } = await admin
+            .from("notifications").select("id").eq("member_id", memberId).eq("title", `🔥 Streak ${streakVal} hari!`).maybeSingle();
+          if (!existingNotif) {
+            return createNotification({
+              memberId, title: `🔥 Streak ${streakVal} hari!`, body: `Luar biasa! Kamu sudah membaca ${streakVal} hari berturut-turut. Terus pertahankan!`, type: "achievement", link: "/log",
+            }, admin);
+          }
+        };
+        promises.push(checkNotif());
+      }
+      Promise.allSettled(promises);
     }
+
+    return NextResponse.json({ log, streak, is_first_log: isFirstLog }, { status: 201 });
   }
 
-  const { data: streak } = await supabase
-    .from("streaks").select("current_streak, longest_streak").eq("member_id", memberId).maybeSingle();
-
-  const { count } = await supabase
-    .from("reading_logs")
-    .select("id", { count: "exact", head: true })
-    .eq("member_id", memberId);
-  const isFirstLog = count === 1;
-
-  if (isFirstLog) {
-    createNotification({
-      memberId,
-      title: "📖 Catatan bacaan pertama!",
-      body: "Kamu baru saja mencatat bacaan pertamamu. Tidak ada kata terlambat untuk memulai!",
-      type: "achievement",
-      link: "/log",
-    });
-  }
-
-  const streakVal = streak?.current_streak ?? 0;
-  if ([7, 14, 21, 30, 60, 100].includes(streakVal)) {
-    // Cek apakah notifikasi streak ini sudah pernah dikirim
-    const { data: existingNotif } = await supabase
-      .from("notifications")
-      .select("id")
-      .eq("member_id", memberId)
-      .eq("title", `🔥 Streak ${streakVal} hari!`)
-      .maybeSingle();
-
-    if (!existingNotif) {
-      createNotification({
-        memberId,
-        title: `🔥 Streak ${streakVal} hari!`,
-        body: `Luar biasa! Kamu sudah membaca ${streakVal} hari berturut-turut. Terus pertahankan!`,
-        type: "achievement",
-        link: "/log",
-      });
-    }
-  }
-
-  return NextResponse.json({ log, streak, is_first_log: isFirstLog }, { status: 201 });
+  return NextResponse.json({ error: "Shelf item not found" }, { status: 404 });
 }

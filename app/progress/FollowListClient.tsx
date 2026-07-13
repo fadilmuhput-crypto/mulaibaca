@@ -61,6 +61,7 @@ export default function FollowListClient({
               initialIsFollowing={isFollowingMap[m.id] ?? false}
               viewerMemberId={viewerMemberId}
               hideCount
+              prefetched
             />
           )}
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import type { FeedItem } from "@/app/api/feed/route";
 import type { FeedComment } from "@/app/api/feed/[id]/comments/route";
@@ -30,17 +30,21 @@ function timeAgo(date: string) {
   return new Date(date).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 }
 
-/* ── Like & comment state per card ── */
-function useLikeState(feedId: string) {
-  const [count, setCount] = useState(0);
-  const [liked, setLiked] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+/* ── Like state — supports both batched and per-card fetch ── */
+type LikeState = { count: number; liked: boolean };
+function useLikeState(
+  feedId: string,
+  initial?: LikeState | null
+) {
+  const [count, setCount] = useState(initial?.count ?? 0);
+  const [liked, setLiked] = useState(initial?.liked ?? false);
 
   useEffect(() => {
+    if (initial) return; // data already prefetched
     fetch(`/api/feed/${feedId}/like`).then((r) => r.ok && r.json()).then((d) => {
-      if (d) { setCount(d.count); setLiked(d.liked_by_me); setLoaded(true); }
+      if (d) { setCount(d.count); setLiked(d.liked_by_me); }
     });
-  }, [feedId]);
+  }, [feedId, initial]);
 
   async function toggle() {
     if (liked) {
@@ -52,7 +56,7 @@ function useLikeState(feedId: string) {
     }
   }
 
-  return { count, liked, toggle, loaded };
+  return { count, liked, toggle };
 }
 
 function useCommentsState(feedId: string) {
@@ -60,17 +64,17 @@ function useCommentsState(feedId: string) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  async function fetchComments() {
+  const fetchComments = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/feed/${feedId}/comments`);
     if (res.ok) setComments(await res.json());
     setLoading(false);
-  }
+  }, [feedId]);
 
-  function toggleOpen() {
+  const toggleOpen = useCallback(() => {
     if (!open && comments.length === 0) fetchComments();
     setOpen((v) => !v);
-  }
+  }, [open, comments.length, fetchComments]);
 
   async function addComment(content: string) {
     const res = await fetch(`/api/feed/${feedId}/comments`, {
@@ -86,11 +90,11 @@ function useCommentsState(feedId: string) {
   return { comments, open, loading, toggleOpen, addComment, fetchComments };
 }
 
-function FeedCard({ item, currentMemberId, onDelete }: { item: FeedItem; currentMemberId?: string; onDelete?: (id: string) => void }) {
+function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: FeedItem; currentMemberId?: string; onDelete?: (id: string) => void; initialLike?: LikeState | null }) {
   const [deleting, setDeleting] = useState(false);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<HTMLInputElement>(null);
-  const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id);
+  const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id, initialLike);
   const { comments, open: commentsOpen, toggleOpen: toggleComments, addComment } = useCommentsState(item.id);
   const label = ACTIVITY_LABELS[item.type];
 
@@ -398,11 +402,11 @@ async function shareItem(item: FeedItem) {
   }
 }
 
-function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; currentMemberId?: string; onDelete?: (id: string) => void }) {
+function FeedList({ items, currentMemberId, onDelete, likesMap }: { items: FeedItem[]; currentMemberId?: string; onDelete?: (id: string) => void; likesMap?: Record<string, LikeState> }) {
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <FeedCard key={item.id} item={item} currentMemberId={currentMemberId} onDelete={onDelete} />
+        <FeedCard key={item.id} item={item} currentMemberId={currentMemberId} onDelete={onDelete} initialLike={likesMap?.[item.id]} />
       ))}
     </div>
   );
@@ -411,6 +415,18 @@ function FeedList({ items, currentMemberId, onDelete }: { items: FeedItem[]; cur
 export default function FeedClient({ initial, compact, currentMemberId }: { initial: FeedItem[]; compact?: boolean; currentMemberId?: string }) {
   const [items, setItems] = useState<FeedItem[]>(initial);
   const [loading, setLoading] = useState(false);
+  const [likesMap, setLikesMap] = useState<Record<string, LikeState> | null>(null);
+  const [fetchedIdStr, setFetchedIdStr] = useState("");
+
+  const idStr = items.map((i) => i.id).join(",");
+  useEffect(() => {
+    if (!idStr || idStr === fetchedIdStr) return;
+    setFetchedIdStr(idStr);
+    fetch(`/api/feed/likes?ids=${idStr}`)
+      .then((r) => r.ok && r.json())
+      .then((data) => { if (data) setLikesMap(data); })
+      .catch(() => {});
+  }, [idStr, fetchedIdStr]);
 
   function handleDelete(id: string) {
     setItems((prev) => prev.filter((i) => i.id !== id));
@@ -420,7 +436,10 @@ export default function FeedClient({ initial, compact, currentMemberId }: { init
     setLoading(true);
     try {
       const res = await fetch("/api/feed");
-      if (res.ok) setItems(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        setItems(data);
+      }
     } finally {
       setLoading(false);
     }
@@ -455,7 +474,7 @@ export default function FeedClient({ initial, compact, currentMemberId }: { init
             </p>
           </div>
         ) : (
-          <FeedList items={display} currentMemberId={currentMemberId} onDelete={handleDelete} />
+          <FeedList items={display} currentMemberId={currentMemberId} onDelete={handleDelete} likesMap={likesMap ?? undefined} />
         )}
       </div>
     );
@@ -495,7 +514,7 @@ export default function FeedClient({ initial, compact, currentMemberId }: { init
             </Link>
           </div>
         ) : (
-          <FeedList items={items} currentMemberId={currentMemberId} onDelete={handleDelete} />
+          <FeedList items={items} currentMemberId={currentMemberId} onDelete={handleDelete} likesMap={likesMap ?? undefined} />
         )}
       </main>
     </div>

@@ -4,6 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Bell, BellDot, Info, Trophy, Megaphone, X } from "lucide-react";
 
+let cachedNotifs: Notif[] | null = null;
+let cacheTime = 0;
+const CACHE_TTL = 30_000; // 30 seconds
+
 type Notif = {
   id: string;
   title: string;
@@ -37,9 +41,17 @@ export default function NotificationBell() {
   const unread = notifs.filter((n) => !n.is_read).length;
 
   useEffect(() => {
+    if (cachedNotifs && Date.now() - cacheTime < CACHE_TTL) {
+      setNotifs(cachedNotifs);
+      return;
+    }
     fetch("/api/notifications")
       .then((r) => r.ok ? r.json() : [])
-      .then(setNotifs)
+      .then((data) => {
+        cachedNotifs = data;
+        cacheTime = Date.now();
+        setNotifs(data);
+      })
       .catch(() => {});
   }, []);
 

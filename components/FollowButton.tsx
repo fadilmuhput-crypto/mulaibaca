@@ -9,6 +9,7 @@ type Props = {
   initialIsFollowing: boolean;
   viewerMemberId: string | null;
   hideCount?: boolean;
+  prefetched?: boolean;
 };
 
 export default function FollowButton({
@@ -17,6 +18,7 @@ export default function FollowButton({
   initialIsFollowing,
   viewerMemberId,
   hideCount,
+  prefetched,
 }: Props) {
   const router = useRouter();
   const [followers, setFollowers] = useState(initialFollowers);
@@ -25,13 +27,14 @@ export default function FollowButton({
 
   useEffect(() => {
     if (!viewerMemberId || viewerMemberId === targetId) return;
+    if (prefetched) return; // data already provided server-side
     fetch(`/api/follow?member_id=${targetId}`)
       .then((r) => r.ok && r.json())
       .then((d) => {
         if (d) { setFollowers(d.followers ?? 0); setIsFollowing(d.is_following ?? false); }
       })
       .catch(() => {});
-  }, [viewerMemberId, targetId]);
+  }, [viewerMemberId, targetId, prefetched]);
 
   if (!viewerMemberId) {
     return (
