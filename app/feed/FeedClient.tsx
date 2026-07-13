@@ -236,34 +236,34 @@ function FeedCard({ item, currentMemberId, onDelete }: { item: FeedItem; current
       <div className="flex items-center px-4 pb-2">
         <button
           onClick={(e) => { e.preventDefault(); toggleLike(); }}
-          className={`flex items-center gap-1 text-xs transition-colors ${
-            liked ? "text-error" : "text-ink-muted/50 hover:text-error"
+          className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
+            liked ? "text-error" : "text-ink-muted hover:text-error"
           }`}
         >
-          <Heart size={13} fill={liked ? "currentColor" : "none"} />
+          <Heart size={14} fill={liked ? "currentColor" : "none"} />
           <span>{likeCount > 0 ? likeCount : ""}</span>
         </button>
         <button
           onClick={(e) => { e.preventDefault(); toggleComments(); }}
-          className={`flex items-center gap-1 text-xs ml-4 transition-colors ${
-            commentsOpen ? "text-amber" : "text-ink-muted/50 hover:text-amber"
+          className={`flex items-center gap-1.5 text-xs font-medium ml-5 transition-colors ${
+            commentsOpen ? "text-amber" : "text-ink-muted hover:text-amber"
           }`}
         >
-          <MessageCircle size={13} fill={commentsOpen ? "currentColor" : "none"} />
+          <MessageCircle size={14} fill={commentsOpen ? "currentColor" : "none"} />
           <span>{comments.length > 0 ? comments.length : ""}</span>
         </button>
         <button
           onClick={(e) => { e.preventDefault(); shareItem(item); }}
-          className="flex items-center gap-1 text-xs text-ink-muted/50 hover:text-amber transition-colors ml-4"
+          className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-amber transition-colors ml-5"
         >
-          <Share2 size={12} /> Bagikan
+          <Share2 size={13} /> Bagikan
         </button>
         {currentMemberId && item.member_id === currentMemberId && (
           <button
             onClick={(e) => { e.preventDefault(); setDeleting(true); }}
-            className="flex items-center gap-1 text-xs text-ink-muted/30 hover:text-error transition-colors ml-auto"
+            className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-error transition-colors ml-auto"
           >
-            <Trash2 size={12} /> Hapus
+            <Trash2 size={13} /> Hapus
           </button>
         )}
       </div>
