@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       .delete()
       .eq("follower_id", session.memberId)
       .eq("following_id", following_id);
-    return NextResponse.json({ following: false });
+    return NextResponse.json({ following: false, is_following: false });
   }
 
   // Follow
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ following: true });
+  return NextResponse.json({ following: true, is_following: true });
 }
 
 export async function GET(req: NextRequest) {

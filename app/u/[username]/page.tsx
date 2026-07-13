@@ -151,7 +151,15 @@ export default async function PublicProfilePage({
         <Link href="/" className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
           mulaibaca
         </Link>
-        <Link href="/masuk" className="btn-primary-sm">Masuk</Link>
+        <div className="flex items-center gap-2">
+          <ShareButton
+            url={`https://mulaibaca.id/u/${username}`}
+            title={`${member.name} (@${username}) — mulaibaca`}
+            text={`Lihat profil ${member.name} di mulaibaca 📚 mulaibaca.id/u/${username}`}
+            className="text-ink-muted hover:text-amber"
+          />
+          <Link href="/masuk" className="btn-primary-sm">Masuk</Link>
+        </div>
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-8 space-y-6">
@@ -174,12 +182,7 @@ export default async function PublicProfilePage({
           <span className="text-ink-muted">
             <strong className="text-ink font-semibold">{followingCount ?? 0}</strong> mengikuti
           </span>
-          <div className="flex items-center gap-2 ml-auto">
-            <ShareButton
-              url={`https://mulaibaca.id/u/${username}`}
-              title={`${member.name} (@${username}) — mulaibaca`}
-              text={`Lihat profil ${member.name} di mulaibaca — catat progres baca, review buku, dan temukan rekomendasi! 📚 mulaibaca.id/u/${username}`}
-            />
+          <div className="ml-auto">
             <FollowButton
               targetId={memberId}
               initialFollowers={followerCount ?? 0}

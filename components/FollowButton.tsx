@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -22,6 +22,16 @@ export default function FollowButton({
   const [followers, setFollowers] = useState(initialFollowers);
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!viewerMemberId || viewerMemberId === targetId) return;
+    fetch(`/api/follow?member_id=${targetId}`)
+      .then((r) => r.ok && r.json())
+      .then((d) => {
+        if (d) { setFollowers(d.followers ?? 0); setIsFollowing(d.is_following ?? false); }
+      })
+      .catch(() => {});
+  }, [viewerMemberId, targetId]);
 
   if (!viewerMemberId) {
     return (
