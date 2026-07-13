@@ -177,6 +177,7 @@ export default async function PublicProfilePage({
               initialFollowers={followerCount ?? 0}
               initialIsFollowing={initialIsFollowing}
               viewerMemberId={viewerMemberId}
+              hideCount
             />
           </div>
         </div>
