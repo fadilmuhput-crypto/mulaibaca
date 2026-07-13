@@ -162,24 +162,6 @@ export default function ProfilClient({
 
   return (
     <div className="space-y-4">
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-surface rounded-xl p-3 text-center border border-border">
-          <div className="font-display text-2xl font-black text-ink leading-none">{stats.booksFinished}</div>
-          <div className="text-[10px] text-ink-muted mt-1 font-medium">Buku Selesai</div>
-        </div>
-        <div className="bg-surface rounded-xl p-3 text-center border border-border">
-          <div className="font-display text-2xl font-black text-ink leading-none">
-            {stats.totalPagesRead >= 1000 ? `${(stats.totalPagesRead / 1000).toFixed(1)}k` : stats.totalPagesRead}
-          </div>
-          <div className="text-[10px] text-ink-muted mt-1 font-medium">Total Halaman</div>
-        </div>
-        <div className="bg-surface rounded-xl p-3 text-center border border-border">
-          <div className="font-display text-2xl font-black text-ink leading-none">{stats.longestStreak}</div>
-          <div className="text-[10px] text-ink-muted mt-1 font-medium">Streak Terpanjang</div>
-        </div>
-      </div>
-
       {/* Edit profile card */}
       <div className="card-elevated p-6 space-y-5">
         <div className="flex items-center gap-4">

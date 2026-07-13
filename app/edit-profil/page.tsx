@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import EditProfilClient from "./EditProfilClient";
@@ -8,9 +7,6 @@ import EditProfilClient from "./EditProfilClient";
 const DUMMY_DOMAIN = "@child.mulaibaca.app";
 
 export type ProfilStats = {
-  booksFinished: number;
-  totalPagesRead: number;
-  longestStreak: number;
   familyMemberCount: number;
 };
 
@@ -30,13 +26,9 @@ export default async function ProfilPage() {
   const session = await getSession();
   if (!session) redirect("/masuk");
 
-  const supabase = await createClient();
   const adminClient = createAdminClient();
 
-  const [{ data: doneShelf }, { data: logs }, { data: streak }, { count: memberCount }, { data: familyMembersRaw }, { data: familyData }] = await Promise.all([
-    supabase.from("shelf_items").select("id").eq("member_id", session.memberId).eq("status", "done"),
-    supabase.from("reading_logs").select("pages_read").eq("member_id", session.memberId),
-    supabase.from("streaks").select("longest_streak").eq("member_id", session.memberId).maybeSingle(),
+  const [{ count: memberCount }, { data: familyMembersRaw }, { data: familyData }] = await Promise.all([
     adminClient.from("members").select("id", { count: "exact", head: true }).eq("family_id", session.familyId),
     adminClient.from("members").select("id, name, avatar").eq("family_id", session.familyId).order("created_at", { ascending: true }),
     adminClient.from("families").select("weekly_challenge_pages").eq("id", session.familyId).maybeSingle(),
@@ -63,9 +55,6 @@ export default async function ProfilPage() {
   }
 
   const stats: ProfilStats = {
-    booksFinished: doneShelf?.length ?? 0,
-    totalPagesRead: (logs ?? []).reduce((s, l) => s + ((l as { pages_read: number }).pages_read), 0),
-    longestStreak: (streak?.longest_streak as number) ?? 0,
     familyMemberCount: memberCount ?? 1,
   };
 
