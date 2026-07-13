@@ -2,9 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
 // /review and /review/[slug] are public — only protect auth-required sub-pages
-const PROTECTED = ["/dashboard", "/rak", "/log", "/profil", "/edit-profil", "/review/tulis", "/admin", "/keluarga", "/jelajah", "/onboarding", "/catatan"];
+const PROTECTED = ["/dashboard", "/rak", "/log", "/profil", "/edit-profil", "/review/tulis", "/admin", "/lingkar-baca", "/jelajah", "/onboarding", "/catatan"];
 const PROTECTED_EXACT: string[] = [];
-const AUTH_ONLY = ["/masuk", "/daftar", "/bergabung"];
+const AUTH_ONLY = ["/masuk", "/daftar", "/lingkar-baca/gabung", "/bergabung"];
 
 export async function proxy(req: NextRequest) {
   const res = NextResponse.next({

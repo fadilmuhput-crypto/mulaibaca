@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     title: `${member.name} bergabung ke keluarga`,
     body: `Selamat datang! Sekarang ada ${(targetCount ?? 0) + 1} orang di keluarga.`,
     type: "info",
-    link: "/keluarga",
+    link: "/lingkar-baca/saya",
   }, member.id);
 
   return NextResponse.json({ ok: true, familyName: targetFamily.name });

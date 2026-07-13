@@ -22,7 +22,7 @@ export default function MemberSwitcher({
       if (variant === "exit") {
         await fetch("/api/anggota-switch", { method: "DELETE" });
         await new Promise((r) => setTimeout(r, 100));
-        window.location.href = "/keluarga";
+        window.location.href = "/lingkar-baca/saya";
         return;
       } else {
         await fetch("/api/anggota-switch", {

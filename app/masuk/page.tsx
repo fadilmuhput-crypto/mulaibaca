@@ -126,7 +126,7 @@ function MasukForm() {
           </p>
           <p>
             Punya kode undangan?{" "}
-            <Link href="/bergabung" className="text-amber hover:text-amber-hover font-medium">Bergabung</Link>
+            <Link href="/lingkar-baca/gabung" className="text-amber hover:text-amber-hover font-medium">Gabung</Link>
           </p>
           <div className="flex items-center justify-center gap-3 pt-3 text-xs">
             <Link href="/bantuan" className="hover:text-ink transition-colors">Bantuan</Link>

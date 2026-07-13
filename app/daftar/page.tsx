@@ -145,7 +145,7 @@ export default function DaftarPage() {
           </p>
           <p>
             Punya kode undangan?{" "}
-            <Link href="/bergabung" className="text-amber hover:text-amber-hover font-medium">Bergabung ke keluarga</Link>
+            <Link href="/lingkar-baca/gabung" className="text-amber hover:text-amber-hover font-medium">Gabung ke Lingkar Baca</Link>
           </p>
           <div className="flex items-center justify-center gap-3 pt-3 text-xs">
             <Link href="/bantuan" className="hover:text-ink transition-colors">Bantuan</Link>

@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     title: `${memberName} bergabung ke keluarga`,
     body: `Selamat datang! Sekarang ada ${(memberCount ?? 0) + 1} orang di keluarga.`,
     type: "info",
-    link: "/keluarga",
+    link: "/lingkar-baca/saya",
   }, member.id);
 
   return NextResponse.json({ success: true, familyName: family.name });

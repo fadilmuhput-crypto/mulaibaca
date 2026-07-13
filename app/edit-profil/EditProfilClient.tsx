@@ -7,7 +7,6 @@ import type { ProfilStats, ActingAsInfo, FamilyMember } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
 import { Check, AtSign, Lock, ExternalLink, Users, Target, Trophy, Baby, Smile, Heart, User, LogIn } from "lucide-react";
 import Link from "next/link";
-import KeluargaTooltip from "@/components/KeluargaTooltip";
 
 const MEMBER_TYPES = [
   { key: "ayah",   label: "Ayah",   icon: User,  desc: "Ayah dari keluarga" },
@@ -289,128 +288,33 @@ export default function ProfilClient({
         </div>
       )}
 
-      {/* Family */}
+      {/* Lingkar Baca */}
       <div className="card-elevated p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-h3 flex items-center gap-1.5">
-            Keluarga
-            <KeluargaTooltip />
+            <Users size={16} strokeWidth={2} className="text-amber" />
+            Lingkar Baca
           </h2>
-          {session.memberRole === "admin" && (
-            <Link href="/keluarga" className="flex items-center gap-1.5 text-xs font-semibold text-amber hover:text-amber/80 transition-colors">
-              <Users size={13} strokeWidth={2} /> Kelola anggota
-            </Link>
-          )}
+          <Link href="/lingkar-baca/saya" className="flex items-center gap-1.5 text-xs font-semibold text-amber hover:text-amber/80 transition-colors">
+            <Users size={13} strokeWidth={2} /> Kelola
+          </Link>
         </div>
-
-        {familyMembers.length > 0 && (
-          <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
-            {familyMembers.map((m) => (
-              <div key={m.id} className="flex flex-col items-center gap-1 flex-shrink-0">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                  m.id === session.memberId ? "border-amber bg-amber-soft text-amber" : "border-border bg-surface text-ink-secondary"
-                }`}>
-                  <AvatarIcon avatar={m.avatar} size={18} />
-                </div>
-                <span className="text-[10px] text-ink-muted max-w-[40px] truncate text-center leading-tight">{m.name}</span>
-              </div>
-            ))}
-            {session.memberRole === "admin" && (
-              <Link href="/keluarga/tambah-anak" className="flex flex-col items-center gap-1 flex-shrink-0">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-dashed border-border bg-surface text-ink-muted hover:border-amber/50 hover:text-amber transition-colors">
-                  <span className="text-lg leading-none">+</span>
-                </div>
-                <span className="text-[10px] text-ink-muted">Tambah</span>
-              </Link>
-            )}
-          </div>
-        )}
-
-        <div>
-          <label className="input-label mb-2 block">Kamu adalah</label>
-          <div className="space-y-2">
-            {MEMBER_TYPES.map((t) => {
-              const Icon = t.icon;
-              const selected = memberType === t.key;
-              return (
-                <button key={t.key} type="button" onClick={() => setMemberType(t.key)}
-                  className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
-                    selected ? "border-amber bg-amber text-white" : "border-border bg-parchment text-ink-secondary hover:border-amber/40"
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selected ? "bg-white/20" : "bg-surface"}`}>
-                    <Icon size={16} strokeWidth={1.75} />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold">{t.label}</p>
-                    <p className={`text-xs ${selected ? "text-white/70" : "text-ink-muted"}`}>{t.desc}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {session.memberRole === "admin" ? (
-          <>
-            <div>
-              <label htmlFor="family-name" className="input-label">Nama keluarga</label>
-              <input id="family-name" type="text" value={familyName} onChange={(e) => setFamilyName(e.target.value)} className="input mt-1" />
-            </div>
-            {session.inviteCode && (
-              <div>
-                <p className="text-overline mb-2">Kode undangan</p>
-                <div className="flex items-center gap-3 bg-parchment rounded-xl border border-border px-4 py-3">
-                  <span className="font-mono text-xl font-bold text-ink tracking-[0.2em] uppercase flex-1">{session.inviteCode}</span>
-                  <button onClick={copyCode} className="btn-ghost-ink min-h-[36px] px-3 text-sm">
-                    {copied ? <span className="flex items-center gap-1"><Check size={12} strokeWidth={2.5} />Disalin</span> : "Salin"}
-                  </button>
-                </div>
-                <p className="input-hint">Bagikan kode ini agar anggota keluarga bisa bergabung</p>
-              </div>
-            )}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Trophy size={14} strokeWidth={2} className="text-amber" />
-                <label className="input-label">Challenge keluarga per minggu</label>
-              </div>
-              <p className="text-xs text-ink-muted -mt-1">Target halaman bersama seluruh anggota keluarga</p>
-              <div className="flex gap-2 flex-wrap">
-                {[100, 200, 300, 500].map((preset) => (
-                  <button key={preset} type="button" onClick={() => setWeeklyChallenge(preset)}
-                    className={`min-h-[36px] px-3 rounded-xl text-xs font-medium border-2 transition-all ${
-                      weeklyChallenge === preset ? "border-amber bg-amber text-white" : "border-border bg-parchment text-ink-secondary hover:border-amber/50"
-                    }`}
-                  >{preset} hal</button>
-                ))}
-              </div>
-              <div className="flex items-center gap-3">
-                <input type="number" min={0} max={9999} value={weeklyChallenge || ""} onChange={(e) => setWeeklyChallenge(Math.max(0, parseInt(e.target.value) || 0))} placeholder="Atau ketik sendiri" className="input flex-1" />
-                {weeklyChallenge > 0 && <button type="button" onClick={() => setWeeklyChallenge(0)} className="btn-ghost-ink px-3 text-sm">Hapus</button>}
-              </div>
-              {weeklyChallenge > 0 && (
-                <p className="text-xs text-amber bg-amber-soft rounded-lg px-3 py-2">
-                  Challenge: <span className="font-semibold">{weeklyChallenge} halaman/minggu</span> bersama keluarga
-                </p>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="space-y-1">
-            <p className="text-overline">Nama keluarga</p>
-            <p className="text-ink font-medium">{session.familyName}</p>
-          </div>
-        )}
+        <p className="text-xs text-ink-muted">
+          <span className="font-semibold text-ink">{session.familyName}</span> · {session.memberRole === "admin" ? "Admin" : "Anggota"}
+        </p>
+        <Link href="/lingkar-baca/saya" className="btn-secondary w-full text-sm flex items-center justify-center gap-1.5">
+          Buka Dashboard Lingkar
+        </Link>
       </div>
 
-      {/* Join another family */}
+      {/* Join link */}
       {stats.familyMemberCount === 1 && (
         <div className="card-elevated p-6 space-y-4">
           <h2 className="text-h3 flex items-center gap-2">
             <LogIn size={16} strokeWidth={2} className="text-ink-muted" />
-            Gabung ke keluarga
+            Gabung ke Lingkar Baca
           </h2>
-          <p className="text-xs text-ink-muted">Masukkan kode undangan dari anggota keluargamu.</p>
+          <p className="text-xs text-ink-muted">Masukkan kode undangan dari admin lingkar bacamu.</p>
           <form onSubmit={handleJoin} className="flex gap-2">
             <input type="text" value={joinCode} onChange={(e) => setJoinCode(e.target.value.toUpperCase())} placeholder="Kode undangan" maxLength={10} className="input flex-1 font-mono uppercase tracking-widest" />
             <button type="submit" disabled={joinLoading || !joinCode.trim()} className="btn-primary px-4 text-sm disabled:opacity-40">

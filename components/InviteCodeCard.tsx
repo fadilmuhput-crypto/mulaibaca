@@ -12,7 +12,7 @@ export default function InviteCodeCard({
   const [copied, setCopied] = useState(false);
   const [copiedHighlight, setCopiedHighlight] = useState(false);
 
-  const shareUrl = `https://mulaibaca.id/bergabung?code=${inviteCode.toUpperCase()}`;
+  const shareUrl = `https://mulaibaca.id/lingkar-baca/gabung?code=${inviteCode.toUpperCase()}`;
   const shareText = `Ayo gabung ke "${familyName}" di mulaibaca! 📚\n\nKlik link ini langsung:\n${shareUrl}`;
 
   async function handleCopy() {
@@ -75,7 +75,7 @@ export default function InviteCodeCard({
       </a>
 
       <p className="text-xs text-white/50 text-center mt-2">
-        Mereka daftar di mulaibaca.id/bergabung
+        Mereka daftar di mulaibaca.id/lingkar-baca/gabung
       </p>
     </section>
   );
