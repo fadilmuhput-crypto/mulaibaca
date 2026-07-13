@@ -72,7 +72,6 @@ export default async function PublicReviewPage({
     .select(`
       *,
       members(name, avatar),
-      families(name),
       shelf_items(books(title, author, cover_url, total_pages))
     `)
     .eq("slug", slug)
@@ -82,7 +81,6 @@ export default async function PublicReviewPage({
 
   const book = (review.shelf_items as { books: { title: string; author: string | null; cover_url: string | null; total_pages: number | null } | null } | null)?.books;
   const member = review.members as { name: string; avatar: string } | null;
-  const family = review.families as { name: string } | null;
 
   const reviewerName = review.is_anonymous ? "Anonim" : (member?.name ?? "Pembaca");
   const jsonLd = {
@@ -118,7 +116,7 @@ export default async function PublicReviewPage({
           <ShareButton
             url={`https://mulaibaca.id/review/${slug}`}
             title={`Review ${book?.title ?? "Buku"} oleh ${reviewerName} — Mulaibaca`}
-            text={`Review "${book?.title}" oleh ${reviewerName}${!review.is_anonymous ? ` dari ${family?.name}` : ""} ⭐${"⭐".repeat(review.rating)} — baca selengkapnya di mulaibaca 📚`}
+            text={`Review "${book?.title}" oleh ${reviewerName} ⭐${"⭐".repeat(review.rating)} — baca selengkapnya di mulaibaca 📚`}
           />
           {!session && (
             <Link href="/daftar" className="btn-primary-sm">Mulai Gratis →</Link>
@@ -151,7 +149,6 @@ export default async function PublicReviewPage({
           <span className="text-amber"><AvatarIcon avatar={review.is_anonymous ? "book" : (member?.avatar ?? "book")} size={18} /></span>
           <div>
             <p className="text-sm font-medium text-ink">{review.is_anonymous ? "Anonim" : member?.name}</p>
-            {!review.is_anonymous && <p className="text-xs text-ink-muted">dari {family?.name}</p>}
           </div>
         </div>
 
