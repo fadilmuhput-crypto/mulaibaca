@@ -6,6 +6,7 @@ import NavBar from "@/components/NavBar";
 import AvatarIcon from "@/components/AvatarIcon";
 import BookCover from "@/components/BookCover";
 import { Flame, BookOpen, UserPlus } from "lucide-react";
+import CopyButton from "@/components/CopyButton";
 import MemberSwitcher from "./MemberSwitcher";
 import SetUsernameForm from "./SetUsernameForm";
 import OnboardingFlow from "./OnboardingFlow";
@@ -298,14 +299,36 @@ export default async function LingkarSayaPage() {
           ))}
         </section>
 
-        {/* Invite reminder */}
-        {session.memberRole === "admin" && progress.length < 8 && (
-          <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
-            <p className="text-xs text-ink-muted mb-1">{isCircle ? "Undang teman" : "Undang anggota"}</p>
-            <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase">{session.inviteCode}</p>
-            <p className="text-xs text-ink-muted mt-1">Bagikan kode ini · {progress.length}/8 {isCircle ? "teman" : "anggota"}</p>
-          </div>
-        )}
+        {/* Invite */}
+        {(() => {
+          if (isCircle) {
+            const cap = 20;
+            if (progress.length >= cap) return null;
+            return (
+              <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
+                <p className="text-xs text-ink-muted mb-1">Undang teman</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase flex-1">{session.inviteCode}</p>
+                  <CopyButton value={session.inviteCode} />
+                </div>
+                <p className="text-xs text-ink-muted mt-1">Bagikan kode ini · {progress.length}/{cap} teman</p>
+              </div>
+            );
+          }
+          if (session.memberRole === "admin" && progress.length < 8) {
+            return (
+              <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
+                <p className="text-xs text-ink-muted mb-1">Undang anggota</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase flex-1">{session.inviteCode}</p>
+                  <CopyButton value={session.inviteCode} />
+                </div>
+                <p className="text-xs text-ink-muted mt-1">Bagikan kode ini · {progress.length}/8 anggota</p>
+              </div>
+            );
+          }
+          return null;
+        })()}
       </main>
     </div>
   );
