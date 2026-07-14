@@ -6,21 +6,10 @@ import { Loader2 } from "lucide-react";
 import { AVATAR_OPTIONS } from "@/components/AvatarIcon";
 import BackButton from "@/components/BackButton";
 
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 18 }, (_, i) => CURRENT_YEAR - i);
-const MONTHS = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
-];
-
-function getDaysInMonth(month: number, year: number) {
-  return new Date(year, month, 0).getDate();
-}
-
-function computeAge(day: string, month: string, year: string): number | null {
-  if (!day || !month || !year) return null;
+function computeAge(birthDate: string | null): number | null {
+  if (!birthDate) return null;
   const today = new Date();
-  const dob = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  const dob = new Date(birthDate);
   let age = today.getFullYear() - dob.getFullYear();
   const notYet =
     today.getMonth() < dob.getMonth() ||
@@ -41,21 +30,12 @@ export default function TambahAnakPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("book");
-  const [day, setDay] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const daysInMonth = month && year ? getDaysInMonth(parseInt(month), parseInt(year)) : 31;
-  const days = Array.from({ length: daysInMonth }, (_, i) => String(i + 1));
-  const age = computeAge(day, month, year);
+  const age = computeAge(birthDate || null);
   const ageLabel = ageGroupLabel(age);
-
-  // Build ISO date string for API
-  const birthDate = day && month && year
-    ? `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-    : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -70,7 +50,7 @@ export default function TambahAnakPage() {
           name: name.trim(),
           avatar,
           memberType: "anak",
-          birthDate,
+          birthDate: birthDate || null,
         }),
       });
       const data = await res.json();
@@ -116,45 +96,13 @@ export default function TambahAnakPage() {
             <label className="input-label">
               Tanggal lahir <span className="text-ink-muted font-normal">(opsional)</span>
             </label>
-            <div className="grid grid-cols-3 gap-2 mt-1">
-              <select
-                value={day}
-                onChange={(e) => setDay(e.target.value)}
-                className="input bg-surface text-sm"
-              >
-                <option value="">Tgl</option>
-                {days.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-              <select
-                value={month}
-                onChange={(e) => {
-                  setMonth(e.target.value);
-                  // Reset day if it's now out of range
-                  if (day && year) {
-                    const max = getDaysInMonth(parseInt(e.target.value), parseInt(year));
-                    if (parseInt(day) > max) setDay(String(max));
-                  }
-                }}
-                className="input bg-surface text-sm"
-              >
-                <option value="">Bulan</option>
-                {MONTHS.map((m, i) => (
-                  <option key={i + 1} value={String(i + 1)}>{m}</option>
-                ))}
-              </select>
-              <select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                className="input bg-surface text-sm"
-              >
-                <option value="">Tahun</option>
-                {YEARS.map((y) => (
-                  <option key={y} value={String(y)}>{y}</option>
-                ))}
-              </select>
-            </div>
+            <input
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              max={new Date().toISOString().split("T")[0]}
+              className="input"
+            />
 
             {/* Age preview */}
             {age !== null && (
