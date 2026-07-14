@@ -65,8 +65,9 @@ export default async function LingkarSayaPage() {
 
   const memberIds = (members ?? []).map((m: { id: string }) => m.id);
   const isAlone = (members?.length ?? 0) <= 1;
+  const isFresh = isAlone && session.familyType !== "circle";
 
-  if (isAlone) {
+  if (isFresh) {
     return (
       <div className="min-h-screen pb-20 sm:pb-0">
         <NavBar session={session} />

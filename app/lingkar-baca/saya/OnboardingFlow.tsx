@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Heart, User, Smile, Baby, Loader2, ChevronLeft, BookOpen, Share2, Target } from "lucide-react";
+import { Users, Heart, User, Smile, Baby, Loader2, ChevronLeft, BookOpen, Share2, Target, Copy, Check } from "lucide-react";
 import type { Session } from "@/lib/session";
 
 const MEMBER_TYPES = [
@@ -56,6 +56,9 @@ export default function OnboardingFlow({ session }: { session: Session }) {
         </div>
         <h2 className="font-display text-2xl font-black text-ink">Siap!</h2>
         <p className="text-sm text-ink-muted">Lingkar bacamu sudah siap. Yuk ajak anggota bergabung!</p>
+        {type === "circle" && (
+          <InviteCodeDisplay code={session.inviteCode} />
+        )}
       </main>
     );
   }
@@ -222,5 +225,31 @@ export default function OnboardingFlow({ session }: { session: Session }) {
         </button>
       </div>
     </main>
+  );
+}
+
+function InviteCodeDisplay({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(code.toUpperCase());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4 text-left">
+      <p className="text-xs text-ink-muted mb-1">Kode undangan</p>
+      <div className="flex items-center gap-2">
+        <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase flex-1">{code}</p>
+        <button
+          onClick={handleCopy}
+          className="text-xs font-semibold text-amber hover:text-amber-dark transition-colors flex items-center gap-1 min-h-[36px] px-2"
+        >
+          {copied ? <><Check size={12} strokeWidth={2.5} />Disalin</> : "Salin"}
+        </button>
+      </div>
+      <p className="text-xs text-ink-muted mt-1">Bagikan kode ini agar teman bisa bergabung</p>
+    </div>
   );
 }
