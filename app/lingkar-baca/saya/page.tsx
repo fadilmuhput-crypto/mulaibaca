@@ -28,7 +28,7 @@ type MemberProgress = {
   username: string | null;
   streak: number;
   longestStreak: number;
-  reading: { title: string; cover_url: string | null; progress: number } | null;
+  reading: Array<{ title: string; cover_url: string | null; progress: number }>;
   pagesThisWeek: number;
 };
 
@@ -141,17 +141,17 @@ export default async function LingkarSayaPage() {
     }
   }
 
-  const readingByMember: Record<string, { title: string; cover_url: string | null; progress: number }> = {};
+  const readingByMember: Record<string, Array<{ title: string; cover_url: string | null; progress: number }>> = {};
   for (const raw of rawShelfReading ?? []) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const r = raw as any;
     const book = Array.isArray(r.books) ? r.books?.[0] : r.books;
-    if (!readingByMember[r.member_id] && book) {
-      const progress = book.total_pages && r.current_page
-        ? Math.min(Math.round((r.current_page / book.total_pages) * 100), 100)
-        : 0;
-      readingByMember[r.member_id] = { title: book.title, cover_url: book.cover_url, progress };
-    }
+    if (!book) continue;
+    const progress = book.total_pages && r.current_page
+      ? Math.min(Math.round((r.current_page / book.total_pages) * 100), 100)
+      : 0;
+    if (!readingByMember[r.member_id]) readingByMember[r.member_id] = [];
+    readingByMember[r.member_id].push({ title: book.title, cover_url: book.cover_url, progress });
   }
 
   const streakByMember: Record<string, { current: number; longest: number }> = {};
@@ -184,14 +184,14 @@ export default async function LingkarSayaPage() {
       username: m.username,
       streak: streakByMember[m.id]?.current ?? 0,
       longestStreak: streakByMember[m.id]?.longest ?? 0,
-      reading: readingByMember[m.id] ?? null,
+      reading: readingByMember[m.id] ?? [],
       pagesThisWeek: weekPagesByMember[m.id] ?? 0,
     }))
     .sort((a: MemberProgress, b: MemberProgress) => b.streak - a.streak || b.pagesThisWeek - a.pagesThisWeek);
 
   const totalStreak = progress.reduce((s, m) => s + m.streak, 0);
   const totalPagesWeek = progress.reduce((s, m) => s + m.pagesThisWeek, 0);
-  const activeReaders = progress.filter((m) => m.reading !== null).length;
+  const totalReadingBooks = progress.reduce((s, m) => s + m.reading.length, 0);
   const isCircle = session.familyType === "circle";
 
   const typeLabel = isCircle ? "Lingkar Teman" : "Lingkar Keluarga";
@@ -228,7 +228,7 @@ export default async function LingkarSayaPage() {
             <div className="text-xs text-ink-muted mt-0.5 font-medium">Hal minggu ini</div>
           </div>
           <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
-            <div className="font-display text-2xl font-black text-forest">{activeReaders}</div>
+            <div className="font-display text-2xl font-black text-forest">{totalReadingBooks}</div>
             <div className="text-xs text-ink-muted mt-0.5 font-medium">Sedang baca</div>
           </div>
         </div>
@@ -344,18 +344,25 @@ export default async function LingkarSayaPage() {
                     </div>
                   )}
 
-                  {m.reading ? (
-                    <div className="flex items-center gap-2 mt-2.5 bg-parchment rounded-lg p-2">
-                      <BookCover src={m.reading.cover_url} title={m.reading.title} className="w-8 h-11 rounded-md" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-ink truncate">{m.reading.title}</p>
-                        <div className="mt-1">
-                          <div className="progress-bar">
-                            <div className="progress-fill" style={{ width: `${m.reading.progress}%` }} />
+                  {m.reading.length > 0 ? (
+                    <div className="mt-2 space-y-1.5">
+                      {m.reading.slice(0, 3).map((b, i) => (
+                        <div key={i} className="flex items-center gap-2 bg-parchment rounded-lg p-2">
+                          <BookCover src={b.cover_url} title={b.title} className="w-8 h-11 rounded-md flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-ink truncate">{b.title}</p>
+                            <div className="mt-1">
+                              <div className="progress-bar">
+                                <div className="progress-fill" style={{ width: `${b.progress}%` }} />
+                              </div>
+                              <p className="text-[10px] text-ink-muted mt-0.5">{b.progress}%</p>
+                            </div>
                           </div>
-                          <p className="text-[10px] text-ink-muted mt-0.5">{m.reading.progress}%</p>
                         </div>
-                      </div>
+                      ))}
+                      {m.reading.length > 3 && (
+                        <p className="text-[10px] text-ink-muted text-center">+{m.reading.length - 3} buku lainnya</p>
+                      )}
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 mt-2 text-xs text-ink-muted">
