@@ -47,13 +47,15 @@ function InviteCard({ inviteCode, memberCount, cap, label }: { inviteCode: strin
   const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
   return (
-    <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4 space-y-3">
-      <p className="text-xs text-ink-muted">Undang {label}</p>
-      <div className="flex items-center gap-2">
-        <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase flex-1">{inviteCode}</p>
+    <div className="bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium text-ink-muted">Kode undangan</p>
+        <span className="text-[10px] text-ink-muted">{memberCount}/{cap} {label}</span>
+      </div>
+      <div className="flex items-center gap-2 bg-parchment rounded-xl p-3">
+        <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase flex-1 text-center">{inviteCode}</p>
         <CopyButton value={inviteCode} />
       </div>
-      <p className="text-xs text-ink-muted">{memberCount}/{cap} {label}</p>
 
       <a
         href={waUrl}
@@ -200,11 +202,13 @@ export default async function LingkarSayaPage() {
     <div className="min-h-screen pb-20 sm:pb-0">
       <NavBar session={session} />
 
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-lg mx-auto px-4 py-6 space-y-8">
         {/* Header */}
-        <div>
-          <p className="text-overline mb-1">{typeLabel}</p>
-          <h1 className="text-h1">{session.familyName}</h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-overline mb-0.5">{typeLabel}</p>
+            <h1 className="text-h1">{session.familyName}</h1>
+          </div>
         </div>
 
         {/* Acting-as banner — only for child accounts in family type */}
@@ -217,99 +221,108 @@ export default async function LingkarSayaPage() {
           </div>
         )}
 
-        {/* ── Section 1: Progress / Stats ── */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
-            <div className="font-display text-2xl font-black text-amber">{totalStreak}</div>
-            <div className="text-xs text-ink-muted mt-0.5 font-medium">Total streak</div>
+        {/* ── Section 1: Ringkasan ── */}
+        <section>
+          <h2 className="section-title mb-3">Ringkasan</h2>
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="bg-surface rounded-xl p-3.5 text-center brutal-border brutal-shadow-xs">
+              <Flame size={18} strokeWidth={2} className="text-amber mx-auto mb-1.5" />
+              <div className="font-display text-2xl font-black text-ink">{totalStreak}</div>
+              <div className="text-[10px] text-ink-muted mt-0.5 font-medium leading-tight">Streak<br/>keluarga</div>
+            </div>
+            <div className="bg-surface rounded-xl p-3.5 text-center brutal-border brutal-shadow-xs">
+              <BookOpen size={18} strokeWidth={2} className="text-ink mx-auto mb-1.5" />
+              <div className="font-display text-2xl font-black text-ink">{totalPagesWeek}</div>
+              <div className="text-[10px] text-ink-muted mt-0.5 font-medium leading-tight">Halaman<br/>minggu ini</div>
+            </div>
+            <div className="bg-surface rounded-xl p-3.5 text-center brutal-border brutal-shadow-xs">
+              <Target size={18} strokeWidth={2} className="text-forest mx-auto mb-1.5" />
+              <div className="font-display text-2xl font-black text-ink">{totalReadingBooks}</div>
+              <div className="text-[10px] text-ink-muted mt-0.5 font-medium leading-tight">Sedang<br/>dibaca</div>
+            </div>
           </div>
-          <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
-            <div className="font-display text-2xl font-black text-ink">{totalPagesWeek}</div>
-            <div className="text-xs text-ink-muted mt-0.5 font-medium">Hal minggu ini</div>
-          </div>
-          <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
-            <div className="font-display text-2xl font-black text-forest">{totalReadingBooks}</div>
-            <div className="text-xs text-ink-muted mt-0.5 font-medium">Sedang baca</div>
-          </div>
-        </div>
+        </section>
 
         {/* ── Section 2: Tantangan Mingguan ── */}
         <section>
-          <h2 className="section-title">Tantangan Mingguan</h2>
+          <h2 className="section-title mb-3">Tantangan Mingguan</h2>
           {weeklyChallenge > 0 ? (
             <div className="bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-ink-muted">Target {isCircle ? "lingkar" : "keluarga"}</span>
                 <div className="flex items-center gap-2">
-                  <Target size={15} strokeWidth={2} className="text-amber" />
-                  <span className="text-xs font-semibold text-ink-muted">{totalPagesWeek}/{weeklyChallenge} hal</span>
+                  <span className="text-xs font-bold text-ink">{totalPagesWeek}</span>
+                  <span className="text-[10px] text-ink-muted">/</span>
+                  <span className="text-xs font-bold text-ink-muted">{weeklyChallenge}</span>
+                  <span className="text-[10px] text-ink-muted ml-0.5">hal</span>
                 </div>
-                <Link href="/edit-profil" className="text-[10px] text-ink-muted hover:text-amber transition-colors">Ubah</Link>
               </div>
-              <div className="progress-bar h-3">
+              <div className="progress-bar h-3 mb-2">
                 <div className="progress-fill" style={{ width: `${Math.min(Math.round((totalPagesWeek / weeklyChallenge) * 100), 100)}%` }} />
               </div>
-              <p className="text-[10px] text-ink-muted mt-1">
-                Target {isCircle ? "lingkar" : "keluarga"}: {weeklyChallenge} halaman/minggu
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] text-ink-muted">
+                  {totalPagesWeek >= weeklyChallenge
+                    ? "Tercapai! 🎉"
+                    : `${weeklyChallenge - totalPagesWeek} hal lagi`
+                  }
+                </p>
+                <Link href="/edit-profil" className="text-[10px] font-medium text-amber hover:text-amber-hover transition-colors">Ubah target</Link>
+              </div>
             </div>
           ) : (
             <Link
               href="/edit-profil"
-              className="block bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm text-center hover:bg-amber-soft/20 transition-colors"
+              className="flex items-center gap-4 bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm hover:bg-amber-soft/10 transition-colors"
             >
-              <Target size={20} strokeWidth={1.5} className="text-ink-muted mx-auto mb-2" />
-              <p className="text-sm font-semibold text-ink-muted">Atur target mingguan</p>
-              <p className="text-[10px] text-ink-muted/60 mt-0.5">Buat tantangan baca untuk {isCircle ? "lingkar" : "keluarga"}</p>
+              <div className="w-10 h-10 rounded-xl bg-amber-soft flex items-center justify-center flex-shrink-0">
+                <Target size={18} strokeWidth={2} className="text-amber" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-ink">Atur target mingguan</p>
+                <p className="text-[11px] text-ink-muted mt-0.5">Buat tantangan baca untuk {isCircle ? "lingkar" : "keluarga"}mu</p>
+              </div>
+              <span className="text-ink-muted text-sm">→</span>
             </Link>
           )}
         </section>
 
-        {/* ── Section 3: Activity per Anggota ── */}
+        {/* ── Section 3: Aktivitas Anggota ── */}
         <section>
-          <h2 className="section-title">Aktivitas Anggota</h2>
-          <div className="space-y-3">
-          {progress.map((m, i) => (
+          <h2 className="section-title mb-3">Aktivitas Anggota</h2>
+          <div className="space-y-2.5">
+          {progress.map((m) => (
             <div
               key={m.id}
               className="bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm"
             >
-              <div className="flex items-start gap-3">
-                <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                  <span className="text-[10px] font-black text-ink-muted">#{i + 1}</span>
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center border-2 ${
-                    m.id === session.memberId ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-secondary"
-                  }`}>
-                    <AvatarIcon avatar={m.avatar} size={20} />
-                  </div>
+              {/* Header: avatar + name + badges */}
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 flex-shrink-0 ${
+                  m.id === session.memberId ? "border-amber bg-amber-soft" : "border-border bg-parchment"
+                }`}>
+                  <AvatarIcon avatar={m.avatar} size={18} />
                 </div>
-
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="font-semibold text-ink text-sm">{m.name}</p>
-                      {m.id === session.memberId && !session.actingAs && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber text-white font-medium">Kamu</span>
-                      )}
-                      {m.role === "admin" && !isCircle && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-forest/10 text-forest font-medium">Admin</span>
-                      )}
-                      {!isCircle && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-parchment border border-border text-ink-muted font-medium">
-                          {({ ayah: "Ayah", ibu: "Ibu", anak: "Anak", dewasa: "Dewasa" } as Record<string, string>)[m.memberType] ?? "Anggota"}{m.age !== null ? `, ${m.age} th` : ""}
-                        </span>
-                      )}
-                    </div>
-                    {/* MemberSwitcher only for child members in family type */}
-                    {!isCircle && session.memberRole === "admin" && m.memberType === "anak" && m.id !== (session.adminMemberId ?? session.memberId) && (
-                      <MemberSwitcher targetId={m.id} label="Kelola" variant="switch" />
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="font-semibold text-ink text-sm">{m.name}</p>
+                    {m.id === session.memberId && !session.actingAs && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber text-white font-medium">Kamu</span>
+                    )}
+                    {m.role === "admin" && !isCircle && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-forest/10 text-forest font-medium">Admin</span>
+                    )}
+                    {!isCircle && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-parchment border border-border text-ink-muted font-medium">
+                        {({ ayah: "Ayah", ibu: "Ibu", anak: "Anak", dewasa: "Dewasa" } as Record<string, string>)[m.memberType] ?? "Anggota"}{m.age !== null ? `, ${m.age}` : ""}
+                      </span>
                     )}
                   </div>
-
                   {(() => {
                     const meta = membersMeta.find((mm) => mm.id === m.id);
                     if (meta?.username) {
                       return (
-                        <Link href={`/u/${meta.username}`} className="text-[10px] text-ink-muted hover:text-amber transition-colors mt-0.5 inline-block">
+                        <Link href={`/u/${meta.username}`} className="text-[10px] text-ink-muted hover:text-amber transition-colors inline-block">
                           @{meta.username}
                         </Link>
                       );
@@ -319,72 +332,87 @@ export default async function LingkarSayaPage() {
                     }
                     return null;
                   })()}
+                </div>
+                {/* MemberSwitcher only for child members in family type */}
+                {!isCircle && session.memberRole === "admin" && m.memberType === "anak" && m.id !== (session.adminMemberId ?? session.memberId) && (
+                  <MemberSwitcher targetId={m.id} label="Kelola" variant="switch" />
+                )}
+              </div>
 
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="flex items-center gap-1 text-xs text-amber font-semibold">
-                      <Flame size={12} strokeWidth={2} />
-                      {m.streak} hari
-                    </span>
-                    {m.pagesThisWeek > 0 && (
-                      <span className="text-xs text-ink-muted">
-                        {m.pagesThisWeek} hal minggu ini
-                      </span>
+              {/* Stats row: streak + pages this week */}
+              <div className="flex items-center gap-4 mt-3">
+                <span className="flex items-center gap-1.5 text-xs text-ink font-medium">
+                  <Flame size={13} strokeWidth={2} className="text-amber" />
+                  {m.streak}
+                  <span className="text-ink-muted font-normal">hari</span>
+                </span>
+                {m.pagesThisWeek > 0 && (
+                  <span className="text-xs text-ink-muted">
+                    <span className="font-semibold text-ink">{m.pagesThisWeek}</span> hal minggu ini
+                  </span>
+                )}
+                {m.pagesThisWeek === 0 && m.streak === 0 && (
+                  <span className="text-xs text-ink-muted">Belum mulai</span>
+                )}
+              </div>
+
+              {/* Per-member challenge progress */}
+              {weeklyChallenge > 0 && (
+                <div className="mt-2.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-ink-muted">Progress tantangan</span>
+                    <span className="text-[10px] font-semibold text-ink-muted">{Math.min(Math.round((m.pagesThisWeek / weeklyChallenge) * 100), 100)}%</span>
+                  </div>
+                  <div className="progress-bar h-2">
+                    <div className="progress-fill" style={{ width: `${Math.min(Math.round((m.pagesThisWeek / weeklyChallenge) * 100), 100)}%` }} />
+                  </div>
+                </div>
+              )}
+
+              {/* Reading books */}
+              {m.reading.length > 0 && (
+                <div className="mt-3 bg-parchment rounded-xl p-3">
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                    {m.reading.slice(0, 5).map((b, i) => (
+                      <div key={i} className="flex-shrink-0 w-20">
+                        <BookCover src={b.cover_url} title={b.title} className="w-full h-28 rounded-lg mb-1.5" />
+                        <p className="text-[9px] font-medium text-ink truncate text-center leading-tight">{b.title}</p>
+                        <div className="mt-1">
+                          <div className="progress-bar h-1">
+                            <div className="progress-fill" style={{ width: `${b.progress}%` }} />
+                          </div>
+                          <p className="text-[8px] text-ink-muted text-center mt-0.5">{b.progress}%</p>
+                        </div>
+                      </div>
+                    ))}
+                    {m.reading.length > 5 && (
+                      <div className="flex-shrink-0 w-16 h-28 rounded-lg bg-parchment border border-border flex items-center justify-center">
+                        <span className="text-[10px] font-semibold text-ink-muted">+{m.reading.length - 5}</span>
+                      </div>
                     )}
                   </div>
-
-                  {/* Per-member weekly challenge progress */}
-                  {weeklyChallenge > 0 && (
-                    <div className="mt-2">
-                      <div className="progress-bar h-2">
-                        <div
-                          className="progress-fill"
-                          style={{ width: `${Math.min(Math.round((m.pagesThisWeek / weeklyChallenge) * 100), 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {m.reading.length > 0 ? (
-                    <div className="mt-2 space-y-1.5">
-                      {m.reading.slice(0, 3).map((b, i) => (
-                        <div key={i} className="flex items-center gap-2 bg-parchment rounded-lg p-2">
-                          <BookCover src={b.cover_url} title={b.title} className="w-8 h-11 rounded-md flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-ink truncate">{b.title}</p>
-                            <div className="mt-1">
-                              <div className="progress-bar">
-                                <div className="progress-fill" style={{ width: `${b.progress}%` }} />
-                              </div>
-                              <p className="text-[10px] text-ink-muted mt-0.5">{b.progress}%</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {m.reading.length > 3 && (
-                        <p className="text-[10px] text-ink-muted text-center">+{m.reading.length - 3} buku lainnya</p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 mt-2 text-xs text-ink-muted">
-                      <BookOpen size={12} strokeWidth={1.75} />
-                      Sedang memilih buku…
-                    </div>
-                  )}
                 </div>
-              </div>
+              )}
+
+              {m.reading.length === 0 && (
+                <div className="flex items-center gap-1.5 mt-2.5 text-xs text-ink-muted">
+                  <BookOpen size={12} strokeWidth={1.75} />
+                  Belum ada buku dibaca
+                </div>
+              )}
             </div>
           ))}
           </div>
         </section>
 
-        {/* ── Section 4: Tambah Anggota ── */}
+        {/* ── Section 4: Undang Anggota ── */}
         {(() => {
           if (isCircle) {
             const cap = 20;
             if (progress.length >= cap) return null;
             return (
               <section>
-                <h2 className="section-title">Undang Teman</h2>
+                <h2 className="section-title mb-3">Undang Teman</h2>
                 <InviteCard inviteCode={session.inviteCode} memberCount={progress.length} cap={cap} label="teman" />
               </section>
             );
@@ -392,7 +420,7 @@ export default async function LingkarSayaPage() {
           if (session.memberRole === "admin" && progress.length < 8) {
             return (
               <section>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <h2 className="section-title mb-0">Undang Anggota</h2>
                   <Link href="/lingkar-baca/saya/tambah" className="btn-secondary flex items-center gap-1.5 text-sm">
                     <UserPlus size={14} strokeWidth={2} />
