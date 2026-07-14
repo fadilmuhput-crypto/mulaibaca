@@ -142,9 +142,10 @@ export default async function LingkarSayaPage() {
   }
 
   const readingByMember: Record<string, { title: string; cover_url: string | null; progress: number }> = {};
-  for (const item of rawShelfReading ?? []) {
-    const r = item as { member_id: string; current_page: number; books: Array<{ id: string; title: string; cover_url: string | null; total_pages: number | null }> };
-    const book = r.books?.[0];
+  for (const raw of rawShelfReading ?? []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = raw as any;
+    const book = Array.isArray(r.books) ? r.books?.[0] : r.books;
     if (!readingByMember[r.member_id] && book) {
       const progress = book.total_pages && r.current_page
         ? Math.min(Math.round((r.current_page / book.total_pages) * 100), 100)
