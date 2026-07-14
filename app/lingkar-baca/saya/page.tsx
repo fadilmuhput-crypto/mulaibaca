@@ -103,12 +103,12 @@ export default async function LingkarSayaPage() {
     );
   }
 
-  const [{ data: familyData }, { data: streaks }, { data: readingItems }, { data: allShelfItems }] = await Promise.all([
+  const [{ data: familyData }, { data: streaks }, { data: rawShelfReading }, { data: allShelfItems }] = await Promise.all([
     supabase.from("families").select("weekly_challenge_pages").eq("id", familyId).maybeSingle(),
     supabase.from("streaks").select("member_id, current_streak, longest_streak").in("member_id", memberIds),
     supabase
       .from("shelf_items")
-      .select("id, member_id, current_page, books(title, cover_url, total_pages)")
+      .select("id, member_id, current_page, book_id")
       .in("member_id", memberIds)
       .eq("status", "reading")
       .order("updated_at", { ascending: false }),
@@ -142,13 +142,26 @@ export default async function LingkarSayaPage() {
   }
 
   const readingByMember: Record<string, { title: string; cover_url: string | null; progress: number }> = {};
-  for (const item of readingItems ?? []) {
-    const m = item as unknown as { member_id: string; current_page: number; books: { title: string; cover_url: string | null; total_pages: number | null } | null };
-    if (!readingByMember[m.member_id] && m.books) {
-      const progress = m.books.total_pages && m.current_page
-        ? Math.min(Math.round((m.current_page / m.books.total_pages) * 100), 100)
+  const readingBookIds = [...new Set((rawShelfReading ?? []).map((r: { book_id: string }) => r.book_id).filter(Boolean))];
+  let readingBooks: Record<string, { title: string; cover_url: string | null; total_pages: number | null }> = {};
+  if (readingBookIds.length > 0) {
+    const { data: bookRows } = await supabase
+      .from("books")
+      .select("id, title, cover_url, total_pages")
+      .in("id", readingBookIds);
+    for (const b of bookRows ?? []) {
+      const row = b as { id: string; title: string; cover_url: string | null; total_pages: number | null };
+      readingBooks[row.id] = { title: row.title, cover_url: row.cover_url, total_pages: row.total_pages };
+    }
+  }
+  for (const item of rawShelfReading ?? []) {
+    const r = item as { member_id: string; current_page: number; book_id: string };
+    if (!readingByMember[r.member_id] && r.book_id && readingBooks[r.book_id]) {
+      const book = readingBooks[r.book_id];
+      const progress = book.total_pages && r.current_page
+        ? Math.min(Math.round((r.current_page / book.total_pages) * 100), 100)
         : 0;
-      readingByMember[m.member_id] = { title: m.books.title, cover_url: m.books.cover_url, progress };
+      readingByMember[r.member_id] = { title: book.title, cover_url: book.cover_url, progress };
     }
   }
 
