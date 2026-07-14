@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
+import BackButton from "@/components/BackButton";
 
 export const revalidate = 60;
 
@@ -81,8 +82,9 @@ export default async function PanduanPage() {
   return (
     <div className="min-h-dvh bg-parchment">
       <header className="bg-surface border-b border-border px-4 py-4">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <Link href="/" className="text-xl font-display font-bold text-forest">mulaibaca</Link>
+        <div className="max-w-lg mx-auto flex items-center gap-1">
+          <BackButton />
+          <span className="font-display font-bold text-xl text-forest">mulaibaca</span>
           <span className="text-xs text-ink-muted">/ panduan</span>
         </div>
       </header>

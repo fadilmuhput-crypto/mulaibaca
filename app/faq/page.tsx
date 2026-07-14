@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 import FaqAccordion from "./FaqAccordion";
+import BackButton from "@/components/BackButton";
 
 export const revalidate = 60;
 
@@ -88,8 +89,9 @@ export default async function FAQPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
       />
       <header className="bg-surface border-b border-border px-4 py-4">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <Link href="/" className="text-xl font-display font-bold text-forest">mulaibaca</Link>
+        <div className="max-w-lg mx-auto flex items-center gap-1">
+          <BackButton />
+          <span className="font-display font-bold text-xl text-forest">mulaibaca</span>
           <span className="text-xs text-ink-muted">/ faq</span>
         </div>
       </header>
