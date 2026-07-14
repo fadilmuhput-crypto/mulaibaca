@@ -8,6 +8,7 @@ import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPl
 import BookCover from "@/components/BookCover";
 import AvatarIcon from "@/components/AvatarIcon";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import ImageLightbox from "@/components/ImageLightbox";
 
 const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string; icon: React.ReactNode }> = {
   log:          { verb: "lagi baca", color: "text-amber", icon: <BookOpen size={14} /> },
@@ -101,6 +102,7 @@ function useCommentsState(feedId: string) {
 
 function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: FeedItem; currentMemberId?: string; onDelete?: (id: string) => void; initialLike?: LikeState | null }) {
   const [deleting, setDeleting] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<HTMLInputElement>(null);
   const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id, initialLike);
@@ -237,7 +239,14 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
             <div className="mt-2 mb-1 overflow-x-auto no-scrollbar">
               <div className="flex gap-2">
                 {item.detail.images.map((url: string, idx: number) => (
-                  <img key={idx} src={url} alt="" className="h-24 w-auto rounded-lg object-cover border border-border flex-shrink-0" loading="lazy" />
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightboxUrl(url); }}
+                    className="flex-shrink-0"
+                  >
+                    <img src={url} alt="" className="h-24 w-auto rounded-lg object-cover border border-border cursor-pointer" loading="lazy" />
+                  </button>
                 ))}
               </div>
             </div>
@@ -358,6 +367,8 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
           onCancel={() => setDeleting(false)}
         />
       )}
+
+      {lightboxUrl && <ImageLightbox imageUrl={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
     </div>
   );
 }
