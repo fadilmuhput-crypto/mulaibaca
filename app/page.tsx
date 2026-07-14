@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, Users, Globe, Flame } from "lucide-react";
 import LandingDemo from "@/components/LandingDemo";
 import TrackedLink from "@/components/TrackedLink";
+import { getSession } from "@/lib/session";
 
 const features = [
   {
@@ -36,7 +37,10 @@ const AMBER = "#C26E2A";
 const PARCHMENT = "#FAF7F2";
 const LIME = "#BFE040";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await getSession();
+  const loggedIn = !!session;
+
   return (
     <div className="min-h-dvh" style={{ backgroundColor: PARCHMENT }}>
 
@@ -58,22 +62,40 @@ export default function LandingPage() {
             <Link href="/blog" className="hidden sm:inline" style={{ fontSize: "0.8125rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none" }}>
               Blog
             </Link>
-            <Link href="/masuk" style={{ fontSize: "0.8125rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none", whiteSpace: "nowrap" }}>
-              Masuk
-            </Link>
-            <TrackedLink href="/daftar" eventLabel="navbar_mulai_gratis" style={{
-              display: "inline-flex", alignItems: "center",
-              padding: "0.375rem 0.75rem",
-              backgroundColor: INK, color: PARCHMENT,
-              fontWeight: 700, fontSize: "0.8125rem",
-              border: `1.5px solid ${INK}`,
-              borderRadius: "5px",
-              boxShadow: `2px 2px 0 ${FOREST}`,
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-            }}>
-              Mulai Gratis →
-            </TrackedLink>
+            {!loggedIn ? (
+              <>
+                <Link href="/masuk" style={{ fontSize: "0.8125rem", fontWeight: 500, color: "#3D4E45", textDecoration: "none", whiteSpace: "nowrap" }}>
+                  Masuk
+                </Link>
+                <TrackedLink href="/daftar" eventLabel="navbar_mulai_gratis" style={{
+                  display: "inline-flex", alignItems: "center",
+                  padding: "0.375rem 0.75rem",
+                  backgroundColor: INK, color: PARCHMENT,
+                  fontWeight: 700, fontSize: "0.8125rem",
+                  border: `1.5px solid ${INK}`,
+                  borderRadius: "5px",
+                  boxShadow: `2px 2px 0 ${FOREST}`,
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                }}>
+                  Mulai Gratis →
+                </TrackedLink>
+              </>
+            ) : (
+              <Link href="/dashboard" style={{
+                display: "inline-flex", alignItems: "center",
+                padding: "0.375rem 0.75rem",
+                backgroundColor: INK, color: PARCHMENT,
+                fontWeight: 700, fontSize: "0.8125rem",
+                border: `1.5px solid ${INK}`,
+                borderRadius: "5px",
+                boxShadow: `2px 2px 0 ${FOREST}`,
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}>
+                Dashboard →
+              </Link>
+            )}
           </div>
         </div>
       </nav>
@@ -127,29 +149,46 @@ export default function LandingPage() {
             </p>
 
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const, marginBottom: "0.875rem" }}>
-              <TrackedLink href="/daftar" eventLabel="hero_mulai_gratis" style={{
-                display: "inline-flex", alignItems: "center",
-                padding: "0.875rem 1.5rem",
-                backgroundColor: AMBER, color: "#fff",
-                fontWeight: 700, fontSize: "1rem",
-                border: `1.5px solid ${INK}`,
-                borderRadius: "6px",
-                boxShadow: `3px 3px 0 ${INK}`,
-                textDecoration: "none",
-              }}>
-                Mulai Gratis →
-              </TrackedLink>
-              <TrackedLink href="/coba" eventLabel="hero_coba_tanpa_daftar" style={{
-                display: "inline-flex", alignItems: "center",
-                padding: "0.875rem 1.5rem",
-                backgroundColor: "transparent", color: INK,
-                fontWeight: 600, fontSize: "1rem",
-                border: `1.5px solid ${INK}`,
-                borderRadius: "6px",
-                textDecoration: "none",
-              }}>
-                Coba tanpa daftar
-              </TrackedLink>
+              {!loggedIn ? (
+                <>
+                  <TrackedLink href="/daftar" eventLabel="hero_mulai_gratis" style={{
+                    display: "inline-flex", alignItems: "center",
+                    padding: "0.875rem 1.5rem",
+                    backgroundColor: AMBER, color: "#fff",
+                    fontWeight: 700, fontSize: "1rem",
+                    border: `1.5px solid ${INK}`,
+                    borderRadius: "6px",
+                    boxShadow: `3px 3px 0 ${INK}`,
+                    textDecoration: "none",
+                  }}>
+                    Mulai Gratis →
+                  </TrackedLink>
+                  <TrackedLink href="/coba" eventLabel="hero_coba_tanpa_daftar" style={{
+                    display: "inline-flex", alignItems: "center",
+                    padding: "0.875rem 1.5rem",
+                    backgroundColor: "transparent", color: INK,
+                    fontWeight: 600, fontSize: "1rem",
+                    border: `1.5px solid ${INK}`,
+                    borderRadius: "6px",
+                    textDecoration: "none",
+                  }}>
+                    Coba tanpa daftar
+                  </TrackedLink>
+                </>
+              ) : (
+                <Link href="/dashboard" style={{
+                  display: "inline-flex", alignItems: "center",
+                  padding: "0.875rem 1.5rem",
+                  backgroundColor: AMBER, color: "#fff",
+                  fontWeight: 700, fontSize: "1rem",
+                  border: `1.5px solid ${INK}`,
+                  borderRadius: "6px",
+                  boxShadow: `3px 3px 0 ${INK}`,
+                  textDecoration: "none",
+                }}>
+                  Buka Dashboard →
+                </Link>
+              )}
             </div>
             <p style={{ fontSize: "0.72rem", color: "#7A8E83" }}>
               Gratis selamanya · Tidak perlu kartu kredit

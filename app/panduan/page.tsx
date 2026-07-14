@@ -24,47 +24,47 @@ const FALLBACK_GUIDES = [
   {
     title: "Apa itu Mulaibaca?",
     content:
-      "Mulaibaca adalah aplikasi pencatat bacaan untuk keluarga. Setiap anggota keluarga punya rak buku sendiri, bisa mencatat progres baca harian, menjaga streak, dan saling memantau perkembangan literasi.\n\nTidak ada gangguan sosial, tidak ada notifikasi yang mengganggu. Mulaibaca fokus membantu kamu dan keluarga membangun kebiasaan membaca yang konsisten.",
+      "Mulaibaca adalah aplikasi pencatat bacaan yang bisa digunakan sendiri atau bersama orang terdekat.\n\nSetiap anggota punya rak buku pribadi, bisa mencatat progres baca harian, menjaga streak, dan saling melihat perkembangan literasi.\n\nAda dua tipe Lingkar Baca:\n- Lingkar Keluarga — untuk keluarga dengan peran Ayah, Ibu, Anak. Admin bisa tambah akun anak dan switch untuk mengelola.\n- Lingkar Teman — untuk pasangan, teman, atau komunitas. Semua anggota setara.\n\nTidak ada notifikasi yang mengganggu. Mulaibaca fokus membantu kamu membangun kebiasaan membaca yang konsisten.",
   },
   {
     title: "Daftar & Mulai",
     content:
-      "Ada tiga cara memulai Mulaibaca:\n\n1. Daftar biasa — Buat akun di halaman Daftar. Masukkan nama, email, dan password. Setelah itu kamu bisa membuat ruang keluarga baru.\n\n2. Bergabung pakai kode undangan — Jika keluargamu sudah punya ruang di Mulaibaca, cukup masukkan kode undangan di halaman Bergabung. Kode bisa didapat dari anggota keluarga yang sudah terdaftar (bagikan dari dashboard). Link undangan juga bisa langsung dibagikan dengan kode.\n\n3. Coba dulu — Ingin eksplorasi dulu tanpa daftar? Buka halaman Coba, kamu akan langsung masuk ke dashboard dengan akun sementara.",
+      "Ada tiga cara memulai Mulaibaca:\n\n1. Daftar biasa — Buat akun di halaman Daftar. Masukkan nama, email, password. Setelah itu kamu bisa membuat atau bergabung ke Lingkar Baca.\n\n2. Bergabung pakai kode undangan — Jika keluargamu sudah punya Lingkar Baca, masukkan kode undangan di halaman Gabung (mulaibaca.id/lingkar-baca/gabung). Kode bisa didapat dari anggota yang sudah terdaftar. Link undangan langsung bisa dibagikan, contoh: mulaibaca.id/lingkar-baca/gabung?code=XXXXXXX.\n\n3. Coba dulu — Ingin eksplorasi tanpa daftar? Buka halaman Coba, kamu langsung masuk dashboard dengan akun sementara. Data bisa diupgrade ke akun permanen kapan saja.",
   },
   {
     title: "Dashboard & Streak Bacaan",
     content:
-      "Dashboard adalah halaman utama setelah login. Di sini kamu bisa melihat:\n\n- Streak — jumlah hari berturut-turut kamu mencatat bacaan.\n- Target mingguan — halaman yang ingin kamu capai dalam seminggu.\n- Daftar periksa onboarding — panduan langkah awal jika baru pertama kali.\n- Sedang dibaca — buku yang sedang kamu baca, lengkap dengan progres halaman.\n- Anggota keluarga — foto profil anggota keluarga lain yang juga aktif.\n- Kode undangan — untuk mengajak anggota keluarga lain bergabung.",
+      "Dashboard adalah halaman utama setelah login. Di sini kamu bisa melihat:\n\n- Streak — jumlah hari berturut-turut kamu mencatat bacaan. Klik badge streak untuk langsung mencatat log.\n- Daftar periksa onboarding — panduan langkah awal jika baru pertama kali: tambah buku, catat log, atur target.\n- Target mingguan — progres halaman minggu ini, bisa diatur dari Edit Profil.\n- Lanjut Baca — buku yang sedang kamu baca dengan progres halaman.\n- Aktivitas terbaru — timeline aktivitas kamu dan teman yang kamu ikuti.",
   },
   {
     title: "Rak Buku",
     content:
-      "Setiap anggota punya rak buku pribadi dengan tiga tab:\n\n- Mau Baca — buku yang ingin kamu baca di lain waktu. Tekan Mulai Baca untuk memindahkan ke status Dibaca.\n- Dibaca — buku yang sedang kamu baca saat ini. Kamu bisa mengupdate halaman terakhir, menandai selesai, atau langsung mencatat log bacaan.\n- Selesai — buku yang sudah kamu tuntaskan. Dari sini kamu bisa langsung menulis review.\n\nUntuk menambah buku, buka Jelajah atau Cari, atau tambah manual.",
+      "Setiap anggota punya rak buku pribadi dengan tiga tab:\n\n- Mau Baca — buku yang ingin kamu baca nanti. Tekan Mulai Baca untuk pindah ke Dibaca. Bisa dihapus dari rak.\n- Dibaca — buku yang sedang kamu baca. Tampilan list dengan progres bar. Kamu bisa update halaman langsung, catat log, atau tandai selesai. Saat selesai, sisa halaman otomatis tercatat dan muncul banner perayaan.\n- Selesai — buku yang sudah dituntaskan. Dari sini bisa langsung tulis review atau lihat review yang sudah ada.\n\nSetiap tab bisa diurutkan: Terbaru, A-Z, Z-A, atau berdasarkan progres.\n\nUntuk menambah buku, buka Jelajah atau Cari, atau tambah manual jika tidak ditemukan.",
   },
   {
     title: "Catat Log Bacaan",
     content:
-      "Setiap hari kamu bisa mencatat jumlah halaman yang sudah dibaca:\n\n1. Buka halaman Log Baca (ikon pensil di navigasi bawah).\n2. Pilih buku yang sedang kamu baca.\n3. Masukkan jumlah halaman — pakai tombol +10, preset, atau ketik manual.\n4. Tambahkan catatan (opsional).\n\nLog hari ini akan otomatis memperpanjang streak bacaanmu. Catatan bisa dilihat di halaman Catatan.",
+      "Setiap hari kamu bisa mencatat halaman yang sudah dibaca:\n\n1. Buka halaman Catat (ikon pensil di navigasi bawah).\n2. Pilih buku yang sedang kamu baca. Jika buku tidak ada di rak, ada tautan untuk mencari di Jelajah.\n3. Tentukan rentang halaman — Dari hal berapa sampai hal berapa. Jumlah halaman otomatis terhitung.\n4. Gunakan timer untuk mencatat durasi baca (opsional).\n5. Tambahkan catatan dan foto (opsional).\n6. Tekan Catat — muncul popup perayaan: jumlah halaman, streak, dan tombol catat lagi atau kembali ke dashboard.\n\nJika buku selesai (halaman akhir >= total halaman), kamu akan diajak menulis review.\n\nLog hari ini bisa dilihat langsung di halaman Catat. Semua log tersedia di halaman Catatan.\n\nLog hari ini otomatis memperpanjang streak bacaanmu.",
   },
   {
     title: "Jelajah & Cari Buku",
     content:
-      "Temukan buku baru lewat halaman Jelajah:\n\n- Rekomendasi personal — berdasarkan kategori buku di rakmu.\n- Sedang dibaca keluarga — lihat apa yang dibaca anggota keluarga lain.\n- Sedang tren — buku yang paling banyak ditambah ke rak.\n- Bagian kurasi — koleksi pilihan tim Mulaibaca.\n\nButuh buku tertentu? Gunakan halaman Cari. Jika tidak ditemukan, kamu bisa tambah buku secara manual.",
+      "Temukan buku baru lewat halaman Jelajah. Bagian atas terdapat pencarian sticky dengan saran otomatis dari database lokal dan OpenLibrary.\n\nSaat tidak mencari, tersedia bagian:\n- Sedang dibaca keluarga — lihat buku yang sedang dibaca anggota Lingkar Baca lain.\n- Buku Anak (untuk anggota dengan peran Anak) — tab berdasarkan kelompok usia: Balita (0–3), Anak Awal (4–8), Anak Akhir (9–12), Remaja (13+).\n- Trending Minggu Ini — 10 buku terpopuler minggu ini.\n- Karena Kamu Baca... — rekomendasi berdasarkan kategori buku di rakmu.\n- Bagian kurasi — koleksi pilihan tim Mulaibaca.\n- Semua buku — katalog lengkap dengan filter kategori dan subkategori.\n\nButuh buku tertentu? Gunakan halaman Cari. Jika tidak ditemukan, kamu bisa tambah buku secara manual.",
   },
   {
     title: "Review Buku",
     content:
-      "Setelah selesai membaca, kamu bisa menulis review:\n\n- Beri rating bintang 1-5.\n- Jawab tiga pertanyaan: tentang apa buku ini, apa yang paling berkesan, dan untuk siapa cocok.\n- Atur visibilitas: Publik atau Privat.\n- Atur anonimitas: tampilkan nama atau sembunyikan.\n\nReview publik akan muncul di halaman Review. Pengaturan bisa diubah kapan saja dari halaman detail review.",
+      "Setelah selesai membaca, kamu bisa menulis review:\n\n1. Beri rating bintang 1–5 dengan label: Kurang bagus, Lumayan, Bagus, Sangat bagus, Luar biasa!\n2. Jawab tiga pertanyaan:\n   - Buku ini tentang apa?\n   - Yang paling berkesan?\n   - Untuk siapa cocok?\n3. Atur visibilitas: Publik atau Privat.\n4. Atur anonimitas: tampilkan nama atau sembunyikan (hanya untuk review publik).\n\nReview publik akan muncul di halaman Review dan di profil publikmu. Pengaturan bisa diubah kapan saja dari halaman detail review.",
   },
   {
-    title: "Keluarga & Pantau Progres",
+    title: "Lingkar Baca",
     content:
-      "Fitur keluarga memungkinkan kamu membuat ruang baca bersama:\n\n- Buat ruang keluarga saat mendaftar, lalu undang anggota lewat kode undangan.\n- Admin bisa menambah anggota dengan peran: Ayah, Ibu, Anak, atau Dewasa.\n- Untuk anak, bisa memasukkan tanggal lahir agar rekomendasi lebih sesuai.\n- Admin juga bisa switch akun untuk mengelola profil anggota lain.\n\nHalaman Keluarga menampilkan progres semua anggota: streak, halaman mingguan, buku yang dibaca.",
+      "Lingkar Baca adalah ruang untuk membaca bersama. Ada dua tipe:\n\nLingkar Keluarga:\n- Peran: Ayah, Ibu, Anak, atau Dewasa.\n- Admin bisa menambah akun anak tanpa email (cukup nama, tanggal lahir, avatar).\n- Admin bisa switch akun untuk mengelola profil dan mencatat bacaan anak.\n- Usia anak muncul sebagai label (Balita, Anak Awal, Anak Akhir, Remaja) dan memengaruhi rekomendasi buku.\n- Maksimal 8 anggota.\n\nLingkar Teman:\n- Semua anggota setara (peran Dewasa).\n- Maksimal 20 anggota.\n\nHalaman Lingkar Baca (mulaibaca.id/lingkar-baca/saya) menampilkan:\n- Ringkasan: streak keluarga, halaman minggu ini, buku yang dibaca.\n- Tantangan Mingguan: target halaman seluruh keluarga dengan progress bar.\n- Aktivitas Anggota: profil, streak, progres, dan buku yang sedang dibaca per anggota.\n- Undang Anggota: kode undangan yang bisa disalin atau dibagikan lewat WhatsApp. Untuk Lingkar Keluarga, tersedia tombol Tambah Akun Anak.\n\nKode undangan bisa diatur ulang kapan saja dari halaman Edit Profil.",
   },
   {
     title: "Profil & Pengaturan",
     content:
-      "Halaman Profil berisi:\n- Statistik bacaan: buku selesai, total halaman, streak terpanjang.\n- Edit identitas: nama, avatar, username (untuk profil publik).\n- Target mingguan: atur jumlah halaman per minggu.\n\nUsername bisa digunakan untuk membagikan profil publik: mulaibaca.id/u/namausername.",
+      "Halaman Edit Profil berisi:\n- Avatar — pilih dari 6 ikon yang tersedia.\n- Nama tampilan — nama yang muncul di profil.\n- Username — untuk profil publik di mulaibaca.id/u/username. Hanya bisa diatur sekali.\n- Tanggal lahir — menampilkan usia otomatis.\n- Target membaca mingguan — atur target halaman per minggu (preset 25/50/100/150 atau custom).\n\nProfil publik bisa dibagikan dan menampilkan: statistik bacaan, buku yang sedang dibaca, buku selesai, dan review.\n\nHalaman Progress menampilkan:\n- Streak saat ini dan terpanjang.\n- Grafik garis 30 hari — klik titik untuk melihat detail tanggal dan halaman.\n- Statistik: total halaman, buku selesai, rata-rata per hari.\n- Aktivitas — timeline log, review, dan pencapaian.\n\nKamu bisa mengikuti pengguna lain lewat halaman Cari Teman untuk melihat aktivitas mereka di dashboard.",
   },
 ];
 
