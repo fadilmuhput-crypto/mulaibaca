@@ -108,7 +108,7 @@ export default async function LingkarSayaPage() {
     supabase.from("streaks").select("member_id, current_streak, longest_streak").in("member_id", memberIds),
     supabase
       .from("shelf_items")
-      .select("id, member_id, current_page, book_id")
+      .select("id, member_id, current_page, books(id, title, cover_url, total_pages)")
       .in("member_id", memberIds)
       .eq("status", "reading")
       .order("updated_at", { ascending: false }),
@@ -142,22 +142,10 @@ export default async function LingkarSayaPage() {
   }
 
   const readingByMember: Record<string, { title: string; cover_url: string | null; progress: number }> = {};
-  const readingBookIds = [...new Set((rawShelfReading ?? []).map((r: { book_id: string }) => r.book_id).filter(Boolean))];
-  let readingBooks: Record<string, { title: string; cover_url: string | null; total_pages: number | null }> = {};
-  if (readingBookIds.length > 0) {
-    const { data: bookRows } = await supabase
-      .from("books")
-      .select("id, title, cover_url, total_pages")
-      .in("id", readingBookIds);
-    for (const b of bookRows ?? []) {
-      const row = b as { id: string; title: string; cover_url: string | null; total_pages: number | null };
-      readingBooks[row.id] = { title: row.title, cover_url: row.cover_url, total_pages: row.total_pages };
-    }
-  }
   for (const item of rawShelfReading ?? []) {
-    const r = item as { member_id: string; current_page: number; book_id: string };
-    if (!readingByMember[r.member_id] && r.book_id && readingBooks[r.book_id]) {
-      const book = readingBooks[r.book_id];
+    const r = item as { member_id: string; current_page: number; books: Array<{ id: string; title: string; cover_url: string | null; total_pages: number | null }> };
+    const book = r.books?.[0];
+    if (!readingByMember[r.member_id] && book) {
       const progress = book.total_pages && r.current_page
         ? Math.min(Math.round((r.current_page / book.total_pages) * 100), 100)
         : 0;
