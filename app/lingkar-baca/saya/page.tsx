@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import AvatarIcon from "@/components/AvatarIcon";
 import BookCover from "@/components/BookCover";
-import { Flame, BookOpen, UserPlus } from "lucide-react";
+import { Flame, BookOpen, UserPlus, Target } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import MemberSwitcher from "./MemberSwitcher";
 import SetUsernameForm from "./SetUsernameForm";
@@ -39,6 +39,33 @@ function getWeekStart(): string {
   const monday = new Date(now.getFullYear(), now.getMonth(), diff);
   monday.setHours(0, 0, 0, 0);
   return monday.toISOString();
+}
+
+function InviteCard({ inviteCode, memberCount, cap, label }: { inviteCode: string; memberCount: number; cap: number; label: string }) {
+  const shareUrl = `https://mulaibaca.id/lingkar-baca/gabung?code=${inviteCode.toUpperCase()}`;
+  const shareText = `Ayo gabung ke lingkar baca di mulaibaca! 📚\n\nKlik link ini:\n${shareUrl}`;
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+
+  return (
+    <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4 space-y-3">
+      <p className="text-xs text-ink-muted">Undang {label}</p>
+      <div className="flex items-center gap-2">
+        <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase flex-1">{inviteCode}</p>
+        <CopyButton value={inviteCode} />
+      </div>
+      <p className="text-xs text-ink-muted">{memberCount}/{cap} {label}</p>
+
+      <a
+        href={waUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 w-full min-h-[44px] bg-green-500 text-white font-semibold text-sm rounded-xl hover:bg-green-600 transition-colors"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Bagikan ke WhatsApp
+      </a>
+    </div>
+  );
 }
 
 function computeAgeLocal(birthDate: string | null): number | null {
@@ -76,7 +103,8 @@ export default async function LingkarSayaPage() {
     );
   }
 
-  const [{ data: streaks }, { data: readingItems }, { data: allShelfItems }] = await Promise.all([
+  const [{ data: familyData }, { data: streaks }, { data: readingItems }, { data: allShelfItems }] = await Promise.all([
+    supabase.from("families").select("weekly_challenge_pages").eq("id", familyId).maybeSingle(),
     supabase.from("streaks").select("member_id, current_streak, longest_streak").in("member_id", memberIds),
     supabase
       .from("shelf_items")
@@ -89,6 +117,7 @@ export default async function LingkarSayaPage() {
       .select("id, member_id")
       .in("member_id", memberIds),
   ]);
+  const weeklyChallenge = (familyData?.weekly_challenge_pages as number) ?? 0;
 
   const shelfMap: Record<string, string> = {};
   for (const s of allShelfItems ?? []) {
@@ -163,23 +192,17 @@ export default async function LingkarSayaPage() {
   const activeReaders = progress.filter((m) => m.reading !== null).length;
   const isCircle = session.familyType === "circle";
 
+  const typeLabel = isCircle ? "Lingkar Teman" : "Lingkar Keluarga";
+
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
       <NavBar session={session} />
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-overline mb-1">Progress</p>
-            <h1 className="text-h1">{session.familyName}</h1>
-          </div>
-          {session.memberRole === "admin" && !isCircle && (
-            <Link href="/lingkar-baca/saya/tambah" className="btn-secondary flex items-center gap-1.5 text-sm">
-              <UserPlus size={14} strokeWidth={2} />
-              Tambah
-            </Link>
-          )}
+        <div>
+          <p className="text-overline mb-1">{typeLabel}</p>
+          <h1 className="text-h1">{session.familyName}</h1>
         </div>
 
         {/* Acting-as banner — only for child accounts in family type */}
@@ -208,9 +231,41 @@ export default async function LingkarSayaPage() {
           </div>
         </div>
 
+        {/* Weekly Challenge — for both types */}
+        {(() => {
+          if (weeklyChallenge <= 0) return null;
+          const target = weeklyChallenge;
+          const pct = Math.min(Math.round((totalPagesWeek / target) * 100), 100);
+          return (
+            <div className="bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Target size={15} strokeWidth={2} className="text-amber" />
+                  <h2 className="text-xs font-black uppercase tracking-widest text-ink-muted">Tantangan Mingguan</h2>
+                </div>
+                <span className="text-xs font-semibold text-ink-muted">{totalPagesWeek}/{target} hal</span>
+              </div>
+              <div className="progress-bar h-3">
+                <div className="progress-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <p className="text-[10px] text-ink-muted mt-1">
+                Target {isCircle ? "lingkar" : "keluarga"}: {weeklyChallenge} halaman/minggu
+              </p>
+            </div>
+          );
+        })()}
+
         {/* Member cards */}
         <section className="space-y-3">
-          <h2 className="section-title">Anggota</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="section-title mb-0">Anggota</h2>
+            {session.memberRole === "admin" && !isCircle && (
+              <Link href="/lingkar-baca/saya/tambah" className="btn-secondary flex items-center gap-1.5 text-sm">
+                <UserPlus size={14} strokeWidth={2} />
+                Tambah Anak
+              </Link>
+            )}
+          </div>
           {progress.map((m, i) => (
             <div
               key={m.id}
@@ -275,6 +330,18 @@ export default async function LingkarSayaPage() {
                     )}
                   </div>
 
+                  {/* Per-member weekly challenge progress */}
+                  {weeklyChallenge > 0 && (
+                    <div className="mt-2">
+                      <div className="progress-bar h-2">
+                        <div
+                          className="progress-fill"
+                          style={{ width: `${Math.min(Math.round((m.pagesThisWeek / weeklyChallenge) * 100), 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {m.reading ? (
                     <div className="flex items-center gap-2 mt-2.5 bg-parchment rounded-lg p-2">
                       <BookCover src={m.reading.cover_url} title={m.reading.title} className="w-8 h-11 rounded-md" />
@@ -300,33 +367,15 @@ export default async function LingkarSayaPage() {
           ))}
         </section>
 
-        {/* Invite */}
+        {/* Invite & Share */}
         {(() => {
           if (isCircle) {
             const cap = 20;
             if (progress.length >= cap) return null;
-            return (
-              <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
-                <p className="text-xs text-ink-muted mb-1">Undang teman</p>
-                <div className="flex items-center gap-2">
-                  <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase flex-1">{session.inviteCode}</p>
-                  <CopyButton value={session.inviteCode} />
-                </div>
-                <p className="text-xs text-ink-muted mt-1">Bagikan kode ini · {progress.length}/{cap} teman</p>
-              </div>
-            );
+            return <InviteCard inviteCode={session.inviteCode} memberCount={progress.length} cap={cap} label="teman" />;
           }
           if (session.memberRole === "admin" && progress.length < 8) {
-            return (
-              <div className="bg-amber-soft rounded-2xl border border-amber/20 p-4">
-                <p className="text-xs text-ink-muted mb-1">Undang anggota</p>
-                <div className="flex items-center gap-2">
-                  <p className="font-mono text-xl font-bold text-ink tracking-widest uppercase flex-1">{session.inviteCode}</p>
-                  <CopyButton value={session.inviteCode} />
-                </div>
-                <p className="text-xs text-ink-muted mt-1">Bagikan kode ini · {progress.length}/8 anggota</p>
-              </div>
-            );
+            return <InviteCard inviteCode={session.inviteCode} memberCount={progress.length} cap={8} label="anggota" />;
           }
           return null;
         })()}
