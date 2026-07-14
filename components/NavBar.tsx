@@ -9,6 +9,7 @@ import AvatarIcon from "@/components/AvatarIcon";
 import FeedbackModal from "@/components/FeedbackModal";
 import NotificationBell from "@/components/NotificationBell";
 import GuestBanner from "@/components/GuestBanner";
+import { ChevronLeft } from "lucide-react";
 
 /* ── SVG icon components (Heroicons outline 24px) ── */
 function IconHome({ active }: { active: boolean }) {
@@ -93,12 +94,13 @@ const NAV = [
   { href: "/progress",  label: "Progress", Icon: IconChart },
 ];
 
-export default function NavBar({ session, hideBottomNav, noStickyTop }: { session: Session; hideBottomNav?: boolean; noStickyTop?: boolean }) {
+export default function NavBar({ session, noStickyTop }: { session: Session; noStickyTop?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const isNavPage = NAV.some(({ href }) => pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/")));
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -142,13 +144,24 @@ export default function NavBar({ session, hideBottomNav, noStickyTop }: { sessio
       )}
       {/* ── Top header ──────────────────────── */}
       <header className={`bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between ${noStickyTop ? "" : "sticky top-0 z-20"}`}>
-        <Link href="/dashboard" className="flex items-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Mulaibaca" width={28} height={28} className="rounded-full" />
-          <span className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
-            mulaibaca
-          </span>
-        </Link>
+        <div className="flex items-center gap-1 sm:gap-2">
+          {!isNavPage && (
+            <button
+              onClick={() => router.back()}
+              className="sm:hidden w-10 h-10 flex items-center justify-center -ml-1.5 text-ink-secondary hover:text-ink rounded-xl hover:bg-parchment transition-colors"
+              aria-label="Kembali"
+            >
+              <ChevronLeft size={20} strokeWidth={2} />
+            </button>
+          )}
+          <Link href="/dashboard" className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Mulaibaca" width={28} height={28} className="rounded-full" />
+            <span className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
+              mulaibaca
+            </span>
+          </Link>
+        </div>
 
         {/* Desktop nav links */}
         <nav className="hidden sm:flex items-center gap-1">
@@ -281,7 +294,7 @@ export default function NavBar({ session, hideBottomNav, noStickyTop }: { sessio
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
 
       {/* ── Bottom nav (mobile) ──────────────── */}
-      {!hideBottomNav && <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-20 sm:hidden">
+      {isNavPage && <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-20 sm:hidden">
         <div className="flex pb-safe">
           {NAV.map(({ href, label, Icon }) => {
             const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));

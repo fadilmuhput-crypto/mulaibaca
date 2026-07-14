@@ -63,7 +63,7 @@ export default async function ProfilPage() {
 
   return (
     <div className="min-h-screen">
-      <NavBar session={session} hideBottomNav />
+      <NavBar session={session} />
       <main className="max-w-lg mx-auto px-4 py-6">
         <h1 className="text-h1 mb-6">Edit Profil</h1>
         <EditProfilClient
