@@ -151,9 +151,9 @@ export default async function PublicProfilePage({
       <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-1">
           <BackButton />
-          <Link href="/" className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
-            mulaibaca
-          </Link>
+          <span className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
+            @{username}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <ShareButton
