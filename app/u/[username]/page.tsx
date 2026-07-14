@@ -158,9 +158,7 @@ export default async function PublicProfilePage({
             text={`Lihat profil ${member.name} di mulaibaca 📚 mulaibaca.id/u/${username}`}
             className="text-ink-muted hover:text-amber"
           />
-          {viewerMemberId === memberId ? (
-            <Link href="/edit-profil" className="btn-primary-sm">Edit Profil</Link>
-          ) : (
+          {viewerMemberId !== memberId && (
             <Link href="/masuk" className="btn-primary-sm">Masuk</Link>
           )}
         </div>
