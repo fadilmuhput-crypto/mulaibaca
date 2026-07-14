@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { BookCheck, BookText, Flame, CalendarDays } from "lucide-react";
 
 type DailyReading = {
@@ -39,6 +39,43 @@ export default function ProgresTab({
     return { chartData: data, maxPages: max, pagesThisWeek: week, pagesThisMonth: month, daysReadThisMonth: days };
   }, [dailyReadings]);
 
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    function update() {
+      if (chartRef.current) setWidth(chartRef.current.offsetWidth);
+    }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const PAD_LEFT = 28;
+  const PAD_RIGHT = 8;
+  const PAD_TOP = 16;
+  const PAD_BOTTOM = 4;
+  const CHART_H = 160;
+  const chartW = Math.max(width - PAD_LEFT - PAD_RIGHT, 0);
+  const stepX = chartData.length > 1 ? chartW / (chartData.length - 1) : 0;
+
+  const points = chartData.map((d, i) => ({
+    x: PAD_LEFT + i * stepX,
+    y: PAD_TOP + (1 - (maxPages > 0 ? d.pages / maxPages : 0)) * (CHART_H - PAD_TOP - PAD_BOTTOM),
+    ...d,
+  }));
+
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  const selectedPoint = selectedIdx !== null ? points[selectedIdx] : null;
+
+  function formatDate(iso: string) {
+    const d = new Date(iso + "T00:00:00");
+    const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    return `${dayNames[d.getDay()]}, ${d.getDate()} ${["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"][d.getMonth()]}`;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex gap-3">
@@ -70,23 +107,44 @@ export default function ProgresTab({
           </span>
         </div>
 
-        <div className="flex items-end gap-[3px] h-24">
-          {chartData.map((d, i) => {
-            const height = d.pages > 0 ? Math.max(4, (d.pages / maxPages) * 100) : 2;
-            const isToday = i === chartData.length - 1;
-            return (
-              <div
-                key={d.date}
-                title={`${d.date}: ${d.pages} halaman`}
-                className={`flex-1 rounded-sm transition-all ${
-                  d.pages > 0
-                    ? isToday ? "bg-amber" : "bg-forest/60"
-                    : "bg-border/40"
-                }`}
-                style={{ height: `${height}%`, minHeight: "2px" }}
+        <div ref={chartRef} className="relative w-full">
+          <svg
+            width="100%"
+            height={CHART_H}
+            viewBox={`0 0 ${width || 300} ${CHART_H}`}
+            className="overflow-visible"
+          >
+            {linePath && (
+              <path d={linePath} fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            )}
+
+            {points.map((p, i) => (
+              <circle
+                key={p.date}
+                cx={p.x}
+                cy={p.y}
+                r={selectedIdx === i ? 5 : 3}
+                fill={p.pages > 0 ? (selectedIdx === i ? "#D97706" : "#1E4530") : "none"}
+                stroke={p.pages > 0 ? "#D97706" : "#D4D4D4"}
+                strokeWidth={selectedIdx === i ? 2.5 : 1.5}
+                className="transition-all cursor-pointer"
+                onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
               />
-            );
-          })}
+            ))}
+          </svg>
+
+          {selectedPoint && (
+            <div
+              className="absolute z-10 bg-ink text-white text-xs font-semibold rounded-lg px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none"
+              style={{
+                left: Math.min(selectedPoint.x, (width || 300) - 120),
+                top: Math.max(selectedPoint.y - 36, 4),
+                transform: "translateX(-50%)",
+              }}
+            >
+              {formatDate(selectedPoint.date)} · {selectedPoint.pages} halaman
+            </div>
+          )}
         </div>
 
         <div className="flex justify-between text-[9px] text-ink-muted">
