@@ -217,7 +217,7 @@ export default async function LingkarSayaPage() {
           </div>
         )}
 
-        {/* Summary stats */}
+        {/* ── Section 1: Progress / Stats ── */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-surface rounded-xl p-3 text-center brutal-border brutal-shadow-xs">
             <div className="font-display text-2xl font-black text-amber">{totalStreak}</div>
@@ -233,41 +233,41 @@ export default async function LingkarSayaPage() {
           </div>
         </div>
 
-        {/* Weekly Challenge — for both types */}
-        {(() => {
-          if (weeklyChallenge <= 0) return null;
-          const target = weeklyChallenge;
-          const pct = Math.min(Math.round((totalPagesWeek / target) * 100), 100);
-          return (
+        {/* ── Section 2: Tantangan Mingguan ── */}
+        <section>
+          <h2 className="section-title">Tantangan Mingguan</h2>
+          {weeklyChallenge > 0 ? (
             <div className="bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Target size={15} strokeWidth={2} className="text-amber" />
-                  <h2 className="text-xs font-black uppercase tracking-widest text-ink-muted">Tantangan Mingguan</h2>
+                  <span className="text-xs font-semibold text-ink-muted">{totalPagesWeek}/{weeklyChallenge} hal</span>
                 </div>
-                <span className="text-xs font-semibold text-ink-muted">{totalPagesWeek}/{target} hal</span>
+                <Link href="/edit-profil" className="text-[10px] text-ink-muted hover:text-amber transition-colors">Ubah</Link>
               </div>
               <div className="progress-bar h-3">
-                <div className="progress-fill" style={{ width: `${pct}%` }} />
+                <div className="progress-fill" style={{ width: `${Math.min(Math.round((totalPagesWeek / weeklyChallenge) * 100), 100)}%` }} />
               </div>
               <p className="text-[10px] text-ink-muted mt-1">
                 Target {isCircle ? "lingkar" : "keluarga"}: {weeklyChallenge} halaman/minggu
               </p>
             </div>
-          );
-        })()}
+          ) : (
+            <Link
+              href="/edit-profil"
+              className="block bg-surface rounded-2xl p-4 brutal-border brutal-shadow-sm text-center hover:bg-amber-soft/20 transition-colors"
+            >
+              <Target size={20} strokeWidth={1.5} className="text-ink-muted mx-auto mb-2" />
+              <p className="text-sm font-semibold text-ink-muted">Atur target mingguan</p>
+              <p className="text-[10px] text-ink-muted/60 mt-0.5">Buat tantangan baca untuk {isCircle ? "lingkar" : "keluarga"}</p>
+            </Link>
+          )}
+        </section>
 
-        {/* Member cards */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="section-title mb-0">Anggota</h2>
-            {session.memberRole === "admin" && !isCircle && (
-              <Link href="/lingkar-baca/saya/tambah" className="btn-secondary flex items-center gap-1.5 text-sm">
-                <UserPlus size={14} strokeWidth={2} />
-                Tambah Anak
-              </Link>
-            )}
-          </div>
+        {/* ── Section 3: Activity per Anggota ── */}
+        <section>
+          <h2 className="section-title">Aktivitas Anggota</h2>
+          <div className="space-y-3">
           {progress.map((m, i) => (
             <div
               key={m.id}
@@ -374,17 +374,34 @@ export default async function LingkarSayaPage() {
               </div>
             </div>
           ))}
+          </div>
         </section>
 
-        {/* Invite & Share */}
+        {/* ── Section 4: Tambah Anggota ── */}
         {(() => {
           if (isCircle) {
             const cap = 20;
             if (progress.length >= cap) return null;
-            return <InviteCard inviteCode={session.inviteCode} memberCount={progress.length} cap={cap} label="teman" />;
+            return (
+              <section>
+                <h2 className="section-title">Undang Teman</h2>
+                <InviteCard inviteCode={session.inviteCode} memberCount={progress.length} cap={cap} label="teman" />
+              </section>
+            );
           }
           if (session.memberRole === "admin" && progress.length < 8) {
-            return <InviteCard inviteCode={session.inviteCode} memberCount={progress.length} cap={8} label="anggota" />;
+            return (
+              <section>
+                <div className="flex items-center justify-between">
+                  <h2 className="section-title mb-0">Undang Anggota</h2>
+                  <Link href="/lingkar-baca/saya/tambah" className="btn-secondary flex items-center gap-1.5 text-sm">
+                    <UserPlus size={14} strokeWidth={2} />
+                    Tambah Anak
+                  </Link>
+                </div>
+                <InviteCard inviteCode={session.inviteCode} memberCount={progress.length} cap={8} label="anggota" />
+              </section>
+            );
           }
           return null;
         })()}
