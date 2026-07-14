@@ -2,14 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ChevronLeft, Loader2 } from "lucide-react";
-
-const AVATARS = ["book", "star", "heart", "sun", "moon", "tree", "flower", "rocket", "cat", "dog", "fish", "bear"];
-const AVATAR_EMOJI: Record<string, string> = {
-  book: "📖", star: "⭐", heart: "❤️", sun: "☀️", moon: "🌙", tree: "🌳",
-  flower: "🌸", rocket: "🚀", cat: "🐱", dog: "🐶", fish: "🐟", bear: "🐻",
-};
+import { Loader2 } from "lucide-react";
+import { AVATAR_OPTIONS } from "@/components/AvatarIcon";
+import BackButton from "@/components/BackButton";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 18 }, (_, i) => CURRENT_YEAR - i);
@@ -90,16 +85,14 @@ export default function TambahAnakPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
-      <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
-        <Link href="/lingkar-baca/saya" className="p-2 -ml-2 rounded-lg hover:bg-parchment transition-colors">
-          <ChevronLeft size={20} strokeWidth={2} className="text-ink" />
-        </Link>
-        <h1 className="font-semibold text-ink">Tambah Akun Anak</h1>
+    <div className="min-h-dvh flex flex-col bg-parchment">
+      <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center gap-2 sticky top-0 z-10">
+        <BackButton />
+        <h1 className="font-semibold text-ink text-sm">Tambah Akun Anak</h1>
       </header>
 
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
-        <p className="text-xs text-ink-muted mb-6 -mt-2 leading-relaxed">
+        <p className="text-xs text-ink-muted mb-6 leading-relaxed">
           Buatkan akun bacaan untuk anak yang belum punya email. Kamu bisa kelola
           progres dan pantau bacaannya dari dashboard.
         </p>
@@ -165,10 +158,10 @@ export default function TambahAnakPage() {
 
             {/* Age preview */}
             {age !== null && (
-              <div className="mt-2 flex items-center gap-2 bg-amber-soft rounded-xl px-3 py-2">
-                <span className="text-sm font-semibold text-amber">{age} tahun</span>
-                <span className="text-xs text-ink-muted">·</span>
-                <span className="text-xs text-ink-secondary">{ageLabel}</span>
+              <div className="mt-2 flex items-center gap-2 bg-amber-soft border border-amber/30 rounded-xl px-3 py-2">
+                <span className="text-xs font-semibold text-amber">{age} tahun</span>
+                <span className="text-[10px] text-amber/40">|</span>
+                <span className="text-[11px] text-ink-muted">{ageLabel}</span>
               </div>
             )}
             {!age && (
@@ -182,25 +175,28 @@ export default function TambahAnakPage() {
           <div>
             <label className="input-label">Avatar</label>
             <div className="grid grid-cols-6 gap-2 mt-1">
-              {AVATARS.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  onClick={() => setAvatar(a)}
-                  className={`aspect-square rounded-xl border-2 flex items-center justify-center text-2xl transition-all ${
-                    avatar === a
-                      ? "border-amber bg-amber-soft"
-                      : "border-border bg-surface hover:border-amber/40"
-                  }`}
-                >
-                  {AVATAR_EMOJI[a]}
-                </button>
-              ))}
+              {AVATAR_OPTIONS.map((opt) => {
+                const Icon = opt.Icon;
+                return (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => setAvatar(opt.key)}
+                    className={`aspect-square rounded-xl border-2 flex items-center justify-center transition-all ${
+                      avatar === opt.key
+                        ? "border-amber bg-amber-soft text-amber"
+                        : "border-border bg-surface text-ink-secondary hover:border-amber/40 hover:text-amber"
+                    }`}
+                  >
+                    <Icon size={20} strokeWidth={1.75} />
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {error && (
-            <p className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">{error}</p>
+            <p className="text-xs text-error text-center bg-error-soft border border-error/20 rounded-xl px-4 py-3">{error}</p>
           )}
 
           <button
