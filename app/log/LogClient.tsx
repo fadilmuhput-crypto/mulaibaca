@@ -490,6 +490,13 @@ export default function LogClient({
             </div>
           )}
 
+          {/* Cari buku lain di Jelajah */}
+          {shelf.length > 0 && !selected && (
+            <Link href="/jelajah" className="flex items-center justify-center gap-1.5 w-full min-h-[44px] rounded-xl border border-dashed border-border text-ink-muted text-sm font-medium hover:text-amber hover:border-amber/50 transition-colors">
+              Buku tidak ada? Cari di Jelajah
+            </Link>
+          )}
+
           {/* Book Timer */}
           {selected && (
             <BookTimer onDuration={(m) => setDuration(String(m))} />
