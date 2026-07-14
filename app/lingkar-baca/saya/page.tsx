@@ -420,12 +420,17 @@ export default async function LingkarSayaPage() {
           if (session.memberRole === "admin" && progress.length < 8) {
             return (
               <section>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="section-title mb-0">Undang Anggota</h2>
-                  <Link href="/lingkar-baca/saya/tambah" className="btn-secondary flex items-center gap-1.5 text-sm">
-                    <UserPlus size={14} strokeWidth={2} />
-                    Tambah Anak
-                  </Link>
+                <div className="space-y-1 mb-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="section-title mb-0">Undang Anggota</h2>
+                    <Link href="/lingkar-baca/saya/tambah" className="btn-secondary flex items-center gap-1.5 text-sm">
+                      <UserPlus size={14} strokeWidth={2} />
+                      Tambah Akun Anak
+                    </Link>
+                  </div>
+                  <p className="text-[11px] text-ink-muted leading-relaxed">
+                    Bagikan kode undangan ke anggota keluarga, atau buatkan akun khusus untuk anak yang belum punya email.
+                  </p>
                 </div>
                 <InviteCard inviteCode={session.inviteCode} memberCount={progress.length} cap={8} label="anggota" />
               </section>
