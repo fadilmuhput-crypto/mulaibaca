@@ -182,12 +182,24 @@ export default async function PublicProfilePage({
 
         {/* Follow stats + button */}
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-ink-muted">
-            <strong className="text-ink font-semibold">{followerCount ?? 0}</strong> pengikut
-          </span>
-          <span className="text-ink-muted">
-            <strong className="text-ink font-semibold">{followingCount ?? 0}</strong> mengikuti
-          </span>
+          {viewerMemberId ? (
+            <Link href="/progress/pengikut" className="text-ink-muted hover:text-ink transition-colors">
+              <strong className="text-ink font-semibold">{followerCount ?? 0}</strong> pengikut
+            </Link>
+          ) : (
+            <span className="text-ink-muted">
+              <strong className="text-ink font-semibold">{followerCount ?? 0}</strong> pengikut
+            </span>
+          )}
+          {viewerMemberId ? (
+            <Link href="/progress/mengikuti" className="text-ink-muted hover:text-ink transition-colors">
+              <strong className="text-ink font-semibold">{followingCount ?? 0}</strong> mengikuti
+            </Link>
+          ) : (
+            <span className="text-ink-muted">
+              <strong className="text-ink font-semibold">{followingCount ?? 0}</strong> mengikuti
+            </span>
+          )}
           <div className="ml-auto">
             {viewerMemberId === memberId ? (
               <Link
