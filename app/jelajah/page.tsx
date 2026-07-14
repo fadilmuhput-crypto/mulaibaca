@@ -192,7 +192,7 @@ export default async function JelajahPage() {
 
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
-      {session && <NavBar session={session} />}
+      {session && <NavBar session={session} noStickyTop />}
       <JelajahClient
         familyBooks={familyBooks}
         allBooks={enrichedBooks}

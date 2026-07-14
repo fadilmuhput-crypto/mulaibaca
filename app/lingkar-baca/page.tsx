@@ -1,7 +1,14 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getSession } from "@/lib/session";
 import { Users, Heart, Share2, ArrowRight, BookOpen, Target, Baby, User } from "lucide-react";
 
-export default function LingkarBacaLanding() {
+export default async function LingkarBacaLanding() {
+  const session = await getSession();
+  if (session) {
+    redirect("/lingkar-baca/saya");
+  }
+
   return (
     <div className="min-h-dvh bg-parchment">
       <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-10">

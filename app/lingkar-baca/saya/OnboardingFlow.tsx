@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Heart, User, Smile, Baby, Loader2, ChevronLeft, BookOpen, Share2, Target, Copy, Check } from "lucide-react";
+import { Users, Heart, User, Smile, Baby, Loader2, ChevronLeft, BookOpen, Share2, Target, Copy, Check, LogIn } from "lucide-react";
 import type { Session } from "@/lib/session";
 
 const MEMBER_TYPES = [
@@ -13,12 +13,16 @@ const MEMBER_TYPES = [
 
 export default function OnboardingFlow({ session }: { session: Session }) {
   const router = useRouter();
-  const [step, setStep] = useState<"intro" | "type" | "form" | "done">("intro");
+  const [step, setStep] = useState<"intro" | "type" | "form" | "done" | "join">("intro");
   const [type, setType] = useState<"family" | "circle" | null>(null);
   const [name, setName] = useState(session.familyName ?? "");
   const [role, setRole] = useState("ayah");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState("");
+  const [previewFamilyName, setPreviewFamilyName] = useState("");
 
   async function handleSave() {
     if (!name.trim()) { setError("Nama wajib diisi"); return; }
@@ -45,6 +49,45 @@ export default function OnboardingFlow({ session }: { session: Session }) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleJoinCheck() {
+    setJoinError("");
+    setJoinLoading(true);
+    try {
+      const res = await fetch(`/api/check-invite?code=${encodeURIComponent(joinCode)}`);
+      const data = await res.json();
+      if (!data.valid) {
+        setJoinError(data.error ?? "Kode tidak valid");
+        return;
+      }
+      setPreviewFamilyName(data.familyName);
+      setStep("join");
+    } catch {
+      setJoinError("Gagal memeriksa kode. Coba lagi.");
+    } finally {
+      setJoinLoading(false);
+    }
+  }
+
+  async function handleJoinSubmit() {
+    setJoinError("");
+    setJoinLoading(true);
+    try {
+      const res = await fetch("/api/lingkar-baca/gabung", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteCode: joinCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setJoinError(err instanceof Error ? err.message : "Gagal bergabung");
+    } finally {
+      setJoinLoading(false);
     }
   }
 
@@ -96,12 +139,91 @@ export default function OnboardingFlow({ session }: { session: Session }) {
           ))}
         </div>
 
+        <div className="space-y-3">
+          <button
+            onClick={() => setStep("type")}
+            className="btn-primary-full-lg"
+          >
+            Mulai Setup →
+          </button>
+          <button
+            onClick={() => setStep("join")}
+            className="btn-secondary w-full flex items-center justify-center gap-2 min-h-[44px] text-sm"
+          >
+            <LogIn size={15} strokeWidth={2} />
+            Gabung dengan Kode
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (step === "join") {
+    return (
+      <main className="max-w-lg mx-auto px-4 py-10 space-y-6">
         <button
-          onClick={() => setStep("type")}
-          className="btn-primary-full-lg"
+          onClick={() => { setStep("intro"); setJoinCode(""); setJoinError(""); setPreviewFamilyName(""); }}
+          className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink mb-2 transition-colors"
         >
-          Mulai Setup →
+          <ChevronLeft size={16} strokeWidth={2} />
+          Kembali
         </button>
+
+        <div className="text-center space-y-2">
+          <div className="w-14 h-14 rounded-2xl bg-amber-soft flex items-center justify-center mx-auto">
+            <LogIn size={28} className="text-amber" />
+          </div>
+          <h2 className="text-h2">Gabung ke Lingkar</h2>
+          <p className="text-sm text-ink-muted">Masukkan kode undangan dari admin lingkar</p>
+        </div>
+
+        <div className="space-y-4">
+          {!previewFamilyName ? (
+            <>
+              <input
+                type="text"
+                placeholder="KODE8KAR"
+                value={joinCode}
+                onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinError(""); }}
+                className="input font-mono text-center text-lg tracking-[0.3em] uppercase"
+                maxLength={8}
+                autoFocus
+              />
+              {joinError && (
+                <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">{joinError}</p>
+              )}
+              <button
+                onClick={handleJoinCheck}
+                disabled={joinCode.length < 6 || joinLoading}
+                className="btn-primary-full-lg"
+              >
+                {joinLoading ? "Memeriksa…" : "Lanjut →"}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-ink-muted text-center">
+                Bergabung ke: <span className="font-bold text-forest">{previewFamilyName}</span>
+              </p>
+              {joinError && (
+                <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">{joinError}</p>
+              )}
+              <button
+                onClick={handleJoinSubmit}
+                disabled={joinLoading}
+                className="btn-primary-full-lg"
+              >
+                {joinLoading ? "Bergabung…" : "Gabung →"}
+              </button>
+              <button
+                onClick={() => { setPreviewFamilyName(""); setJoinCode(""); }}
+                className="btn-ghost-ink w-full text-sm"
+              >
+                ← Ganti kode
+              </button>
+            </>
+          )}
+        </div>
       </main>
     );
   }

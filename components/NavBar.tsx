@@ -93,7 +93,7 @@ const NAV = [
   { href: "/progress",  label: "Progress", Icon: IconChart },
 ];
 
-export default function NavBar({ session }: { session: Session }) {
+export default function NavBar({ session, hideBottomNav, noStickyTop }: { session: Session; hideBottomNav?: boolean; noStickyTop?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -141,7 +141,7 @@ export default function NavBar({ session }: { session: Session }) {
         </div>
       )}
       {/* ── Top header ──────────────────────── */}
-      <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-20">
+      <header className={`bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between ${noStickyTop ? "" : "sticky top-0 z-20"}`}>
         <Link href="/dashboard" className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Mulaibaca" width={28} height={28} className="rounded-full" />
@@ -281,7 +281,7 @@ export default function NavBar({ session }: { session: Session }) {
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
 
       {/* ── Bottom nav (mobile) ──────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-20 sm:hidden">
+      {!hideBottomNav && <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-20 sm:hidden">
         <div className="flex pb-safe">
           {NAV.map(({ href, label, Icon }) => {
             const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
@@ -300,7 +300,7 @@ export default function NavBar({ session }: { session: Session }) {
             );
           })}
         </div>
-      </nav>
+      </nav>}
     </>
   );
 }
