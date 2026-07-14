@@ -6,6 +6,7 @@ import AvatarIcon from "@/components/AvatarIcon";
 import BookCover from "@/components/BookCover";
 import FollowButton from "@/components/FollowButton";
 import ShareButton from "@/components/ShareButton";
+import BackButton from "@/components/BackButton";
 import { BookCheck, BookText, Flame, Star, BookOpen, Bookmark } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -148,9 +149,12 @@ export default async function PublicProfilePage({
     <div className="min-h-screen bg-parchment">
       {/* Header */}
       <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <Link href="/" className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
-          mulaibaca
-        </Link>
+        <div className="flex items-center gap-1">
+          <BackButton />
+          <Link href="/" className="font-display font-black text-ink tracking-tight" style={{ fontSize: "1.1875rem", letterSpacing: "-0.03em" }}>
+            mulaibaca
+          </Link>
+        </div>
         <div className="flex items-center gap-2">
           <ShareButton
             url={`https://mulaibaca.id/u/${username}`}
@@ -158,8 +162,8 @@ export default async function PublicProfilePage({
             text={`Lihat profil ${member.name} di mulaibaca 📚 mulaibaca.id/u/${username}`}
             className="text-ink-muted hover:text-amber"
           />
-          {viewerMemberId !== memberId && (
-            <Link href="/masuk" className="btn-primary-sm">Masuk</Link>
+          {!viewerMemberId && (
+            <Link href="/daftar" className="btn-primary-sm">Daftar</Link>
           )}
         </div>
       </header>
@@ -343,14 +347,16 @@ export default async function PublicProfilePage({
           </div>
         )}
 
-        {/* CTA */}
-        <div className="bg-forest rounded-2xl p-6 text-center brutal-border brutal-shadow-sm">
-          <p className="text-white font-display font-bold text-lg mb-1">Mulai bangun kebiasaan membaca</p>
-          <p className="text-white/70 text-sm mb-4">Catat progres, tulis review, jaga streak baca harian</p>
-          <Link href="/daftar" className="bg-white text-forest text-sm font-bold px-6 py-2.5 rounded-lg inline-flex hover:bg-parchment transition-colors">
-            Mulai Gratis →
-          </Link>
-        </div>
+        {/* CTA — only for non-logged-in visitors */}
+        {!viewerMemberId && (
+          <div className="bg-forest rounded-2xl p-6 text-center brutal-border brutal-shadow-sm">
+            <p className="text-white font-display font-bold text-lg mb-1">Mulai bangun kebiasaan membaca</p>
+            <p className="text-white/70 text-sm mb-4">Catat progres, tulis review, jaga streak baca harian</p>
+            <Link href="/daftar" className="bg-white text-forest text-sm font-bold px-6 py-2.5 rounded-lg inline-flex hover:bg-parchment transition-colors">
+              Mulai Gratis →
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   );
