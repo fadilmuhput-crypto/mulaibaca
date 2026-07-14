@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Users, BookOpen, Library, Flame, Star, Activity,
   TrendingUp, Target, Check, BookMarked, MessageSquare,
@@ -44,6 +44,112 @@ function MiniBar({ value, max, color = "var(--color-amber)" }: { value: number; 
     <div className="w-16 bg-border/40 rounded-full h-1.5 overflow-hidden flex-shrink-0">
       <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }} />
     </div>
+  );
+}
+
+function ReadingChart({ daily }: { daily: { date: string; sesi: number; halaman: number }[] }) {
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    function update() { if (chartRef.current) setWidth(chartRef.current.offsetWidth); }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const maxHalaman = Math.max(...daily.map((d) => d.halaman), 1);
+  const maxSesi = Math.max(...daily.map((d) => d.sesi), 1);
+  const totalHalaman = daily.reduce((s, d) => s + d.halaman, 0);
+  const totalSesi = daily.reduce((s, d) => s + d.sesi, 0);
+  const daysRead = daily.filter((d) => d.halaman > 0).length;
+
+  const PAD_L = 32, PAD_R = 8, PAD_T = 16, PAD_B = 4, CHART_H = 160;
+  const chartW = Math.max(width - PAD_L - PAD_R, 0);
+  const stepX = daily.length > 1 ? chartW / (daily.length - 1) : 0;
+
+  const pointsH = daily.map((d, i) => ({
+    x: PAD_L + i * stepX,
+    y: PAD_T + (1 - d.halaman / maxHalaman) * (CHART_H - PAD_T - PAD_B),
+    ...d,
+  }));
+  const pointsS = daily.map((d, i) => ({
+    x: PAD_L + i * stepX,
+    y: PAD_T + (1 - d.sesi / maxSesi) * (CHART_H - PAD_T - PAD_B),
+    ...d,
+  }));
+
+  const lineH = pointsH.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const lineS = pointsS.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  const selected = selectedIdx !== null ? daily[selectedIdx] : null;
+
+  function fmtDate(iso: string) {
+    const d = new Date(iso + "T00:00:00");
+    return `${d.getDate()} ${["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][d.getMonth()]}`;
+  }
+
+  return (
+    <section className="bg-surface rounded-xl border border-border p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-ink flex items-center gap-1.5">
+          <Activity size={14} strokeWidth={2} className="text-amber" />
+          Aktivitas Membaca Harian (30 hari)
+        </h3>
+        <span className="text-xs text-ink-muted">{daysRead}/{30} hari baca</span>
+      </div>
+
+      <div ref={chartRef} className="relative w-full">
+        <svg width="100%" height={CHART_H} viewBox={`0 0 ${width || 300} ${CHART_H}`} className="overflow-visible">
+          {lineH && <path d={lineH} fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity={0.7} />}
+          {lineS && <path d={lineS} fill="none" stroke="#1E4530" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity={0.7} />}
+
+          {pointsH.map((p, i) => (
+            <circle key={`h-${p.date}`} cx={p.x} cy={p.y}
+              r={selectedIdx === i ? 5 : 3}
+              fill={p.halaman > 0 ? (selectedIdx === i ? "#D97706" : "#1E4530") : "none"}
+              stroke="#D97706" strokeWidth={selectedIdx === i ? 2.5 : 1.5}
+              className="transition-all cursor-pointer"
+              onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
+            />
+          ))}
+          {pointsS.map((p, i) => (
+            <circle key={`s-${p.date}`} cx={p.x} cy={p.y}
+              r={selectedIdx === i ? 5 : 3}
+              fill={p.sesi > 0 ? (selectedIdx === i ? "#1E4530" : "#D97706") : "none"}
+              stroke="#1E4530" strokeWidth={selectedIdx === i ? 2.5 : 1.5}
+              className="transition-all cursor-pointer"
+              onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
+            />
+          ))}
+        </svg>
+
+        {selected && (
+          <div className="absolute z-10 bg-ink text-white text-xs font-semibold rounded-lg px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none"
+            style={{
+              left: Math.min(PAD_L + selectedIdx! * stepX, (width || 300) - 130),
+              top: Math.max(PAD_T + (1 - selected.halaman / maxHalaman) * (CHART_H - PAD_T - PAD_B) - 36, 4),
+              transform: "translateX(-50%)",
+            }}
+          >
+            {fmtDate(selected.date)} · {selected.halaman} hal · {selected.sesi} sesi
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-between text-[9px] text-ink-muted mt-1">
+        {daily.filter((_, i) => i % 5 === 0 || i === daily.length - 1).map((d) => (
+          <span key={d.date}>{fmtDate(d.date)}</span>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-4 mt-3 text-[10px] text-ink-muted">
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber inline-block" /> Halaman</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-forest inline-block" /> Sesi</span>
+        <span className="ml-auto font-semibold text-ink">{totalHalaman} hal · {totalSesi} sesi</span>
+      </div>
+    </section>
   );
 }
 
@@ -179,36 +285,7 @@ export default function MetricsPage() {
       </section>
 
       {/* ── ACTIVITY ── */}
-      <section className="bg-surface rounded-xl border border-border p-5">
-        <h3 className="text-sm font-bold text-ink mb-4 flex items-center gap-1.5">
-          <Activity size={14} strokeWidth={2} className="text-amber" />
-          Aktivitas Membaca Harian (30 hari)
-        </h3>
-        <div className="overflow-x-auto">
-          <div className="flex gap-1 min-w-[480px]">
-            {data.activity.daily.map((d) => {
-              const maxHalaman = Math.max(...data.activity.daily.map((x) => x.halaman), 1);
-              const maxSesi = Math.max(...data.activity.daily.map((x) => x.sesi), 1);
-              return (
-                <div key={d.date} className="flex-1 flex flex-col items-center gap-0.5 min-w-[28px]">
-                  <span className="text-[9px] font-semibold text-ink-muted">{d.sesi}</span>
-                  <div className="w-full flex flex-col items-center gap-px" style={{ height: 40 }}>
-                    <div className="w-3 rounded-sm transition-all duration-300" style={{
-                      height: `${(d.halaman / maxHalaman) * 100}%`,
-                      backgroundColor: "var(--color-amber)",
-                      opacity: 0.85,
-                    }} />
-                  </div>
-                  <span className="text-[8px] text-ink-muted mt-0.5">{d.date.slice(5)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="flex items-center gap-4 mt-3 text-[10px] text-ink-muted">
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber inline-block" /> Halaman</span>
-        </div>
-      </section>
+      <ReadingChart daily={data.activity.daily} />
 
       {/* ── STREAKS + CONTENT ── */}
       <section className="grid md:grid-cols-2 gap-6">
