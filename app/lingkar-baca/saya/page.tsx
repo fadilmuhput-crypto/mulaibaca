@@ -111,7 +111,7 @@ export default async function LingkarSayaPage() {
       .select("id, member_id, current_page, books(id, title, cover_url, total_pages)")
       .in("member_id", memberIds)
       .eq("status", "reading")
-      .order("updated_at", { ascending: false }),
+      .order("created_at", { ascending: false }),
     supabase
       .from("shelf_items")
       .select("id, member_id")
