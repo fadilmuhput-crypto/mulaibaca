@@ -1,6 +1,23 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 import { CATEGORY_TREE } from "@/lib/category-tree";
+
+export const metadata: Metadata = {
+  title: "Kategori Buku — Mulaibaca",
+  description: "Jelajahi ribuan buku Indonesia berdasarkan kategori. Temukan buku anak, fiksi, nonfiksi, agama, dan berbagai genre lainnya.",
+  alternates: { canonical: "https://mulaibaca.id/kategori" },
+  openGraph: {
+    title: "Kategori Buku — Mulaibaca",
+    description: "Jelajahi ribuan buku Indonesia berdasarkan kategori.",
+    url: "https://mulaibaca.id/kategori",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kategori Buku — Mulaibaca",
+    description: "Jelajahi ribuan buku Indonesia berdasarkan kategori.",
+  },
+};
 
 export default async function KategoriOverviewPage() {
   const admin = createAdminClient();

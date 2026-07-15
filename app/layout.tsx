@@ -10,6 +10,7 @@ import "./globals.css";
 const geist = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const fraunces = Fraunces({
@@ -53,9 +54,33 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const siteLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: "Mulaibaca",
+        url: ROOT,
+        description: "Bangun kebiasaan membaca dari satu halaman per hari.",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: { "@type": "EntryPoint", urlTemplate: `${ROOT}/cari?q={search_term_string}` },
+          "query-input": "required name=search_term_string",
+        },
+      },
+      {
+        "@type": "Organization",
+        name: "Mulaibaca",
+        url: ROOT,
+        logo: `${ROOT}/icon.png`,
+      },
+    ],
+  };
+
   return (
     <html lang="id" className={`${geist.variable} ${fraunces.variable}`}>
       <body className="min-h-screen antialiased">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteLd) }} />
         <ReadingModeProvider>
           {children}
           <ReadingModeToggle />

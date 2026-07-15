@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
+import { CATEGORY_TREE } from "@/lib/category-tree";
 import { BUKU_ANAK, BUKU_LOKAL } from "@/lib/curated-books";
 
 function toSlug(s: string) {
@@ -20,7 +21,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/bantuan`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
     { url: `${baseUrl}/coba`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
     { url: `${baseUrl}/brand`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
+    { url: `${baseUrl}/lingkar-baca`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/kategori`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
+
+  const kategoriUrls: MetadataRoute.Sitemap = CATEGORY_TREE.flatMap((cat) => [
+    { url: `${baseUrl}/kategori/${cat.key}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.6 },
+    ...cat.children.map((sub) => ({
+      url: `${baseUrl}/kategori/${sub.key}` as const,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
+  ]);
 
   const curatedBooks = [...BUKU_ANAK, ...BUKU_LOKAL];
   const bookUrls: MetadataRoute.Sitemap = curatedBooks.map((book) => ({
@@ -51,11 +64,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let reviewUrls: MetadataRoute.Sitemap = [];
   let dbBookUrls: MetadataRoute.Sitemap = [];
+  let profileUrls: MetadataRoute.Sitemap = [];
   try {
     const admin = createAdminClient();
-    const [{ data: reviews }, { data: dbBooks }] = await Promise.all([
+    const [{ data: reviews }, { data: dbBooks }, { data: profiles }] = await Promise.all([
       admin.from("reviews").select("slug, updated_at").eq("is_draft", false),
       admin.from("books").select("slug, updated_at").eq("is_active", true).not("slug", "is", null),
+      admin.from("members").select("username").not("username", "is", null).limit(200),
     ]);
     if (reviews) {
       reviewUrls = reviews.map((r) => ({
@@ -73,9 +88,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       }));
     }
+    if (profiles) {
+      profileUrls = profiles.map((p) => ({
+        url: `${baseUrl}/u/${p.username}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.4,
+      }));
+    }
   } catch {
     // tables may not exist yet
   }
 
-  return [...staticUrls, ...bookUrls, ...blogUrls, ...reviewUrls, ...dbBookUrls];
+  return [...staticUrls, ...kategoriUrls, ...bookUrls, ...blogUrls, ...reviewUrls, ...dbBookUrls, ...profileUrls];
 }

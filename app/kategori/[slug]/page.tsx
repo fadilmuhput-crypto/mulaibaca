@@ -1,19 +1,32 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 import { getSession } from "@/lib/session";
 import { CATEGORY_TREE, findSubCategory, findParentOfSub } from "@/lib/category-tree";
 import BookCover from "@/components/BookCover";
 import type { Book } from "@/lib/books";
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const parent = CATEGORY_TREE.find((c) => c.key === slug);
   const sub = findSubCategory(slug);
   const label = parent?.label ?? sub?.label ?? slug;
+  const url = `https://mulaibaca.id/kategori/${slug}`;
   return {
     title: `${label} — Mulaibaca`,
     description: `Temukan dan baca buku ${label.toLowerCase()} favoritmu di Mulaibaca.`,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${label} — Mulaibaca`,
+      description: `Temukan dan baca buku ${label.toLowerCase()} favoritmu di Mulaibaca.`,
+      url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${label} — Mulaibaca`,
+      description: `Temukan dan baca buku ${label.toLowerCase()} favoritmu di Mulaibaca.`,
+    },
   };
 }
 

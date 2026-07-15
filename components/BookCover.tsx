@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { BookText } from "lucide-react";
 
 type Props = {
@@ -21,13 +22,14 @@ export default function BookCover({ src, title, className = "w-12 h-16 rounded-l
   }
 
   return (
-    <div className={`${className} overflow-hidden bg-cream flex-shrink-0`}>
-      <img
+    <div className={`${className} relative overflow-hidden bg-cream flex-shrink-0`}>
+      <Image
         src={src}
         alt={title}
-        className="w-full h-full object-cover"
+        fill
+        sizes="96px"
+        className="object-cover"
         onError={() => setFailed(true)}
-        loading="lazy"
       />
     </div>
   );

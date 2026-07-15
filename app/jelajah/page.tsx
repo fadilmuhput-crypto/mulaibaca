@@ -17,6 +17,7 @@ export type FamilyBook = {
 export const metadata: Metadata = {
   title: "Jelajah Buku — Mulaibaca",
   description: "Temukan dan jelajahi ribuan buku untuk dibaca bersama keluarga. Rekomendasi buku anak, buku lokal Indonesia, dan berbagai kategori.",
+  alternates: { canonical: "https://mulaibaca.id/jelajah" },
   openGraph: {
     title: "Jelajah Buku — Mulaibaca",
     description: "Temukan buku baru untuk dibaca bersama keluarga.",

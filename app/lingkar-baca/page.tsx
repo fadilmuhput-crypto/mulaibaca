@@ -1,7 +1,24 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getSession } from "@/lib/session";
 import { Users, Heart, Share2, ArrowRight, BookOpen, Target, Baby, User } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Lingkar Baca — Mulaibaca",
+  description: "Baca bareng keluarga atau teman di Lingkar Baca. Pantau progres, jaga streak, dan rayakan pencapaian membaca bersama orang terdekat.",
+  alternates: { canonical: "https://mulaibaca.id/lingkar-baca" },
+  openGraph: {
+    title: "Lingkar Baca — Mulaibaca",
+    description: "Baca bareng keluarga atau teman. Pantau progres dan rayakan pencapaian bersama.",
+    url: "https://mulaibaca.id/lingkar-baca",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lingkar Baca — Mulaibaca",
+    description: "Baca bareng keluarga atau teman. Pantau progres dan rayakan pencapaian bersama.",
+  },
+};
 
 export default async function LingkarBacaLanding() {
   const session = await getSession();
