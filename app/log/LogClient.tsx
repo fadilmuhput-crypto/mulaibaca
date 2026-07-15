@@ -205,6 +205,7 @@ export default function LogClient({
           trackEvent("streak_milestone", { streak: data.streak.current_streak });
         }
       }
+      document.activeElement instanceof HTMLElement && document.activeElement.blur();
       setLastPages(pagesRead);
       setCelebrated(true);
       setFromPage(String(toNum));
