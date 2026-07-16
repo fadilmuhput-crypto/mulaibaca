@@ -6,9 +6,6 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import BookCover from "@/components/BookCover";
 import FeedClient from "@/app/feed/FeedClient";
-import RecommendedBooks from "./RecommendedBooks";
-import ChallengeWidget from "./ChallengeWidget";
-import { getChallengesData } from "@/lib/challenges";
 import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
 
@@ -82,15 +79,6 @@ export default async function DashboardPage() {
         .limit(20);
       feedItems = (rows ?? []).map((r: unknown) => rowToFeedItem(r as Parameters<typeof rowToFeedItem>[0]));
     }
-  } catch { /* graceful degradation */ }
-
-  // Challenge data
-  let challengeActive: Parameters<typeof ChallengeWidget>[0]["active"] = [];
-  let challengeAvailable: Parameters<typeof ChallengeWidget>[0]["available"] = [];
-  try {
-    const { active: ca, available: cv } = await getChallengesData(supabase, session.memberId);
-    challengeActive = ca;
-    challengeAvailable = cv;
   } catch { /* graceful degradation */ }
 
   return (
