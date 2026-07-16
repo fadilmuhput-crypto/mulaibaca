@@ -132,14 +132,14 @@ export default function ProgressClient({
       {tab === "tantangan" && (
         <div className="bg-surface rounded-xl border border-border p-5 space-y-3">
           <p className="text-sm text-ink-muted">
-            Ikuti tantangan membaca untuk menjaga konsistensi dan dapatkan lencana!
+            Ikuti tantangan membaca, buat klub, dan ikut acara untuk menjaga konsistensi!
           </p>
           <Link
-            href="/tantangan"
+            href="/komunitas"
             className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber text-white font-semibold rounded-xl hover:bg-amber-hover transition-colors"
           >
             <Trophy size={16} strokeWidth={2} />
-            Lihat Tantangan
+            Buka Komunitas
           </Link>
         </div>
       )}

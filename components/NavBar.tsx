@@ -245,6 +245,16 @@ export default function NavBar({ session, noStickyTop }: { session: Session; noS
                   Lingkar Baca
                 </Link>
                 <Link
+                  href="/komunitas"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-ink hover:bg-parchment transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 6.75v3a4.5 4.5 0 01-4.5 4.5h-.75m6-12H3m15 0v3a4.5 4.5 0 01-4.5 4.5h-.75m6-12h1.5a1.5 1.5 0 011.5 1.5v3a4.5 4.5 0 01-4.5 4.5H18M6 21h12a.75.75 0 00.75-.75V16.5a.75.75 0 00-.75-.75H6a.75.75 0 00-.75.75v3.75c0 .414.336.75.75.75zM12 12l-1.5-1.5L12 9l1.5 1.5L12 12z" />
+                  </svg>
+                  Komunitas
+                </Link>
+                <Link
                   href="/cari-teman"
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-ink hover:bg-parchment transition-colors"
