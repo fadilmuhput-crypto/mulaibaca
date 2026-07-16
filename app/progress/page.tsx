@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
+import { getChallengesData } from "@/lib/challenges";
 import ProgressClient from "./ProgressClient";
 
 type DailyReading = {
@@ -43,6 +44,8 @@ export default async function ProgressPage() {
   let feed: { id: string; activity_type: string; data: Record<string, unknown>; created_at: string }[] | null = null;
   let followerCount: number | null = null;
   let followingCount: number | null = null;
+  let completed: Awaited<ReturnType<typeof getChallengesData>>["completed"] = [];
+  let badges: Awaited<ReturnType<typeof getChallengesData>>["badges"] = [];
   try {
     const admin = createAdminClient();
     const results = await Promise.all([
@@ -60,6 +63,15 @@ export default async function ProgressPage() {
     followerCount = results[4].count;
     followingCount = results[5].count;
   } catch { /* graceful degradation */ }
+  
+  let challengesResult: Awaited<ReturnType<typeof getChallengesData>> | null = null;
+  try {
+    challengesResult = await getChallengesData(supabase, session.memberId);
+  } catch { /* graceful degradation */ }
+  if (challengesResult) {
+    completed = challengesResult.completed;
+    badges = challengesResult.badges;
+  }
 
   const dateMap = new Map<string, number>();
   for (const log of logs ?? []) {
@@ -100,6 +112,8 @@ export default async function ProgressPage() {
           activities={activities}
           followerCount={followerCount ?? 0}
           followingCount={followingCount ?? 0}
+          completed={completed}
+          badges={badges}
         />
       </main>
     </div>

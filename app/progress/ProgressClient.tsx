@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Session } from "@/lib/session";
+import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
 import AvatarIcon from "@/components/AvatarIcon";
-import { Settings, ChartNoAxesColumn, History, Trophy } from "lucide-react";
+import { Settings, ChartNoAxesColumn, History } from "lucide-react";
 import ProgresTab from "./ProgresTab";
 import AktivitasTab from "./AktivitasTab";
 
@@ -26,7 +27,6 @@ type Activity = {
 const TABS = [
   { key: "progres", label: "Progres", Icon: ChartNoAxesColumn },
   { key: "aktivitas", label: "Aktivitas", Icon: History },
-  { key: "tantangan", label: "Tantangan", Icon: Trophy },
 ] as const;
 
 export default function ProgressClient({
@@ -39,6 +39,8 @@ export default function ProgressClient({
   activities,
   followerCount,
   followingCount,
+  completed,
+  badges,
 }: {
   session: Session;
   dailyReadings: DailyReading[];
@@ -49,8 +51,10 @@ export default function ProgressClient({
   activities: Activity[];
   followerCount: number;
   followingCount: number;
+  completed: ChallengeWithStatus[];
+  badges: Badge[];
 }) {
-  const [tab, setTab] = useState<"progres" | "aktivitas" | "tantangan">("progres");
+  const [tab, setTab] = useState<"progres" | "aktivitas">("progres");
 
   return (
     <div className="space-y-4">
@@ -124,24 +128,12 @@ export default function ProgressClient({
           longestStreak={longestStreak}
           totalPagesRead={totalPagesRead}
           booksFinished={booksFinished}
+          completed={completed}
+          badges={badges}
         />
       )}
       {tab === "aktivitas" && (
         <AktivitasTab activities={activities} memberName={session.memberName} />
-      )}
-      {tab === "tantangan" && (
-        <div className="bg-surface rounded-xl border border-border p-5 space-y-3">
-          <p className="text-sm text-ink-muted">
-            Ikuti tantangan membaca, buat klub, dan ikut acara untuk menjaga konsistensi!
-          </p>
-          <Link
-            href="/komunitas"
-            className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber text-white font-semibold rounded-xl hover:bg-amber-hover transition-colors"
-          >
-            <Trophy size={16} strokeWidth={2} />
-            Buka Komunitas
-          </Link>
-        </div>
       )}
     </div>
   );

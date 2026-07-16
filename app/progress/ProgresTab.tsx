@@ -1,11 +1,18 @@
 "use client";
 
-import { useMemo, useState, useRef, useEffect } from "react";
-import { BookCheck, BookText, Flame, CalendarDays } from "lucide-react";
+import { useMemo, useState, useRef, useEffect, type ElementType } from "react";
+import { BookCheck, BookText, Flame, CalendarDays, Award, BookOpen, Library } from "lucide-react";
+import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
 
 type DailyReading = {
   date: string;
   pages: number;
+};
+
+const ACTIVITY_ICONS: Record<string, ElementType> = {
+  streak: Flame,
+  pages: BookOpen,
+  books: Library,
 };
 
 export default function ProgresTab({
@@ -14,12 +21,16 @@ export default function ProgresTab({
   longestStreak,
   totalPagesRead,
   booksFinished,
+  completed,
+  badges,
 }: {
   dailyReadings: DailyReading[];
   currentStreak: number;
   longestStreak: number;
   totalPagesRead: number;
   booksFinished: number;
+  completed: ChallengeWithStatus[];
+  badges: Badge[];
 }) {
   const { chartData, maxPages, pagesThisWeek, pagesThisMonth, daysReadThisMonth } = useMemo(() => {
     const now = new Date();
@@ -190,6 +201,52 @@ export default function ProgresTab({
           </p>
         </div>
       </div>
+
+      {/* Badge gallery */}
+      {badges.length > 0 && (
+        <div className="bg-surface rounded-xl border border-border p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Award size={14} strokeWidth={1.75} className="text-amber" />
+            <h3 className="text-xs font-black uppercase tracking-widest text-ink-muted">Lencana</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {badges.map((b) => (
+              <div
+                key={b.id}
+                className="flex items-center gap-2 bg-ink-card text-white text-xs font-semibold rounded-lg px-3 py-1.5"
+                title={b.badge_name}
+              >
+                <span>{b.badge_icon}</span>
+                <span>{b.badge_name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Completed challenges */}
+      {completed.length > 0 && (
+        <div className="bg-surface rounded-xl border border-border p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <BookCheck size={14} strokeWidth={1.75} className="text-forest" />
+            <h3 className="text-xs font-black uppercase tracking-widest text-ink-muted">Tantangan Terselesaikan</h3>
+          </div>
+          <div className="space-y-2">
+            {completed.map((c) => {
+              const Icon = ACTIVITY_ICONS[c.activity_type] ?? Flame;
+              return (
+                <div key={c.id} className="flex items-center gap-3 text-sm">
+                  <Icon size={16} strokeWidth={1.75} className="text-amber" />
+                  <span className="text-ink font-medium">{c.title}</span>
+                  {c.period_label && (
+                    <span className="text-xs text-ink-muted ml-auto">{c.period_label}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       </>)}
     </div>
   );

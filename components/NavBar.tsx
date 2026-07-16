@@ -99,7 +99,7 @@ const NAV = [
   { href: "/rak",       label: "Rak Buku",  Icon: IconBooks },
   { href: "/log",       label: "Catat",     Icon: IconPencil },
   { href: "/jelajah",   label: "Jelajah",   Icon: IconSearch },
-  { href: "/progress",  label: "Aktivitas", Icon: IconChart },
+  { href: "/progress",  label: "Progres", Icon: IconChart },
 ];
 
 export default function NavBar({ session, noStickyTop }: { session: Session; noStickyTop?: boolean }) {
