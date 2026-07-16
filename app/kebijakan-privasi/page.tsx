@@ -5,6 +5,16 @@ export const metadata: Metadata = {
   title: "Kebijakan Privasi — Mulaibaca",
   description: "Kebijakan privasi Mulaibaca — bagaimana kami mengumpulkan, menggunakan, dan melindungi data pengguna.",
   alternates: { canonical: "https://mulaibaca.id/kebijakan-privasi" },
+  openGraph: {
+    title: "Kebijakan Privasi — Mulaibaca",
+    description: "Kebijakan privasi Mulaibaca — bagaimana kami mengumpulkan, menggunakan, dan melindungi data pengguna.",
+    url: "https://mulaibaca.id/kebijakan-privasi",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kebijakan Privasi — Mulaibaca",
+    description: "Kebijakan privasi Mulaibaca — bagaimana kami mengumpulkan, menggunakan, dan melindungi data pengguna.",
+  },
 };
 
 export default function KebijakanPrivasiPage() {

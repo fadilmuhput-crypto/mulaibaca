@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 
@@ -121,12 +122,13 @@ export default async function BlogDetailPage({ params }: PageProps) {
 
         <article className="reading-content-area">
           {post.cover_image && (
-            <div className="rounded-2xl overflow-hidden mb-6 aspect-[2/1] bg-parchment">
-              <img
+            <div className="rounded-2xl overflow-hidden mb-6 aspect-[2/1] bg-parchment relative">
+              <Image
                 src={post.cover_image}
                 alt={post.title}
-                loading="lazy"
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 640px) 100vw, 800px"
+                className="object-cover"
               />
             </div>
           )}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 
@@ -12,25 +13,29 @@ const CATEGORIES: Record<string, string> = {
   "produktivitas": "Produktivitas",
 };
 
-export const metadata: Metadata = {
-  title: "Blog — Mulaibaca",
-  description: "Inspirasi dan tips membangun kebiasaan membaca, review buku, dan cerita dari para pembaca yang memulai dari satu halaman.",
-  alternates: {
-    canonical: "https://mulaibaca.id/blog",
-    types: { "application/rss+xml": "https://mulaibaca.id/feed.xml" },
-  },
-  openGraph: {
+export async function generateMetadata({ searchParams }: { searchParams?: Promise<{ category?: string }> }): Promise<Metadata> {
+  const params = await searchParams;
+  const canonical = params?.category ? "https://mulaibaca.id/blog" : "https://mulaibaca.id/blog";
+  return {
     title: "Blog — Mulaibaca",
-    description: "Inspirasi dan tips membangun kebiasaan membaca.",
-    url: "https://mulaibaca.id/blog",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Blog — Mulaibaca",
-    description: "Inspirasi dan tips membangun kebiasaan membaca.",
-  },
-};
+    description: "Inspirasi dan tips membangun kebiasaan membaca, review buku, dan cerita dari para pembaca yang memulai dari satu halaman.",
+    alternates: {
+      canonical,
+      types: { "application/rss+xml": "https://mulaibaca.id/feed.xml" },
+    },
+    openGraph: {
+      title: "Blog — Mulaibaca",
+      description: "Inspirasi dan tips membangun kebiasaan membaca.",
+      url: canonical,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Blog — Mulaibaca",
+      description: "Inspirasi dan tips membangun kebiasaan membaca.",
+    },
+  };
+}
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", {
@@ -135,12 +140,13 @@ export default async function BlogPage(props: { searchParams?: Promise<{ categor
                 aria-label={`Baca artikel: ${post.title}`}
                 >
                 {post.cover_image && (
-                  <div className="rounded-xl overflow-hidden mb-4 aspect-[2/1] bg-parchment">
-                    <img
+                  <div className="rounded-xl overflow-hidden mb-4 aspect-[2/1] bg-parchment relative">
+                    <Image
                       src={post.cover_image}
                       alt={post.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 640px) 100vw, 640px"
+                      className="object-cover"
                     />
                   </div>
                 )}

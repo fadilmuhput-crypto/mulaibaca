@@ -5,6 +5,16 @@ export const metadata: Metadata = {
   title: "Syarat & Ketentuan — Mulaibaca",
   description: "Syarat dan ketentuan penggunaan layanan Mulaibaca.",
   alternates: { canonical: "https://mulaibaca.id/syarat-ketentuan" },
+  openGraph: {
+    title: "Syarat & Ketentuan — Mulaibaca",
+    description: "Syarat dan ketentuan penggunaan layanan Mulaibaca.",
+    url: "https://mulaibaca.id/syarat-ketentuan",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Syarat & Ketentuan — Mulaibaca",
+    description: "Syarat dan ketentuan penggunaan layanan Mulaibaca.",
+  },
 };
 
 export default function SyaratKetentuanPage() {
