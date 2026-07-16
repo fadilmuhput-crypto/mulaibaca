@@ -38,9 +38,14 @@ export async function GET(
     : null;
   const quote = review.q_about ?? "";
 
-  const BG_COLOR = "#1a1a2e";
-  const CARD_COLOR = "#ffffff";
-  const ACCENT = "#f59e0b";
+  const BG_FROM = "#C26E2A";
+  const BG_TO = "#8B4513";
+  const BG_END = "#1E4530";
+  const CARD_COLOR = "#FAF7F2";
+  const ACCENT = "#C26E2A";
+  const TEXT_PRIMARY = "#0C0C0A";
+  const TEXT_SECONDARY = "#3D4E45";
+  const TEXT_MUTED = "#7A8E83";
 
   return new ImageResponse(
     (
@@ -50,19 +55,38 @@ export async function GET(
           width: "100%",
           display: "flex",
           flexDirection: "column",
-          background: `linear-gradient(135deg, ${BG_COLOR} 0%, #16213e 50%, #0f3460 100%)`,
-          padding: "48px",
+          background: `linear-gradient(160deg, ${BG_FROM} 0%, ${BG_TO} 40%, ${BG_END} 100%)`,
+          fontFamily: '"Geist", "Inter", sans-serif',
+          padding: "40px",
         }}
       >
+        {/* Header brand */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "24px",
+            padding: "0 4px",
+          }}
+        >
+          <span style={{ fontSize: "22px", fontWeight: 800, letterSpacing: "-0.5px", color: "#fff", opacity: 0.9 }}>
+            mulaibaca
+          </span>
+          <span style={{ fontSize: "14px", color: "#fff", opacity: 0.6 }}>
+            mulaibaca.id
+          </span>
+        </div>
+
         {/* Main card */}
         <div
           style={{
             display: "flex",
             flex: 1,
             background: CARD_COLOR,
-            borderRadius: "24px",
+            borderRadius: "20px",
             overflow: "hidden",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            boxShadow: "0 16px 48px rgba(0,0,0,0.25)",
           }}
         >
           {/* Left: Book Cover with rating */}
@@ -70,12 +94,11 @@ export async function GET(
             style={{
               display: "flex",
               width: "35%",
-              background: "#f3f4f6",
+              background: "#EDE0CB",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: "32px",
-              position: "relative",
+              padding: "28px",
             }}
           >
             {coverUrl ? (
@@ -87,8 +110,8 @@ export async function GET(
                   height: "auto",
                   maxHeight: "75%",
                   objectFit: "contain",
-                  borderRadius: "12px",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+                  borderRadius: "8px",
+                  boxShadow: "4px 4px 0 rgba(12,12,10,0.15)",
                 }}
               />
             ) : (
@@ -97,12 +120,12 @@ export async function GET(
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "80%",
-                  height: "80%",
-                  background: "#e5e7eb",
-                  borderRadius: "12px",
-                  fontSize: "64px",
-                  color: "#9ca3af",
+                  width: "70%",
+                  height: "70%",
+                  background: "#E0D8CE",
+                  borderRadius: "8px",
+                  fontSize: "56px",
+                  color: "#7A8E83",
                 }}
               >
                 📚
@@ -115,9 +138,9 @@ export async function GET(
                 alignItems: "center",
                 gap: "4px",
                 marginTop: "16px",
-                background: "#fef3c7",
-                borderRadius: "24px",
-                padding: "6px 16px",
+                background: "#FDF0E4",
+                borderRadius: "20px",
+                padding: "6px 14px",
                 fontSize: "20px",
               }}
             >
@@ -131,22 +154,22 @@ export async function GET(
               display: "flex",
               flexDirection: "column",
               flex: 1,
-              padding: "40px",
+              padding: "36px 40px",
               justifyContent: "center",
             }}
           >
             {/* Reviewer info */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
               <div
                 style={{
-                  width: "44px",
-                  height: "44px",
+                  width: "36px",
+                  height: "36px",
                   borderRadius: "50%",
                   background: ACCENT,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "20px",
+                  fontSize: "16px",
                   fontWeight: 700,
                   color: "#fff",
                   overflow: "hidden",
@@ -158,17 +181,22 @@ export async function GET(
                   reviewerName.charAt(0)
                 )}
               </div>
-              <span style={{ fontSize: "22px", fontWeight: 700, color: "#1a1a2e" }}>
-                {reviewerName}
-              </span>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: "18px", fontWeight: 600, color: TEXT_PRIMARY }}>
+                  {reviewerName}
+                </span>
+                <span style={{ fontSize: "13px", color: TEXT_MUTED }}>
+                  mereview buku
+                </span>
+              </div>
             </div>
 
             {/* Book title */}
             <h2
               style={{
-                fontSize: "28px",
+                fontSize: "26px",
                 fontWeight: 700,
-                color: "#1a1a2e",
+                color: TEXT_PRIMARY,
                 margin: "0 0 4px 0",
                 lineHeight: 1.2,
               }}
@@ -176,7 +204,7 @@ export async function GET(
               {book.title}
             </h2>
             {book.author && (
-              <p style={{ fontSize: "18px", color: "#6b7280", margin: "0 0 20px 0" }}>
+              <p style={{ fontSize: "16px", color: TEXT_SECONDARY, margin: "0 0 16px 0" }}>
                 {book.author}
               </p>
             )}
@@ -185,10 +213,10 @@ export async function GET(
             {quote && (
               <div
                 style={{
-                  background: "#f9fafb",
-                  borderRadius: "12px",
-                  padding: "16px 20px",
-                  borderLeft: `4px solid ${ACCENT}`,
+                  background: "#FAF7F2",
+                  borderRadius: "10px",
+                  padding: "14px 16px",
+                  borderLeft: `3px solid ${ACCENT}`,
                   display: "flex",
                   flex: 1,
                   alignItems: "center",
@@ -196,11 +224,11 @@ export async function GET(
               >
                 <p
                   style={{
-                    fontSize: "18px",
-                    color: "#4b5563",
+                    fontSize: "14px",
+                    color: TEXT_SECONDARY,
                     margin: 0,
                     fontStyle: "italic",
-                    lineHeight: 1.5,
+                    lineHeight: 1.4,
                   }}
                 >
                   &ldquo;{quote.slice(0, 280)}{quote.length > 280 ? "…" : ""}&rdquo;
@@ -210,21 +238,20 @@ export async function GET(
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Tagline */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "8px",
+            gap: "6px",
             padding: "16px 0 0 0",
-            color: "#9ca3af",
-            fontSize: "14px",
+            color: "#fff",
+            fontSize: "13px",
+            opacity: 0.7,
           }}
         >
-          <span style={{ fontWeight: 700, letterSpacing: "1px", color: "#fff" }}>mulaibaca</span>
-          <span style={{ opacity: 0.5 }}>·</span>
-          <span style={{ opacity: 0.7 }}>Baca bareng, tumbuh bareng</span>
+          <span>Baca bareng, tumbuh bareng</span>
         </div>
       </div>
     ),

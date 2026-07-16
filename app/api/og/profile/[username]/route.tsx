@@ -33,8 +33,13 @@ export async function GET(
   const displayName = member.name ?? `@${username}`;
   const firstLetter = displayName.charAt(0).toUpperCase();
 
-  const BG = "#1a1a2e";
-  const ACCENT = "#f59e0b";
+  const BG_FROM = "#C26E2A";
+  const BG_TO = "#8B4513";
+  const BG_END = "#1E4530";
+  const ACCENT = "#C26E2A";
+  const TEXT_PRIMARY = "#0C0C0A";
+  const TEXT_SECONDARY = "#3D4E45";
+  const TEXT_MUTED = "#7A8E83";
 
   return new ImageResponse(
     (
@@ -44,19 +49,38 @@ export async function GET(
           width: "100%",
           display: "flex",
           flexDirection: "column",
-          background: `linear-gradient(135deg, ${BG} 0%, #16213e 50%, #0f3460 100%)`,
-          padding: "48px",
+          background: `linear-gradient(160deg, ${BG_FROM} 0%, ${BG_TO} 40%, ${BG_END} 100%)`,
+          fontFamily: '"Geist", "Inter", sans-serif',
+          padding: "40px",
         }}
       >
+        {/* Header brand */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "24px",
+            padding: "0 4px",
+          }}
+        >
+          <span style={{ fontSize: "22px", fontWeight: 800, letterSpacing: "-0.5px", color: "#fff", opacity: 0.9 }}>
+            mulaibaca
+          </span>
+          <span style={{ fontSize: "14px", color: "#fff", opacity: 0.6 }}>
+            mulaibaca.id
+          </span>
+        </div>
+
         {/* Main card */}
         <div
           style={{
             display: "flex",
             flex: 1,
-            background: "#ffffff",
-            borderRadius: "24px",
+            background: "#FAF7F2",
+            borderRadius: "20px",
             overflow: "hidden",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            boxShadow: "0 16px 48px rgba(0,0,0,0.25)",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
@@ -78,6 +102,7 @@ export async function GET(
               color: "#fff",
               overflow: "hidden",
               marginBottom: "20px",
+              boxShadow: "0 4px 12px rgba(194,110,42,0.3)",
             }}
           >
             {member.avatar ? (
@@ -90,19 +115,19 @@ export async function GET(
           {/* Name */}
           <h1
             style={{
-              fontSize: "40px",
+              fontSize: "36px",
               fontWeight: 700,
-              color: "#1a1a2e",
-              margin: "0 0 4px 0",
+              color: TEXT_PRIMARY,
+              margin: "0 0 2px 0",
             }}
           >
             {displayName}
           </h1>
           <p
             style={{
-              fontSize: "18px",
-              color: "#6b7280",
-              margin: "0 0 32px 0",
+              fontSize: "16px",
+              color: TEXT_MUTED,
+              margin: "0 0 28px 0",
             }}
           >
             @{username}
@@ -112,7 +137,7 @@ export async function GET(
           <div
             style={{
               display: "flex",
-              gap: "24px",
+              gap: "16px",
             }}
           >
             <div
@@ -120,16 +145,16 @@ export async function GET(
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                background: "#fef3c7",
-                borderRadius: "16px",
+                background: "#FDF0E4",
+                borderRadius: "12px",
                 padding: "16px 28px",
                 minWidth: "100px",
               }}
             >
-              <span style={{ fontSize: "36px", fontWeight: 800, color: ACCENT }}>
+              <span style={{ fontSize: "32px", fontWeight: 800, color: ACCENT }}>
                 {totalPages}
               </span>
-              <span style={{ fontSize: "14px", color: "#92400e", fontWeight: 500 }}>
+              <span style={{ fontSize: "13px", color: "#A35920", fontWeight: 600 }}>
                 halaman
               </span>
             </div>
@@ -139,16 +164,16 @@ export async function GET(
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                background: "#fce7f3",
-                borderRadius: "16px",
+                background: "#FEF2F2",
+                borderRadius: "12px",
                 padding: "16px 28px",
                 minWidth: "100px",
               }}
             >
-              <span style={{ fontSize: "36px", fontWeight: 800, color: "#db2777" }}>
+              <span style={{ fontSize: "32px", fontWeight: 800, color: "#DC2626" }}>
                 {currentStreak}
               </span>
-              <span style={{ fontSize: "14px", color: "#9d174d", fontWeight: 500 }}>
+              <span style={{ fontSize: "13px", color: "#991B1B", fontWeight: 600 }}>
                 streak 🔥
               </span>
             </div>
@@ -158,37 +183,36 @@ export async function GET(
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                background: "#dbeafe",
-                borderRadius: "16px",
+                background: "#EAF4EE",
+                borderRadius: "12px",
                 padding: "16px 28px",
                 minWidth: "100px",
               }}
             >
-              <span style={{ fontSize: "36px", fontWeight: 800, color: "#2563eb" }}>
+              <span style={{ fontSize: "32px", fontWeight: 800, color: "#1E4530" }}>
                 {reviewCount}
               </span>
-              <span style={{ fontSize: "14px", color: "#1e40af", fontWeight: 500 }}>
+              <span style={{ fontSize: "13px", color: "#1E4530", fontWeight: 600 }}>
                 review
               </span>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Tagline */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "8px",
+            gap: "6px",
             padding: "16px 0 0 0",
-            color: "#9ca3af",
-            fontSize: "14px",
+            color: "#fff",
+            fontSize: "13px",
+            opacity: 0.7,
           }}
         >
-          <span style={{ fontWeight: 700, letterSpacing: "1px", color: "#fff" }}>mulaibaca</span>
-          <span style={{ opacity: 0.5 }}>·</span>
-          <span style={{ opacity: 0.7 }}>Baca bareng, tumbuh bareng</span>
+          <span>Baca bareng, tumbuh bareng</span>
         </div>
       </div>
     ),

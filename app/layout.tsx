@@ -5,6 +5,7 @@ import CookieConsentBanner from "@/components/CookieConsentBanner";
 import AnalyticsWithConsent from "@/components/AnalyticsWithConsent";
 import ReadingModeProvider from "@/components/ReadingModeProvider";
 import ReadingModeToggle from "@/components/ReadingModeToggle";
+import ThemeProvider from "@/components/ThemeProvider";
 import "./globals.css";
 
 const geist = Geist({
@@ -81,12 +82,14 @@ export default function RootLayout({
     <html lang="id" className={`${geist.variable} ${fraunces.variable}`}>
       <body className="min-h-screen antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteLd) }} />
-        <ReadingModeProvider>
-          {children}
-          <ReadingModeToggle />
-          <CookieConsentBanner />
-          <AnalyticsWithConsent />
-        </ReadingModeProvider>
+        <ThemeProvider>
+          <ReadingModeProvider>
+            {children}
+            <ReadingModeToggle />
+            <CookieConsentBanner />
+            <AnalyticsWithConsent />
+          </ReadingModeProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

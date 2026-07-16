@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@/lib/session";
 import type { ProfilStats, ActingAsInfo, FamilyMember } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
-import { Check, AtSign, Lock, ExternalLink, Users, Target, Trophy, Baby, Smile, Heart, User, LogIn } from "lucide-react";
+import { Check, AtSign, Lock, ExternalLink, Users, Target, Trophy, Baby, Smile, Heart, User, LogIn, Palette } from "lucide-react";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const MEMBER_TYPES = [
   { key: "ayah",   label: "Ayah",   icon: User,  desc: "Ayah dari keluarga" },
@@ -325,6 +326,13 @@ export default function ProfilClient({
           {joinSuccess && <p className="text-forest text-sm flex items-center gap-1.5"><Check size={14} strokeWidth={2.5} />{joinSuccess}</p>}
         </div>
       )}
+
+      {/* Tampilan */}
+      <div className="card-elevated p-6 space-y-4">
+        <h2 className="text-h3">Tampilan</h2>
+        <p className="text-xs text-ink-muted">Pilih tema tampilan.</p>
+        <ThemeToggle />
+      </div>
 
       {error && <p role="alert" className="text-error text-sm text-center bg-error-soft rounded-xl px-4 py-3">{error}</p>}
       {saved && (

@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import BookCover from "@/components/BookCover";
 import FeedClient from "@/app/feed/FeedClient";
+import RecommendedBooks from "./RecommendedBooks";
 import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
 
@@ -25,6 +26,7 @@ export default async function DashboardPage() {
   })();
 
   let shelf: { id: string; current_page: number; books: { id: string; title: string; author: string | null; cover_url: string | null; total_pages: number | null } | null }[] | null = null;
+  let allShelf: { books: { title: string }[] }[] | null = null;
   let streaks: { current_streak: number } | null = null;
   let weekLogs: { pages_read: number }[] | null = null;
   let logCount: number | null = null;
@@ -34,12 +36,16 @@ export default async function DashboardPage() {
       supabase.from("streaks").select("*").eq("member_id", session.memberId).maybeSingle(),
       supabase.from("reading_logs").select("pages_read").eq("member_id", session.memberId).gte("created_at", weekStart),
       supabase.from("reading_logs").select("id", { count: "exact", head: true }).eq("member_id", session.memberId),
+      supabase.from("shelf_items").select("books(title)").eq("member_id", session.memberId),
     ]);
     shelf = results[0].data;
     streaks = results[1].data;
     weekLogs = results[2].data;
     logCount = results[3].count;
+    allShelf = results[4].data;
   } catch { /* graceful degradation */ }
+
+  const bookTitles = (allShelf ?? []).flatMap((s) => s.books?.map((b) => b.title) ?? []);
 
   const weeklyPagesRead = ((weekLogs ?? []) as { pages_read: number }[]).reduce((sum: number, l: { pages_read: number }) => sum + (l.pages_read ?? 0), 0);
   const currentStreak = (streaks as { current_streak?: number } | null)?.current_streak ?? 0;
@@ -217,6 +223,11 @@ export default async function DashboardPage() {
               })}
             </div>
           </section>
+        )}
+
+        {/* ── REKOMENDASI ── */}
+        {readingNow.length > 0 && (
+          <RecommendedBooks existingTitles={bookTitles} />
         )}
 
         {/* ── TIMELINE ── (main content) */}

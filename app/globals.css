@@ -451,3 +451,32 @@
 .animate-shimmer {
   animation: shimmer 1.2s ease-in-out infinite;
 }
+
+/* ━━━ DARK MODE ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.dark {
+  --color-amber:         #D48A4A;
+  --color-amber-hover:   #B8733A;
+  --color-amber-soft:    #2D1F14;
+  --color-forest:        #6BA87E;
+  --color-forest-dark:   #4D8A62;
+  --color-lime:          #8FB830;
+  --color-parchment:     #1A1612;
+  --color-cream:         #2A2420;
+  --color-ink:           #EDE0CB;
+  --color-ink-secondary: #B8A99A;
+  --color-ink-muted:     #7A6D5F;
+  --color-surface:       #221E1A;
+  --color-border:        #35302A;
+  --color-success:       #5B9B6F;
+  --color-success-soft:  #1A2E20;
+  --color-error:         #D45A5A;
+  --color-error-soft:    #2D1414;
+  --color-info:          #5A7DA8;
+  --color-info-soft:     #141E2D;
+  --shadow-brutal-xs:  1px 1px 0 var(--color-ink);
+  --shadow-brutal-sm:  2px 2px 0 var(--color-ink);
+  --shadow-brutal:     4px 4px 0 var(--color-ink);
+  --shadow-brutal-lg:  6px 6px 0 var(--color-ink);
+  --shadow-card:     0 2px 8px 0 rgb(0 0 0 / 0.3);
+  --shadow-elevated: 0 4px 16px 0 rgb(0 0 0 / 0.4);
+}
