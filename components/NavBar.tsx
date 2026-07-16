@@ -67,6 +67,14 @@ function IconChart({ active }: { active: boolean }) {
   );
 }
 
+function IconTrophy({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.75} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 6.75v3a4.5 4.5 0 01-4.5 4.5h-.75m6-12H3m15 0v3a4.5 4.5 0 01-4.5 4.5h-.75m6-12h1.5a1.5 1.5 0 011.5 1.5v3a4.5 4.5 0 01-4.5 4.5H18M6 21h12a.75.75 0 00.75-.75V16.5a.75.75 0 00-.75-.75H6a.75.75 0 00-.75.75v3.75c0 .414.336.75.75.75zM12 12l-1.5-1.5L12 9l1.5 1.5L12 12z" />
+    </svg>
+  );
+}
+
 function IconBlog({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.75} strokeLinecap="round" strokeLinejoin="round">
@@ -87,11 +95,12 @@ function IconChevronDown({ className }: { className?: string }) {
 }
 
 const NAV = [
-  { href: "/dashboard", label: "Beranda",  Icon: IconHome },
-  { href: "/rak",       label: "Rak Buku", Icon: IconBooks },
-  { href: "/log",       label: "Catat",    Icon: IconPencil },
-  { href: "/jelajah",   label: "Jelajah",  Icon: IconSearch },
-  { href: "/progress",  label: "Progress", Icon: IconChart },
+  { href: "/dashboard", label: "Beranda",   Icon: IconHome },
+  { href: "/rak",       label: "Rak Buku",  Icon: IconBooks },
+  { href: "/log",       label: "Catat",     Icon: IconPencil },
+  { href: "/jelajah",   label: "Jelajah",   Icon: IconSearch },
+  { href: "/tantangan", label: "Tantangan", Icon: IconTrophy },
+  { href: "/progress",  label: "Aktivitas", Icon: IconChart },
 ];
 
 export default function NavBar({ session, noStickyTop }: { session: Session; noStickyTop?: boolean }) {
