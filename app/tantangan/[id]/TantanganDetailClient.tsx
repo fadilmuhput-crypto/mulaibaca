@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Challenge, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
-import { Check, ArrowLeft } from "lucide-react";
+import { Check } from "lucide-react";
 
 type Props = {
   challenge: Challenge;
@@ -48,14 +48,6 @@ export default function TantanganDetailClient({
 
   return (
     <div className="space-y-6">
-      {/* Back */}
-      <Link
-        href="/tantangan"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-ink transition-colors min-h-[44px]"
-      >
-        <ArrowLeft size={16} /> Kembali
-      </Link>
-
       {/* Hero badge */}
       <div className="flex flex-col items-center text-center py-4">
         <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4 ${
@@ -139,7 +131,7 @@ export default function TantanganDetailClient({
       {isCompleted && (
         <div className="text-center">
           <Link
-            href="/tantangan"
+            href="/komunitas"
             className="btn-secondary"
           >
             Lihat Tantangan Lain
