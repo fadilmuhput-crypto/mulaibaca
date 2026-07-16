@@ -443,3 +443,11 @@
   border: 2px solid #D4B896;
   border-radius: 0.75rem;
 }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shimmer {
+  animation: shimmer 1.2s ease-in-out infinite;
+}

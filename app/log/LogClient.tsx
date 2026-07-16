@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Check, Flame, Target, AlertTriangle, X, ImagePlus, Share2 } from "lucide-react";
+import { BookOpen, Check, Flame, Target, AlertTriangle, X, ImagePlus, Share2, Loader2 } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import BookTimer from "@/components/BookTimer";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -102,6 +102,7 @@ export default function LogClient({
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+  const [uploadQueue, setUploadQueue] = useState<{ id: string; status: "uploading" | "done" | "error" }[]>([]);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [doneShelfId, setDoneShelfId] = useState<string | null>(null);
 
@@ -142,11 +143,17 @@ export default function LogClient({
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     if (!files?.length || !selected) return;
+    const queueItems = Array.from(files).map((f) => ({
+      id: crypto.randomUUID(),
+      status: "uploading" as const,
+    }));
+    setUploadQueue((prev) => [...prev, ...queueItems]);
     setUploading(true);
-    setUploadProgress({ current: 0, total: files.length });
+    setUploadProgress({ current: 0, total: queueItems.length });
     const supabase = createClient();
     const newUrls: string[] = [];
     let completed = 0;
+    let idx = 0;
     for (const file of Array.from(files)) {
       const ext = file.name.split(".").pop() ?? "jpg";
       const filePath = `notes/${selected.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -155,14 +162,26 @@ export default function LogClient({
         .upload(filePath, file, { cacheControl: "3600", upsert: false });
       completed++;
       setUploadProgress({ current: completed, total: files.length });
-      if (error) { console.error("Upload error:", error); continue; }
+      if (error) {
+        console.error("Upload error:", error);
+        setUploadQueue((prev) => prev.map((q, i) => (i === idx ? { ...q, status: "error" } : q)));
+        idx++;
+        continue;
+      }
       const { data: { publicUrl } } = supabase.storage
         .from("note-images")
         .getPublicUrl(data.path);
       newUrls.push(publicUrl);
+      setUploadQueue((prev) => prev.map((q, i) => (i === idx ? { ...q, status: "done" } : q)));
+      idx++;
     }
-    setImages((prev) => [...prev, ...newUrls]);
-    setUploading(false);
+    if (newUrls.length > 0) {
+      setTimeout(() => setImages((prev) => [...prev, ...newUrls]), 200);
+    }
+    setTimeout(() => {
+      setUploadQueue([]);
+      setUploading(false);
+    }, 600);
     e.target.value = "";
   }
 
@@ -590,26 +609,51 @@ export default function LogClient({
                 <label className="input-label mb-1 block">
                   Gambar <span className="text-ink-muted font-normal">(opsional)</span>
                 </label>
-                {images.length > 0 && (
-                  <div className="flex gap-2 flex-wrap mb-2">
-                    {images.map((url) => (
-                      <div key={url} className="relative group">
-                        <button type="button" onClick={() => setLightboxImage(url)} className="block">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeImage(url)}
-                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          aria-label="Hapus gambar"
-                        >
-                          <X size={10} strokeWidth={3} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="flex gap-2 flex-wrap mb-2">
+                  {images.map((url) => (
+                    <div key={url} className="relative group animate-in fade-in duration-300">
+                      <button type="button" onClick={() => setLightboxImage(url)} className="block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(url)}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Hapus gambar"
+                      >
+                        <X size={10} strokeWidth={3} />
+                      </button>
+                    </div>
+                  ))}
+                  {uploadQueue.map((item, i) => (
+                    <div key={item.id} className="w-16 h-16 rounded-lg border border-border overflow-hidden relative">
+                      {item.status === "uploading" && (
+                        <div className="w-full h-full bg-parchment overflow-hidden">
+                          <div className="w-full h-full bg-gradient-to-r from-transparent via-amber-soft to-transparent animate-shimmer" style={{ animationDuration: "1.2s" }} />
+                        </div>
+                      )}
+                      {item.status === "uploading" && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-border">
+                          <div
+                            className="h-full bg-amber transition-all duration-300"
+                            style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                          />
+                        </div>
+                      )}
+                      {item.status === "error" && (
+                        <div className="w-full h-full bg-error-soft flex items-center justify-center">
+                          <X size={16} strokeWidth={2} className="text-error" />
+                        </div>
+                      )}
+                      {item.status === "done" && (
+                        <div className="w-full h-full bg-forest/10 flex items-center justify-center animate-in fade-in duration-200">
+                          <Check size={16} strokeWidth={2.5} className="text-forest" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
                 <label className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed border-border text-sm cursor-pointer transition-colors ${uploading ? "opacity-50 pointer-events-none" : "hover:border-amber/40 hover:text-amber"}`}>
                   <input
                     type="file"

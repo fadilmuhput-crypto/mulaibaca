@@ -122,15 +122,18 @@ function ManualForm() {
                 className="w-20 h-[108px] rounded-xl"
               />
               {uploading && (
-                <div className="absolute inset-0 bg-ink/40 rounded-xl flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="absolute inset-0 bg-ink/40 rounded-xl flex items-center justify-center backdrop-blur-[1px] transition-all">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="text-[10px] text-white/80 font-medium">Upload…</span>
+                  </div>
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
               {uploading && <p className="text-sm text-ink-secondary">Mengupload foto…</p>}
               {!uploading && coverUrl && (
-                <p className="text-sm text-forest font-medium">Foto berhasil diupload</p>
+                <p className="text-sm text-forest font-medium animate-in fade-in duration-300">Foto berhasil diupload</p>
               )}
               {uploadError && <p className="text-sm text-error">{uploadError}</p>}
               <button
