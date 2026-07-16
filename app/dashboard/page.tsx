@@ -106,8 +106,8 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {/* ── CHALLENGE ENTRY ── */}
-        <ChallengeEntryCard />
+        {/* ── CHALLENGE ENTRY (after onboarding) ── */}
+        {allOnboardingDone && <ChallengeEntryCard />}
 
         {/* ── ONBOARDING: banner tipis (jika belum selesai) ── */}
         {!allOnboardingDone && (

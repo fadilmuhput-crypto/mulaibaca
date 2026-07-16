@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ElementType } from "react";
+import { useState, useMemo, type ElementType } from "react";
 import Link from "next/link";
 import type { Challenge, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
@@ -11,6 +11,56 @@ const ACTIVITY_ICONS: Record<string, ElementType> = {
   pages: BookOpen,
   books: Library,
 };
+
+const CONFETTI_COLORS = ["#F59E0B", "#10B981", "#3B82F6", "#EF4444", "#8B5CF6", "#EC4899"];
+
+function Confetti() {
+  const particles = useMemo(() =>
+    Array.from({ length: 24 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 0.5}s`,
+      duration: `${0.8 + Math.random() * 0.6}s`,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      size: 4 + Math.random() * 6,
+      rotation: Math.random() * 360,
+    })),
+  []);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <style>{`
+        @keyframes confetti-fall {
+          0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(200px) rotate(720deg); opacity: 0; }
+        }
+        @keyframes badge-pop {
+          0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+          60% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+      `}</style>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ animation: "badge-pop 0.6s ease-out forwards" }}>
+        {particles.map((p) => (
+          <div
+            key={p.id}
+            className="absolute rounded-full"
+            style={{
+              left: p.left,
+              top: 0,
+              width: p.size,
+              height: p.size,
+              background: p.color,
+              animation: `confetti-fall ${p.duration} ease-out ${p.delay} forwards`,
+              transform: `rotate(${p.rotation}deg)`,
+              borderRadius: Math.random() > 0.5 ? "50%" : "2px",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 type Props = {
   challenge: Challenge;
@@ -74,7 +124,8 @@ export default function TantanganDetailClient({
       {/* Status card */}
       <div className="bg-surface rounded-2xl border-2 border-border p-5 space-y-4">
         {isCompleted ? (
-          <div className="text-center py-4 space-y-3">
+          <div className="text-center py-4 space-y-3 relative">
+            <Confetti />
             <Award size={48} strokeWidth={1.25} className="text-amber mx-auto" />
             <h2 className="font-display font-bold text-ink text-xl">{badge?.badge_name ?? challenge.badge_name}</h2>
             <p className="text-sm text-ink-muted">Tantangan selesai!</p>

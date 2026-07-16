@@ -19,6 +19,9 @@ export default function ChallengeEntryCard() {
       .catch(() => setLoaded(true));
   }, []);
 
+  if (!loaded) return null;
+  if (active === 0) return null;
+
   return (
     <Link
       href="/komunitas"
@@ -29,13 +32,7 @@ export default function ChallengeEntryCard() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-ink">Tantangan Membaca</p>
-        {loaded && active > 0 ? (
-          <p className="text-xs text-ink-muted">{active} aktif · {completed} selesai</p>
-        ) : loaded && completed > 0 ? (
-          <p className="text-xs text-ink-muted">{completed} tantangan selesai</p>
-        ) : (
-          <p className="text-xs text-ink-muted">Ikuti tantangan dan dapatkan lencana</p>
-        )}
+        <p className="text-xs text-ink-muted">{active} aktif · {completed} selesai</p>
       </div>
       <ChevronRight size={16} className="text-ink-muted flex-shrink-0" />
     </Link>

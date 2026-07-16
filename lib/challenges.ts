@@ -226,6 +226,31 @@ export async function checkAndCompleteChallenges(
     const bounds = getPeriodBounds(challenge.duration_type);
     const progress = await calculateProgress(supabase, memberId, challenge, bounds);
 
+    // Almost-done nudge (80%+)
+    const pct = progress / challenge.goal_value;
+    if (pct >= 0.8 && pct < 1 && challenge.duration_type !== "unlimited") {
+      try {
+        const { data: existingNudge } = await adminClient
+          .from("notifications")
+          .select("id")
+          .eq("member_id", memberId)
+          .eq("title", `📣 ${challenge.title}`)
+          .maybeSingle();
+        if (!existingNudge) {
+          const { createNotification } = await import("@/lib/notifications");
+          await createNotification({
+            memberId,
+            title: `📣 ${challenge.title}`,
+            body: `Tinggal ${challenge.goal_value - progress} ${challenge.activity_type === "pages" ? "halaman" : challenge.activity_type === "streak" ? "hari" : "buku"} lagi! Semangat!`,
+            type: "achievement",
+            link: `/komunitas/tantangan/${challenge.id}`,
+          }, adminClient);
+        }
+      } catch (e) {
+        console.error("[challenges] failed to send nudge", e);
+      }
+    }
+
     if (progress >= challenge.goal_value) {
       const periodLabel = getPeriodLabel(challenge.duration_type);
 
