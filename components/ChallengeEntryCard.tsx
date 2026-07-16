@@ -6,14 +6,14 @@ import { Award, ChevronRight } from "lucide-react";
 
 export default function ChallengeEntryCard() {
   const [active, setActive] = useState(0);
-  const [badges, setBadges] = useState(0);
+  const [completed, setCompleted] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     fetch("/api/challenges/summary")
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
-        if (d) { setActive(d.active); setBadges(d.badges); }
+        if (d) { setActive(d.active); setCompleted(d.completed); }
         setLoaded(true);
       })
       .catch(() => setLoaded(true));
@@ -30,7 +30,9 @@ export default function ChallengeEntryCard() {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-ink">Tantangan Membaca</p>
         {loaded && active > 0 ? (
-          <p className="text-xs text-ink-muted">{active} tantangan aktif · {badges} lencana</p>
+          <p className="text-xs text-ink-muted">{active} aktif · {completed} selesai</p>
+        ) : loaded && completed > 0 ? (
+          <p className="text-xs text-ink-muted">{completed} tantangan selesai</p>
         ) : (
           <p className="text-xs text-ink-muted">Ikuti tantangan dan dapatkan lencana</p>
         )}

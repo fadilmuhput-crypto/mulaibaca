@@ -16,18 +16,24 @@ export async function GET(req: NextRequest) {
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const admin = createAdminClient();
-  const [activeRes, badgesRes] = await Promise.all([
+  const [activeRes, completedRes, badgesRes] = await Promise.all([
     admin.from("challenge_participants")
       .select("id", { count: "exact", head: true })
       .eq("member_id", auth.memberId)
       .is("completed_at", null),
+    admin.from("challenge_participants")
+      .select("id", { count: "exact", head: true })
+      .eq("member_id", auth.memberId)
+      .not("completed_at", "is", null),
     admin.from("challenge_badges")
       .select("id", { count: "exact", head: true })
       .eq("member_id", auth.memberId),
   ]);
 
+  const completed = Math.max(completedRes.count ?? 0, badgesRes.count ?? 0);
+
   return NextResponse.json({
     active: activeRes.count ?? 0,
-    badges: badgesRes.count ?? 0,
+    completed,
   });
 }
