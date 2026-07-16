@@ -2,24 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Flame, Award, ChevronRight } from "lucide-react";
+import { Award, ChevronRight } from "lucide-react";
 
 export default function ChallengeEntryCard() {
   const [active, setActive] = useState(0);
   const [badges, setBadges] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     fetch("/api/challenges/summary")
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
         if (d) { setActive(d.active); setBadges(d.badges); }
+        setLoaded(true);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => setLoaded(true));
   }, []);
-
-  if (loading) return null;
 
   return (
     <Link
@@ -31,7 +29,7 @@ export default function ChallengeEntryCard() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-ink">Tantangan Membaca</p>
-        {active > 0 ? (
+        {loaded && active > 0 ? (
           <p className="text-xs text-ink-muted">{active} tantangan aktif · {badges} lencana</p>
         ) : (
           <p className="text-xs text-ink-muted">Ikuti tantangan dan dapatkan lencana</p>

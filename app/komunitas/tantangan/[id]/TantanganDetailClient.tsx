@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ElementType } from "react";
 import Link from "next/link";
 import type { Challenge, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
-import { Check, Award } from "lucide-react";
+import { Check, Award, Flame, BookOpen, Library } from "lucide-react";
+
+const ACTIVITY_ICONS: Record<string, ElementType> = {
+  streak: Flame,
+  pages: BookOpen,
+  books: Library,
+};
 
 type Props = {
   challenge: Challenge;
@@ -32,6 +38,7 @@ export default function TantanganDetailClient({
 
   const goalLabel = challenge.activity_type === "pages" ? "halaman" : challenge.activity_type === "streak" ? "hari" : "buku";
   const pct = Math.min(Math.round((progress / challenge.goal_value) * 100), 100);
+  const BadgeIcon = ACTIVITY_ICONS[challenge.activity_type] ?? Award;
 
   async function handleJoin() {
     setJoining(true);
@@ -53,7 +60,7 @@ export default function TantanganDetailClient({
         <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4 ${
           isCompleted ? "bg-success-soft" : isActive ? "bg-amber-soft" : "bg-cream"
         }`}>
-          {isCompleted ? <Award size={36} strokeWidth={1.25} className="text-amber" /> : challenge.badge_icon}
+          {isCompleted ? <Award size={36} strokeWidth={1.25} className="text-amber" /> : <BadgeIcon size={36} strokeWidth={1.25} className="text-ink" />}
         </div>
         <h1 className="text-h1">{challenge.title}</h1>
         {challenge.description && (
