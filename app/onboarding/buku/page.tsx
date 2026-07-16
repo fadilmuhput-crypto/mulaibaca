@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Loader2, BookOpen, ChevronRight } from "lucide-react";
+import { Search, Loader2, BookOpen, ChevronRight, ChevronLeft } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import { BUKU_LOKAL, BUKU_ANAK } from "@/lib/curated-books";
 import { trackOnboarding } from "@/lib/analytics";
@@ -137,7 +137,10 @@ export default function OnboardingBukuPage() {
     <div className="min-h-dvh flex flex-col">
       {/* Header */}
       <header className="flex-shrink-0 px-4 pt-8 pb-4">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg mx-auto flex items-center gap-3">
+          <Link href="/" className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-secondary hover:text-ink rounded-xl" aria-label="Kembali">
+            <ChevronLeft size={20} strokeWidth={2} />
+          </Link>
           <Link href="/" className="text-xl font-display font-bold text-forest">
             mulaibaca
           </Link>
@@ -264,7 +267,7 @@ export default function OnboardingBukuPage() {
         <div className="max-w-lg mx-auto text-center">
           <button
             onClick={() => { trackOnboarding(1, "skip"); router.push("/dashboard"); }}
-            className="text-sm text-ink-muted hover:text-ink transition-colors"
+            className="min-h-[44px] px-4 text-sm text-ink-muted hover:text-ink transition-colors"
           >
             Lewati untuk sekarang →
           </button>

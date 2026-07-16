@@ -31,18 +31,16 @@ export default async function ReviewPage() {
   if (session) {
     // Authenticated: show personal reviews + unreviewed books
     const supabase = await createClient();
-    const [{ data: reviews }, { data: doneShelf }] = await Promise.all([
-      supabase
-        .from("reviews")
-        .select("*, shelf_items(books(id, title, author, cover_url))")
-        .eq("member_id", session.memberId)
-        .order("published_at", { ascending: false }),
-      supabase
-        .from("shelf_items")
-        .select("id, book_id, books(id, title, author, cover_url)")
-        .eq("member_id", session.memberId)
-        .eq("status", "done"),
-    ]);
+    let reviews: { shelf_item_id: string; id: string; slug: string | null; rating: number; q_about: string | null; shelf_items: { books: { id: string; title: string; author: string | null; cover_url: string | null } | null } | null }[] | null = null;
+    let doneShelf: { id: string; book_id: string | null; books: { id: string; title: string; author: string | null; cover_url: string | null }[] | null }[] | null = null;
+    try {
+      const [r, d] = await Promise.all([
+        supabase.from("reviews").select("*, shelf_items(books(id, title, author, cover_url))").eq("member_id", session.memberId).order("published_at", { ascending: false }),
+        supabase.from("shelf_items").select("id, book_id, books(id, title, author, cover_url)").eq("member_id", session.memberId).eq("status", "done"),
+      ]);
+      reviews = r.data;
+      doneShelf = d.data;
+    } catch { /* graceful degradation */ }
 
     const reviewedIds = new Set((reviews ?? []).map((r: { shelf_item_id: string }) => r.shelf_item_id));
     const unreviewed = (doneShelf ?? []).filter((s: { id: string }) => !reviewedIds.has(s.id));
@@ -79,7 +77,7 @@ export default async function ReviewPage() {
                         </Link>
                         {book?.author && <p className="text-xs text-ink-muted">{book.author}</p>}
                       </div>
-                      <Link href={`/review/tulis?shelf=${item.id}`} className="btn-primary-sm flex-shrink-0">Tulis →</Link>
+                      <Link href={`/review/tulis?shelf=${item.id}`} className="btn-primary-sm min-h-[44px] flex items-center">Tulis →</Link>
                     </div>
                   );
                 })}
@@ -125,7 +123,7 @@ export default async function ReviewPage() {
                       {review.slug && (
                         <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
                           <span className="text-xs text-ink-muted">Halaman publik</span>
-                          <Link href={`/review/${review.slug}`} className="text-xs text-amber font-medium hover:text-amber-hover">
+                          <Link href={`/review/${review.slug}`} className="min-h-[44px] flex items-center text-xs text-amber font-medium hover:text-amber-hover">
                             Lihat & Share →
                           </Link>
                         </div>
@@ -148,24 +146,27 @@ export default async function ReviewPage() {
     );
   }
 
-  // Public: show all public reviews (no auth required, crawlable by Google)
-  const supabase = createAnonClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  const { data: publicReviews } = await supabase
-    .from("reviews")
-    .select("slug, rating, q_about, published_at, members(name, avatar), shelf_items(books(id, title, author, cover_url))")
-    .eq("is_public", true)
-    .order("published_at", { ascending: false })
-    .limit(50);
+  let publicReviews: unknown[] | null = null;
+  try {
+    const supabase = createAnonClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data } = await supabase
+      .from("reviews")
+      .select("slug, rating, q_about, published_at, members(name, avatar), shelf_items(books(id, title, author, cover_url))")
+      .eq("is_public", true)
+      .order("published_at", { ascending: false })
+      .limit(50);
+    publicReviews = data;
+  } catch { /* graceful degradation */ }
 
   return (
     <div className="min-h-screen bg-parchment">
       {/* Public header */}
       <header className="bg-surface/80 backdrop-blur-md border-b border-border/60 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <Link href="/" className="text-lg font-display font-bold text-forest tracking-tight">mulaibaca</Link>
-        <Link href="/masuk" className="btn-primary-sm">Masuk</Link>
+        <Link href="/masuk" className="btn-primary-sm min-h-[44px] flex items-center">Masuk</Link>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8">

@@ -78,6 +78,15 @@ export default function ProgresTab({
 
   return (
     <div className="space-y-5">
+      {totalPagesRead === 0 ? (
+        <div className="text-center py-8">
+          <div className="flex justify-center text-ink-muted mb-3">
+            <BookCheck size={40} strokeWidth={1.25} />
+          </div>
+          <p className="text-sm font-semibold text-ink">Belum ada progres bacaan</p>
+          <p className="text-xs text-ink-muted mt-1">Mulai catat sesi bacamu dari halaman Log</p>
+        </div>
+      ) : (<>
       <div className="flex gap-3">
         <div className="flex-1 bg-surface rounded-xl border border-border p-4 text-center">
           <Flame size={18} strokeWidth={1.75} className="text-amber mx-auto mb-1" />
@@ -181,6 +190,7 @@ export default function ProgresTab({
           </p>
         </div>
       </div>
+      </>)}
     </div>
   );
 }

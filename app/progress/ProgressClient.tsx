@@ -85,10 +85,10 @@ export default function ProgressClient({
           </div>
           <Link
             href="/edit-profil"
-            className="w-9 h-9 rounded-xl bg-parchment border border-border flex items-center justify-center text-ink-muted hover:text-ink hover:border-amber/40 transition-all"
+            className="min-h-[44px] min-w-[44px] rounded-xl bg-parchment border border-border flex items-center justify-center text-ink-muted hover:text-ink hover:border-amber/40 transition-all"
             aria-label="Pengaturan"
           >
-            <Settings size={16} strokeWidth={1.75} />
+            <Settings size={18} strokeWidth={1.75} />
           </Link>
         </div>
       </div>

@@ -24,33 +24,26 @@ export default async function DashboardPage() {
     return monday.toISOString();
   })();
 
-  const [{ data: shelf }, { data: streaks }, { data: weekLogs }, { count: logCount }] = await Promise.all([
-    supabase
-      .from("shelf_items")
-      .select("*, books(*)")
-      .eq("member_id", session.memberId)
-      .eq("status", "reading")
-      .order("created_at", { ascending: false })
-      .limit(3),
-    supabase
-      .from("streaks")
-      .select("*")
-      .eq("member_id", session.memberId)
-      .maybeSingle(),
-    supabase
-      .from("reading_logs")
-      .select("pages_read")
-      .eq("member_id", session.memberId)
-      .gte("created_at", weekStart),
-    supabase
-      .from("reading_logs")
-      .select("id", { count: "exact", head: true })
-      .eq("member_id", session.memberId),
-  ]);
+  let shelf: { id: string; current_page: number; books: { id: string; title: string; author: string | null; cover_url: string | null; total_pages: number | null } | null }[] | null = null;
+  let streaks: { current_streak: number } | null = null;
+  let weekLogs: { pages_read: number }[] | null = null;
+  let logCount: number | null = null;
+  try {
+    const results = await Promise.all([
+      supabase.from("shelf_items").select("*, books(*)").eq("member_id", session.memberId).eq("status", "reading").order("created_at", { ascending: false }).limit(3),
+      supabase.from("streaks").select("*").eq("member_id", session.memberId).maybeSingle(),
+      supabase.from("reading_logs").select("pages_read").eq("member_id", session.memberId).gte("created_at", weekStart),
+      supabase.from("reading_logs").select("id", { count: "exact", head: true }).eq("member_id", session.memberId),
+    ]);
+    shelf = results[0].data;
+    streaks = results[1].data;
+    weekLogs = results[2].data;
+    logCount = results[3].count;
+  } catch { /* graceful degradation */ }
 
-  const weeklyPagesRead = (weekLogs ?? []).reduce((sum: number, l: { pages_read: number }) => sum + (l.pages_read ?? 0), 0);
-  const currentStreak = streaks?.current_streak ?? 0;
-  const readingNow = shelf ?? [];
+  const weeklyPagesRead = ((weekLogs ?? []) as { pages_read: number }[]).reduce((sum: number, l: { pages_read: number }) => sum + (l.pages_read ?? 0), 0);
+  const currentStreak = (streaks as { current_streak?: number } | null)?.current_streak ?? 0;
+  const readingNow = (shelf ?? []) as { id: string; current_page: number; books: { id: string; title: string; author: string | null; cover_url: string | null; total_pages: number | null } | null }[];
   const hasFirstBook = readingNow.length > 0 || (logCount ?? 0) > 0;
   const hasFirstLog = (logCount ?? 0) > 0;
   const hasWeeklyGoal = (session.weeklyPagesGoal ?? 0) > 0;
@@ -60,26 +53,25 @@ export default async function DashboardPage() {
   const allOnboardingDone = checklistStepsDone.every(Boolean);
 
   // Feed data — query activity_feed
-  const admin = createAdminClient();
-  const { data: follows } = await admin
-    .from("follows")
-    .select("following_id")
-    .eq("follower_id", session.memberId);
-  const followingIds = (follows ?? []).map((f: { following_id: string }) => f.following_id);
-  const memberIds = [...new Set([...followingIds, session.memberId])];
   let feedItems: FeedItem[] = [];
-  if (memberIds.length > 0) {
-    const { data: rows } = await admin
-      .from("activity_feed")
-      .select(`
-        id, activity_type, data, created_at,
-        member_id, members!inner(name, avatar, username)
-      `)
-      .in("member_id", memberIds)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    feedItems = (rows ?? []).map((r: unknown) => rowToFeedItem(r as Parameters<typeof rowToFeedItem>[0]));
-  }
+  try {
+    const admin = createAdminClient();
+    const { data: follows } = await admin
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", session.memberId);
+    const followingIds = (follows ?? []).map((f: { following_id: string }) => f.following_id);
+    const memberIds = [...new Set([...followingIds, session.memberId])];
+    if (memberIds.length > 0) {
+      const { data: rows } = await admin
+        .from("activity_feed")
+        .select("id, activity_type, data, created_at, member_id, members!inner(name, avatar, username)")
+        .in("member_id", memberIds)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      feedItems = (rows ?? []).map((r: unknown) => rowToFeedItem(r as Parameters<typeof rowToFeedItem>[0]));
+    }
+  } catch { /* graceful degradation */ }
 
   return (
     <div className="min-h-screen pb-20 sm:pb-0">

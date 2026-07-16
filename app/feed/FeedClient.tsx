@@ -255,10 +255,10 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
       )}
 
       {/* Action bar */}
-      <div className="flex items-center px-4 pb-2">
+      <div className="flex items-center px-4 pb-2 min-h-[44px]">
         <button
           onClick={(e) => { e.preventDefault(); toggleLike(); }}
-          className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
+          className={`flex items-center gap-1.5 text-xs font-medium transition-colors min-h-[44px] px-2 ${
             liked ? "text-error" : "text-ink-muted hover:text-error"
           }`}
         >
@@ -267,7 +267,7 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
         </button>
         <button
           onClick={(e) => { e.preventDefault(); toggleComments(); }}
-          className={`flex items-center gap-1.5 text-xs font-medium ml-5 transition-colors ${
+          className={`flex items-center gap-1.5 text-xs font-medium ml-2 transition-colors min-h-[44px] px-2 ${
             commentsOpen ? "text-amber" : "text-ink-muted hover:text-amber"
           }`}
         >
@@ -276,14 +276,14 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
         </button>
         <button
           onClick={(e) => { e.preventDefault(); shareItem(item); }}
-          className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-amber transition-colors ml-5"
+          className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-amber transition-colors ml-2 min-h-[44px] px-2"
         >
           <Share2 size={13} /> Bagikan
         </button>
         {currentMemberId && item.member_id === currentMemberId && (
           <button
             onClick={(e) => { e.preventDefault(); setDeleting(true); }}
-            className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-error transition-colors ml-auto"
+            className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-error transition-colors ml-auto min-h-[44px] px-2"
           >
             <Trash2 size={13} /> Hapus
           </button>
@@ -342,9 +342,9 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
             <button
               type="submit"
               disabled={!commentText.trim()}
-              className="flex-shrink-0 w-8 h-8 rounded-full bg-amber text-white flex items-center justify-center disabled:opacity-40 hover:bg-amber-dark transition-colors"
+              className="flex-shrink-0 min-h-[44px] min-w-[44px] rounded-full bg-amber text-white flex items-center justify-center disabled:opacity-40 hover:bg-amber-dark transition-colors"
             >
-              <Send size={13} />
+              <Send size={14} />
             </button>
           </form>
         </div>

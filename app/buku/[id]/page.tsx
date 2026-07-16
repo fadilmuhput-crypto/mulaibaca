@@ -460,45 +460,48 @@ export default async function BookDetailPage({
         )}
 
         {/* Reviews section */}
-        {reviews.length > 0 && (
-          <>
-            <div className="divider my-6" />
-            <section>
-              <h2 className="text-h3 mb-4">Review dari Pembaca</h2>
-              <div className="space-y-3">
-                {reviews.map((review) => {
-                  const like = likeData[review.id];
-                  return (
-                    <div
-                      key={review.slug}
-                      className="bg-surface rounded-2xl border border-border p-4 hover:border-amber/50 transition-colors"
-                    >
-                      <Link href={`/review/${review.slug}`} className="block">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <p className="font-medium text-sm text-ink">{review.members?.name}</p>
-                          <div className="flex gap-0.5 flex-shrink-0">
-                            {STARS.map((s) => (
-                              <span key={s} className={`text-sm ${s <= review.rating ? "text-amber" : "text-border"}`}>★</span>
-                            ))}
-                          </div>
+        <div className="divider my-6" />
+        <section>
+          <h2 className="text-h3 mb-4">Review dari Pembaca</h2>
+          {reviews.length > 0 ? (
+            <div className="space-y-3">
+              {reviews.map((review) => {
+                const like = likeData[review.id];
+                return (
+                  <div
+                    key={review.slug}
+                    className="bg-surface rounded-2xl border border-border p-4 hover:border-amber/50 transition-colors"
+                  >
+                    <Link href={`/review/${review.slug}`} className="block">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <p className="font-medium text-sm text-ink">{review.members?.name}</p>
+                        <div className="flex gap-0.5 flex-shrink-0">
+                          {STARS.map((s) => (
+                            <span key={s} className={`text-sm ${s <= review.rating ? "text-amber" : "text-border"}`}>★</span>
+                          ))}
                         </div>
-                        {review.q_about && (
-                          <p className="text-xs text-ink-secondary line-clamp-3">{review.q_about}</p>
-                        )}
-                        <p className="text-xs text-amber font-medium mt-2">Baca review lengkap →</p>
-                      </Link>
-                      {like && (
-                        <div className="mt-2 pt-2 border-t border-border/60">
-                          <LikeButton slug={review.slug} initialLiked={like.liked} initialCount={like.count} />
-                        </div>
+                      </div>
+                      {review.q_about && (
+                        <p className="text-xs text-ink-secondary line-clamp-3">{review.q_about}</p>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          </>
-        )}
+                      <p className="text-xs text-amber font-medium mt-2">Baca review lengkap →</p>
+                    </Link>
+                    {like && (
+                      <div className="mt-2 pt-2 border-t border-border/60">
+                        <LikeButton slug={review.slug} initialLiked={like.liked} initialCount={like.count} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-surface rounded-2xl border border-border p-6 text-center">
+              <p className="text-xs text-ink-muted">Belum ada review untuk buku ini.</p>
+              <p className="text-xs text-ink-muted/60 mt-1">Jadilah yang pertama memberi review!</p>
+            </div>
+          )}
+        </section>
       </main>
 
       {/* Sticky bottom bar — Add to Shelf */}
