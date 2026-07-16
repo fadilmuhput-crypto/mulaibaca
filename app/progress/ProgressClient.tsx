@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Session } from "@/lib/session";
 import AvatarIcon from "@/components/AvatarIcon";
-import { Settings, ChartNoAxesColumn, History } from "lucide-react";
+import { Settings, ChartNoAxesColumn, History, Trophy } from "lucide-react";
 import ProgresTab from "./ProgresTab";
 import AktivitasTab from "./AktivitasTab";
 
@@ -26,6 +26,7 @@ type Activity = {
 const TABS = [
   { key: "progres", label: "Progres", Icon: ChartNoAxesColumn },
   { key: "aktivitas", label: "Aktivitas", Icon: History },
+  { key: "tantangan", label: "Tantangan", Icon: Trophy },
 ] as const;
 
 export default function ProgressClient({
@@ -49,7 +50,7 @@ export default function ProgressClient({
   followerCount: number;
   followingCount: number;
 }) {
-  const [tab, setTab] = useState<"progres" | "aktivitas">("progres");
+  const [tab, setTab] = useState<"progres" | "aktivitas" | "tantangan">("progres");
 
   return (
     <div className="space-y-4">
@@ -127,6 +128,20 @@ export default function ProgressClient({
       )}
       {tab === "aktivitas" && (
         <AktivitasTab activities={activities} memberName={session.memberName} />
+      )}
+      {tab === "tantangan" && (
+        <div className="bg-surface rounded-xl border border-border p-5 space-y-3">
+          <p className="text-sm text-ink-muted">
+            Ikuti tantangan membaca untuk menjaga konsistensi dan dapatkan lencana!
+          </p>
+          <Link
+            href="/tantangan"
+            className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber text-white font-semibold rounded-xl hover:bg-amber-hover transition-colors"
+          >
+            <Trophy size={16} strokeWidth={2} />
+            Lihat Tantangan
+          </Link>
+        </div>
       )}
     </div>
   );
