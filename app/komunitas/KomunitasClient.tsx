@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ElementType } from "react";
 import Link from "next/link";
 import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
-import { Check, ChevronRight, Trophy, Users, Calendar, Sparkles } from "lucide-react";
+import { Flame, BookOpen, Award, Library, Users, Calendar, Sparkles, Check, ChevronRight } from "lucide-react";
 
 type MainTab = "tantangan" | "klub" | "acara";
-type ChallengeTab = "active" | "available" | "completed";
 
 type Props = {
   initialActive: ChallengeWithStatus[];
@@ -17,11 +16,23 @@ type Props = {
   memberId: string;
 };
 
-const MAIN_TABS: { key: MainTab; label: string; Icon: typeof Trophy }[] = [
-  { key: "tantangan", label: "Tantangan", Icon: Trophy },
+const MAIN_TABS: { key: MainTab; label: string; Icon: typeof Users }[] = [
+  { key: "tantangan", label: "Tantangan", Icon: Flame },
   { key: "klub",      label: "Klub",      Icon: Users },
   { key: "acara",     label: "Acara",     Icon: Calendar },
 ];
+
+const ACTIVITY_ICONS: Record<string, ElementType> = {
+  streak: Flame,
+  pages: BookOpen,
+  books: Library,
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  streak: "#DC2626",
+  pages: "#C26E2A",
+  books: "#2D4D7A",
+};
 
 export default function KomunitasClient({
   initialActive,
@@ -31,14 +42,14 @@ export default function KomunitasClient({
   memberId,
 }: Props) {
   const [mainTab, setMainTab] = useState<MainTab>("tantangan");
-  const [challengeTab, setChallengeTab] = useState<ChallengeTab>(
-    initialActive.length > 0 ? "active" : "available"
-  );
+  const [badges] = useState(initialBadges);
   const [active, setActive] = useState(initialActive);
   const [available, setAvailable] = useState(initialAvailable);
-  const [completed, setCompleted] = useState(initialCompleted);
-  const [badges] = useState(initialBadges);
+  const [completed] = useState(initialCompleted);
   const [joining, setJoining] = useState<string | null>(null);
+
+  const allChallenges = [...active, ...available, ...completed];
+  const challengeTypeMap = new Map(allChallenges.map((c) => [c.id, c.activity_type]));
 
   async function handleJoin(challengeId: string) {
     setJoining(challengeId);
@@ -58,12 +69,6 @@ export default function KomunitasClient({
     } catch {}
     setJoining(null);
   }
-
-  const challengeTabs: { key: ChallengeTab; label: string; count?: number }[] = [
-    { key: "active", label: "Aktif", count: active.length },
-    { key: "available", label: "Tersedia", count: available.length },
-    { key: "completed", label: "Selesai", count: completed.length },
-  ];
 
   return (
     <main className="max-w-lg mx-auto px-4 py-6">
@@ -100,136 +105,100 @@ export default function KomunitasClient({
                 {badges.length} Lencana Terkumpul
               </h2>
               <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
-                {badges.map((b) => (
-                  <div
-                    key={b.id}
-                    className="flex flex-col items-center gap-1 flex-shrink-0 p-2.5 rounded-xl bg-parchment border border-border min-w-[72px]"
-                  >
-                    <span style={{ fontSize: "24px" }}>{b.badge_icon}</span>
-                    <span className="text-[9px] font-semibold text-ink text-center leading-tight">{b.badge_name}</span>
-                    {b.period_label && (
-                      <span className="text-[8px] text-ink-muted">{b.period_label}</span>
-                    )}
-                  </div>
-                ))}
+                {badges.map((b) => {
+                  const Icon = ACTIVITY_ICONS[challengeTypeMap.get(b.challenge_id) ?? ""] ?? Flame;
+                  return (
+                    <div
+                      key={b.id}
+                      className="flex flex-col items-center gap-1 flex-shrink-0 p-2.5 rounded-xl bg-parchment border border-border min-w-[72px]"
+                    >
+                      <Icon size={22} strokeWidth={1.5} />
+                      <span className="text-[9px] font-semibold text-ink text-center leading-tight">{b.badge_name}</span>
+                      {b.period_label && (
+                        <span className="text-[8px] text-ink-muted">{b.period_label}</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
 
-          {/* Challenge sub-tabs */}
-          <div className="flex gap-1 bg-cream rounded-xl p-1 border border-border">
-            {challengeTabs.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setChallengeTab(t.key)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg transition-all ${
-                  challengeTab === t.key
-                    ? "bg-surface text-ink shadow-sm"
-                    : "text-ink-muted hover:text-ink"
-                }`}
-              >
-                {t.label}
-                {t.count !== undefined && (
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                    challengeTab === t.key
-                      ? "bg-amber-soft text-amber"
-                      : "bg-surface text-ink-muted"
-                  }`}>
-                    {t.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Challenge list */}
-          <div className="space-y-2.5">
-            {(challengeTab === "active" ? active : challengeTab === "available" ? available : completed).length === 0 ? (
-              <p className="text-sm text-ink-muted text-center py-8">
-                {challengeTab === "active" ? "Belum ada tantangan yang diikuti." : "Tidak ada tantangan tersedia."}
-              </p>
-            ) : (
-              (challengeTab === "active" ? active : challengeTab === "available" ? available : completed).map((c) => {
+          {/* Challenge grid */}
+          {active.length === 0 && available.length === 0 ? (
+            <p className="text-sm text-ink-muted text-center py-8">Belum ada tantangan tersedia.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {/* Active challenges */}
+              {active.map((c) => {
+                const Icon = ACTIVITY_ICONS[c.activity_type] ?? Flame;
                 const pct = c.progress > 0 ? Math.min(Math.round((c.progress / c.goal_value) * 100), 100) : 0;
-                const isActiveChallenge = c.status === "active";
                 return (
                   <Link
                     key={c.id}
                     href={`/tantangan/${c.id}`}
-                    className={`block bg-surface rounded-xl border border-border p-3.5 hover:border-amber/40 transition-colors ${
-                      c.status === "completed" ? "opacity-70" : ""
-                    }`}
+                    className="flex flex-col bg-surface rounded-xl border border-border p-3.5 hover:border-amber/40 transition-colors"
                   >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                        style={{ backgroundColor: `${c.badge_color}20` }}
-                      >
-                        {c.badge_icon}
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${CATEGORY_COLORS[c.activity_type] ?? "#C26E2A"}18` }}>
+                        <Icon size={16} strokeWidth={1.5} style={{ color: CATEGORY_COLORS[c.activity_type] ?? "#C26E2A" }} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-semibold text-sm text-ink truncate">{c.title}</h3>
-                          <ChevronRight size={14} strokeWidth={2} className="text-ink-muted flex-shrink-0" />
-                        </div>
-                        {c.period_label && (
-                          <p className="text-[10px] text-ink-muted mt-0.5">{c.period_label}</p>
-                        )}
-
-                        {isActiveChallenge && (
-                          <div className="mt-2 space-y-1">
-                            <div className="flex items-center justify-between text-[10px]">
-                              <span className="text-ink-muted">Progress</span>
-                              <span className="font-semibold text-ink">{pct}%</span>
-                            </div>
-                            <div className="progress-bar">
-                              <div className="progress-fill" style={{ width: `${pct}%` }} />
-                            </div>
-                            <div className="flex items-center justify-between text-[10px]">
-                              <span className="text-ink-muted">{c.progress}/{c.goal_value}</span>
-                              {c.deadline && (
-                                <span className="text-amber font-medium">{formatDeadline(c.deadline)}</span>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {c.status === "available" && (
-                          <p className="text-xs text-ink-muted mt-1">
-                            Target: {c.goal_value} {c.activity_type === "pages" ? "halaman" : c.activity_type === "streak" ? "hari" : "buku"}
-                            {c.duration_type !== "unlimited" ? `/${c.duration_type === "weekly" ? "minggu" : "bulan"}` : ""}
-                          </p>
-                        )}
-
-                        {c.status === "completed" && (
-                          <div className="flex items-center gap-1 mt-1.5">
-                            <Check size={10} strokeWidth={3} className="text-success" />
-                            <span className="text-[10px] font-medium text-success">Selesai</span>
-                          </div>
-                        )}
+                      <div className="text-[9px] font-bold text-success uppercase tracking-wider bg-success-soft px-1.5 py-0.5 rounded">Aktif</div>
+                    </div>
+                    <h3 className="font-semibold text-sm text-ink leading-tight mb-0.5">{c.title}</h3>
+                    <p className="text-[10px] text-ink-muted leading-snug mb-2 line-clamp-2">{c.description}</p>
+                    <div className="mt-auto space-y-1">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-ink-muted">Progress</span>
+                        <span className="font-bold text-ink">{pct}%</span>
+                      </div>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-ink-muted">{c.progress}/{c.goal_value}</span>
+                        {c.deadline && <span className="text-amber font-medium">{formatDeadline(c.deadline)}</span>}
                       </div>
                     </div>
-
-                    {c.status === "available" && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleJoin(c.id);
-                        }}
-                        disabled={joining === c.id}
-                        className="mt-2.5 w-full py-2 bg-amber text-white text-xs font-semibold rounded-xl hover:bg-amber-hover transition-colors disabled:opacity-50"
-                      >
-                        {joining === c.id ? "..." : "Ikuti Tantangan"}
-                      </button>
-                    )}
                   </Link>
                 );
-              })
-            )}
-          </div>
+              })}
+
+              {/* Available challenges */}
+              {available.map((c) => {
+                const Icon = ACTIVITY_ICONS[c.activity_type] ?? Flame;
+                return (
+                  <div
+                    key={c.id}
+                    className="flex flex-col bg-surface rounded-xl border border-border p-3.5 hover:border-amber/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${CATEGORY_COLORS[c.activity_type] ?? "#C26E2A"}18` }}>
+                        <Icon size={16} strokeWidth={1.5} style={{ color: CATEGORY_COLORS[c.activity_type] ?? "#C26E2A" }} />
+                      </div>
+                      <div className="text-[9px] font-bold text-ink-muted uppercase tracking-wider bg-parchment px-1.5 py-0.5 rounded">Tersedia</div>
+                    </div>
+                    <h3 className="font-semibold text-sm text-ink leading-tight mb-0.5">{c.title}</h3>
+                    <p className="text-[10px] text-ink-muted leading-snug mb-2 line-clamp-2">{c.description}</p>
+                    <div className="mt-auto">
+                      <p className="text-[10px] text-ink-muted mb-2">
+                        Target: {c.goal_value} {c.activity_type === "pages" ? "halaman" : c.activity_type === "streak" ? "hari" : "buku"}
+                        {c.duration_type !== "unlimited" ? `/${c.duration_type === "weekly" ? "minggu" : "bulan"}` : ""}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleJoin(c.id)}
+                        disabled={joining === c.id}
+                        className="w-full py-2 bg-amber text-white text-xs font-semibold rounded-xl hover:bg-amber-hover transition-colors disabled:opacity-50"
+                      >
+                        {joining === c.id ? "..." : "Ikuti"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
