@@ -50,7 +50,7 @@ export default async function DashboardPage() {
     allShelf = results[4].data;
   } catch (e) { console.error("[dashboard] shelf/streak/logs query error", e); }
 
-  const bookTitles = (allShelf ?? []).flatMap((s) => s.books?.map((b) => b.title) ?? []);
+  const bookTitles: string[] = [];
 
   const weeklyPagesRead = ((weekLogs ?? []) as { pages_read: number }[]).reduce((sum: number, l: { pages_read: number }) => sum + (l.pages_read ?? 0), 0);
   const currentStreak = (streaks as { current_streak?: number } | null)?.current_streak ?? 0;
@@ -238,14 +238,6 @@ export default async function DashboardPage() {
             </div>
           </section>
         )}
-
-        {/* ── REKOMENDASI ── */}
-        {readingNow.length > 0 && (
-          <RecommendedBooks existingTitles={bookTitles} />
-        )}
-
-        {/* ── TANTANGAN ── */}
-        <ChallengeWidget active={challengeActive} available={challengeAvailable} />
 
         {/* ── TIMELINE ── (main content) */}
         <section>
