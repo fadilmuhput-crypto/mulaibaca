@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase-route";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type ActivityType = "shelf_add" | "shelf_status" | "log" | "review" | "finish" | "follow";
+export type ActivityType = "shelf_add" | "shelf_status" | "log" | "review" | "finish" | "follow" | "challenge_earn";
 
 export type ActivityData = {
   book_id?: string;
@@ -23,6 +23,12 @@ export type ActivityData = {
   following_name?: string;
   following_avatar?: string;
   following_username?: string;
+  challenge_id?: string;
+  challenge_title?: string;
+  badge_name?: string;
+  badge_icon?: string;
+  badge_color?: string;
+  period_label?: string | null;
 };
 
 export async function insertActivity(

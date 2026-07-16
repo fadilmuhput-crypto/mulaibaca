@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import type { FeedItem } from "@/lib/feed";
 import type { FeedComment } from "@/app/api/feed/[id]/comments/route";
-import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus, Trash2, Heart, MessageCircle, Send } from "lucide-react";
+import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus, Trash2, Heart, MessageCircle, Send, Award } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import AvatarIcon from "@/components/AvatarIcon";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -17,6 +17,7 @@ const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string; i
   shelf_add:    { verb: "mulai baca", color: "text-amber", icon: <BookmarkPlus size={14} /> },
   shelf_status: { verb: "ubah status", color: "text-purple-500", icon: <ArrowRightLeft size={14} /> },
   follow:       { verb: "ikuti", color: "text-sky-500", icon: <UserPlus size={14} /> },
+  challenge_earn: { verb: "dapat lencana", color: "text-orange-500", icon: <Award size={14} /> },
 };
 
 function timeAgo(date: string) {
@@ -165,6 +166,21 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
               )}
             </div>
           </Link>
+        </div>
+      ) : (item.type === "challenge_earn") ? (
+        <div className="px-4 pb-4">
+          <div className="flex items-center gap-3 bg-gradient-to-br from-amber-soft to-orange-soft rounded-xl p-3 border border-amber/20">
+            <div className="w-12 h-12 rounded-xl bg-ink-card flex items-center justify-center text-xl flex-shrink-0 shadow-sm">
+              {item.detail.badge_icon}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-ink">{item.detail.badge_name}</p>
+              <p className="text-xs text-ink-muted">{item.detail.challenge_title}</p>
+              {item.detail.period_label && (
+                <p className="text-[11px] text-ink-muted/60 mt-0.5">{item.detail.period_label}</p>
+              )}
+            </div>
+          </div>
         </div>
       ) : (
         <Link href={(() => {
@@ -417,6 +433,11 @@ function shareText(item: FeedItem): string {
       let t = `Ikutin ${name} di mulaibaca — lihat aktivitas dan rekomendasi buku dari teman! 📚`;
       const link = username ? `\nmulaibaca.id/u/${username}` : "";
       return `${t}${link}`;
+    }
+    case "challenge_earn": {
+      const badge = item.detail.badge_name;
+      const challenge = item.detail.challenge_title;
+      return `${badge} — ${challenge}! Selesaikan tantangan bacamu juga di mulaibaca 📚 mulaibaca.id/komunitas`;
     }
     default:
       return base;

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type FeedItemType = "shelf_add" | "shelf_status" | "log" | "review" | "finish" | "follow";
+export type FeedItemType = "shelf_add" | "shelf_status" | "log" | "review" | "finish" | "follow" | "challenge_earn";
 
 export type FeedDetail = {
   pages_read?: number;
@@ -18,6 +18,12 @@ export type FeedDetail = {
   following_name?: string;
   following_avatar?: string;
   following_username?: string;
+  challenge_id?: string;
+  challenge_title?: string;
+  badge_name?: string;
+  badge_icon?: string;
+  badge_color?: string;
+  period_label?: string | null;
 };
 
 export type FeedItem = {
@@ -72,6 +78,8 @@ export function rowToFeedItem(row: ActivityRow): FeedItem {
       return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: {} as FeedDetail };
     case "follow":
       return { ...base, detail: { following_id: d.following_id as string, following_name: d.following_name as string, following_avatar: d.following_avatar as string | undefined, following_username: d.following_username as string | undefined } as FeedDetail };
+    case "challenge_earn":
+      return { ...base, detail: { challenge_id: d.challenge_id as string, challenge_title: d.challenge_title as string, badge_name: d.badge_name as string, badge_icon: d.badge_icon as string, badge_color: d.badge_color as string, period_label: (d.period_label as string | null) ?? null } as FeedDetail };
     default:
       return { ...base, detail: {} as FeedDetail };
   }

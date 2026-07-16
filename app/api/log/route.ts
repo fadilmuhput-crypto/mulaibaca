@@ -3,6 +3,7 @@ import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
 import { getEffectiveAuth } from "@/lib/effective-auth";
 import { createNotification } from "@/lib/notifications";
 import { insertActivity } from "@/lib/activity-feed";
+import { checkAndCompleteChallenges } from "@/lib/challenges";
 
 async function getSelfAuth(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -135,6 +136,7 @@ export async function POST(req: NextRequest) {
           link: "/log",
         }, admin));
       }
+      promises.push(checkAndCompleteChallenges(supabase, memberId, familyId, admin));
       const streakVal = streak?.current_streak ?? 0;
       if ([7, 14, 21, 30, 60, 100].includes(streakVal)) {
         const checkNotif = async () => {

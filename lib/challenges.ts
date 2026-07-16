@@ -156,7 +156,7 @@ export function isCompleted(progress: number, goal: number): boolean {
   return progress >= goal;
 }
 
-type SupabaseClient = any;
+export type SupabaseClient = any;
 
 export async function calculateProgress(
   supabase: SupabaseClient,
@@ -192,4 +192,87 @@ export async function calculateProgress(
     return data?.length ?? 0;
   }
   return 0;
+}
+
+export async function checkAndCompleteChallenges(
+  supabase: any,
+  memberId: string,
+  familyId: string,
+  admin?: any
+): Promise<void> {
+  const adminClient = admin ?? supabase;
+
+  const { data: participants } = await adminClient
+    .from("challenge_participants")
+    .select("*, challenges(*)")
+    .eq("member_id", memberId)
+    .is("completed_at", null);
+
+  if (!participants || participants.length === 0) return;
+
+  const { data: existingBadges } = await adminClient
+    .from("challenge_badges")
+    .select("challenge_id")
+    .eq("member_id", memberId);
+
+  const earnedIds = new Set((existingBadges ?? []).map((b: any) => b.challenge_id));
+
+  for (const p of participants) {
+    const challenge = p.challenges as Challenge;
+    if (!challenge) continue;
+    if (challenge.duration_type === "unlimited" && earnedIds.has(challenge.id)) continue;
+    if (challenge.duration_type !== "unlimited" && p.completed_at) continue;
+
+    const bounds = getPeriodBounds(challenge.duration_type);
+    const progress = await calculateProgress(supabase, memberId, challenge, bounds);
+
+    if (progress >= challenge.goal_value) {
+      const periodLabel = getPeriodLabel(challenge.duration_type);
+
+      await adminClient
+        .from("challenge_participants")
+        .update({ progress, completed_at: new Date().toISOString() })
+        .eq("id", p.id);
+
+      if (!earnedIds.has(challenge.id)) {
+        await adminClient
+          .from("challenge_badges")
+          .insert({
+            challenge_id: challenge.id,
+            member_id: memberId,
+            badge_name: challenge.badge_name,
+            badge_icon: challenge.badge_icon,
+            badge_color: challenge.badge_color,
+            period_label: periodLabel,
+          });
+      }
+
+      try {
+        const { insertActivity } = await import("@/lib/activity-feed");
+        await insertActivity(memberId, familyId, "challenge_earn", {
+          challenge_id: challenge.id,
+          challenge_title: challenge.title,
+          badge_name: challenge.badge_name,
+          badge_icon: challenge.badge_icon,
+          badge_color: challenge.badge_color,
+          period_label: periodLabel,
+        }, adminClient);
+      } catch (e) {
+        console.error("[challenges] failed to insert activity", e);
+      }
+
+      try {
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification({
+          memberId,
+          title: `🏅 ${challenge.badge_name}`,
+          body: `Selamat! Kamu berhasil menyelesaikan tantangan "${challenge.title}"!`,
+          type: "achievement",
+          link: "/komunitas",
+        }, adminClient);
+      } catch (e) {
+        console.error("[challenges] failed to create notification", e);
+      }
+    }
+  }
 }
