@@ -99,7 +99,6 @@ const NAV = [
   { href: "/rak",       label: "Rak Buku",  Icon: IconBooks },
   { href: "/log",       label: "Catat",     Icon: IconPencil },
   { href: "/jelajah",   label: "Jelajah",   Icon: IconSearch },
-  { href: "/tantangan", label: "Tantangan", Icon: IconTrophy },
   { href: "/progress",  label: "Aktivitas", Icon: IconChart },
 ];
 
