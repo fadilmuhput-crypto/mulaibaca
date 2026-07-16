@@ -145,8 +145,24 @@ export default async function PublicProfilePage({
     return b ?? null;
   }
 
+  const profileUrl = `https://mulaibaca.id/u/${username}`;
+  const profileLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Person",
+      name: member.name,
+      identifier: `@${username}`,
+      url: profileUrl,
+      interactionStatistic: [
+        { "@type": "InteractionCounter", interactionType: "FollowAction", userInteractionCount: followerCount ?? 0 },
+      ],
+    },
+  };
+
   return (
     <div className="min-h-screen bg-parchment">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileLd) }} />
       {/* Header */}
       <header className="bg-surface border-b-2 border-ink px-4 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-1">

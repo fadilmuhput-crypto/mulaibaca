@@ -54,8 +54,22 @@ export default async function KategoriPage({ params }: { params: Promise<{ slug:
     matchTags.some((t) => (b.categories ?? []).includes(t) || (b.tags ?? []).includes(t))
   ) as Book[];
 
+  const kategoriUrl = `https://mulaibaca.id/kategori/${slug}`;
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Beranda", item: "https://mulaibaca.id" },
+      { "@type": "ListItem", position: 2, name: "Kategori", item: "https://mulaibaca.id/kategori" },
+      ...(parentOfSub && !parent ? [{ "@type": "ListItem" as const, position: 3, name: parentOfSub.label, item: `https://mulaibaca.id/kategori/${parentOfSub.key}` }] : []),
+      { "@type": "ListItem", position: parentOfSub && !parent ? 4 : 3, name: label, item: kategoriUrl },
+    ],
+  };
+
   return (
     <div className="min-h-screen pb-24">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
         <Link
           href={parentOfSub ? `/kategori/${parentOfSub.key}` : "/jelajah"}

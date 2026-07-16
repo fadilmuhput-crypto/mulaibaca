@@ -345,17 +345,44 @@ export default async function BookDetailPage({
 
   const STARS = [1, 2, 3, 4, 5];
 
+  const avgRating = reviews.length > 0
+    ? reviews.reduce((s: number, r: { rating: number }) => s + r.rating, 0) / reviews.length
+    : 0;
+  const firstCategory = book.categories?.[0] ?? book.tags?.[0] ?? null;
+  const bookUrl = `https://mulaibaca.id/buku/${book.slug}`;
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Book",
-    name: book.title,
-    author: book.author ? { "@type": "Person", name: book.author } : undefined,
-    numberOfPages: book.total_pages ?? undefined,
-    description: book.description ?? undefined,
-    url: `https://mulaibaca.id/buku/${book.slug}`,
-    image: book.cover_url ?? undefined,
-    inLanguage: book.language === "en" ? "en" : "id",
-    isbn: book.isbn ?? undefined,
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Beranda", item: "https://mulaibaca.id" },
+          { "@type": "ListItem", position: 2, name: firstCategory ?? "Jelajah", item: firstCategory ? `https://mulaibaca.id/kategori/${firstCategory}` : "https://mulaibaca.id/jelajah" },
+          { "@type": "ListItem", position: 3, name: book.title, item: bookUrl },
+        ],
+      },
+      {
+        "@type": "Book",
+        name: book.title,
+        author: book.author ? { "@type": "Person", name: book.author } : undefined,
+        numberOfPages: book.total_pages ?? undefined,
+        description: book.description ?? undefined,
+        url: bookUrl,
+        image: book.cover_url ?? undefined,
+        inLanguage: book.language === "en" ? "en" : "id",
+        isbn: book.isbn ?? undefined,
+        publisher: book.publisher ?? undefined,
+        datePublished: book.published_year ? String(book.published_year) : undefined,
+        genre: book.categories?.length ? book.categories : (book.tags?.length ? book.tags : undefined),
+        aggregateRating: avgRating > 0 ? {
+          "@type": "AggregateRating",
+          ratingValue: Math.round(avgRating * 10) / 10,
+          bestRating: 5,
+          ratingCount: reviews.length,
+        } : undefined,
+      },
+    ],
   };
 
   return (

@@ -83,22 +83,38 @@ export default async function PublicReviewPage({
   const member = review.members as { name: string; avatar: string } | null;
 
   const reviewerName = review.is_anonymous ? "Anonim" : (member?.name ?? "Pembaca");
+  const reviewUrl = `https://mulaibaca.id/review/${slug}`;
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Review",
-    itemReviewed: {
-      "@type": "Book",
-      name: book?.title ?? "Buku",
-      author: book?.author ? { "@type": "Person", name: book.author } : undefined,
-    },
-    author: { "@type": "Person", name: reviewerName },
-    reviewRating: {
-      "@type": "Rating",
-      ratingValue: review.rating,
-      bestRating: 5,
-    },
-    description: review.q_about ?? undefined,
-    url: `https://mulaibaca.id/review/${slug}`,
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Beranda", item: "https://mulaibaca.id" },
+          { "@type": "ListItem", position: 2, name: "Review", item: "https://mulaibaca.id/review" },
+          { "@type": "ListItem", position: 3, name: `Review ${book?.title ?? "Buku"}`, item: reviewUrl },
+        ],
+      },
+      {
+        "@type": "Review",
+        itemReviewed: {
+          "@type": "Book",
+          name: book?.title ?? "Buku",
+          author: book?.author ? { "@type": "Person", name: book.author } : undefined,
+          url: book ? `https://mulaibaca.id/buku/${book.title.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-").slice(0, 60)}` : undefined,
+          image: book?.cover_url ?? undefined,
+        },
+        author: { "@type": "Person", name: reviewerName },
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: review.rating,
+          bestRating: 5,
+        },
+        datePublished: review.published_at ?? undefined,
+        description: review.q_about ?? undefined,
+        url: reviewUrl,
+      },
+    ],
   };
 
   return (

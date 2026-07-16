@@ -85,6 +85,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
         headline: post.title,
         description: post.excerpt || undefined,
         author: { "@type": "Person", name: post.author_name },
+        publisher: { "@type": "Organization", name: "Mulaibaca", logo: { "@type": "ImageObject", url: "https://mulaibaca.id/icon.png" } },
         datePublished: post.published_at,
         dateModified: post.updated_at || post.created_at,
         image: post.cover_image || undefined,
