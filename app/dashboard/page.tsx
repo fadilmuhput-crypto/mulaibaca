@@ -13,7 +13,10 @@ import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
 
 export default async function DashboardPage() {
-  const session = await getSession();
+  let session;
+  try {
+    session = await getSession();
+  } catch (e) { console.error("[dashboard] getSession error", e); }
   if (!session) redirect("/masuk");
 
   const supabase = await createClient();
@@ -45,7 +48,7 @@ export default async function DashboardPage() {
     weekLogs = results[2].data;
     logCount = results[3].count;
     allShelf = results[4].data;
-  } catch { /* graceful degradation */ }
+  } catch (e) { console.error("[dashboard] shelf/streak/logs query error", e); }
 
   const bookTitles = (allShelf ?? []).flatMap((s) => s.books?.map((b) => b.title) ?? []);
 
