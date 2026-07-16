@@ -126,7 +126,7 @@ function ReadingChart({ daily }: { daily: { date: string; sesi: number; halaman:
         </svg>
 
         {selected && (
-          <div className="absolute z-10 bg-ink text-white text-xs font-semibold rounded-lg px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none"
+          <div className="absolute z-10 bg-ink-card text-white text-xs font-semibold rounded-lg px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none"
             style={{
               left: Math.min(PAD_L + selectedIdx! * stepX, (width || 300) - 130),
               top: Math.max(PAD_T + (1 - selected.halaman / maxHalaman) * (CHART_H - PAD_T - PAD_B) - 36, 4),

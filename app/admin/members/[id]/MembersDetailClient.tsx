@@ -174,7 +174,7 @@ export default function MembersDetailClient({ data }: { data: MemberData }) {
                         onClick={() => saveField("member_type", opt)}
                         disabled={saving}
                         className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-colors ${
-                          opt === m.member_type ? "bg-ink text-white" : "bg-parchment text-ink-secondary hover:bg-border"
+                          opt === m.member_type ? "bg-ink-card text-white" : "bg-parchment text-ink-secondary hover:bg-border"
                         }`}
                       >
                         {MEMBER_TYPE_LABELS[opt]}

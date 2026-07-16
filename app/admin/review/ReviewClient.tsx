@@ -145,7 +145,7 @@ export default function ReviewClient() {
               onClick={() => setVisibility(f.key)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                 visibility === f.key
-                  ? "bg-ink text-white"
+                  ? "bg-ink-card text-white"
                   : "bg-surface text-ink-secondary hover:bg-border"
               }`}
             >

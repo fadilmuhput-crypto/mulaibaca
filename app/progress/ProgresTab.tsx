@@ -99,7 +99,7 @@ export default function ProgresTab({
           <div className="text-[10px] text-ink-muted font-medium mt-0.5">Minggu Ini</div>
         </div>
         <div className="flex-1 bg-surface rounded-xl border border-border p-4 text-center">
-          <BookCheck size={18} strokeWidth={1.75} className="text-blue-500 mx-auto mb-1" />
+          <BookCheck size={18} strokeWidth={1.75} className="text-forest mx-auto mb-1" />
           <div className="font-display text-2xl font-black text-ink">{booksFinished}</div>
           <div className="text-[10px] text-ink-muted font-medium mt-0.5">Selesai</div>
         </div>
@@ -133,10 +133,10 @@ export default function ProgresTab({
                 cx={p.x}
                 cy={p.y}
                 r={selectedIdx === i ? 5 : 3}
-                fill={p.pages > 0 ? (selectedIdx === i ? "#D97706" : "#1E4530") : "none"}
-                stroke={p.pages > 0 ? "#D97706" : "#D4D4D4"}
+                fill="none"
+                stroke={p.pages > 0 ? "#D97706" : "#35302A"}
                 strokeWidth={selectedIdx === i ? 2.5 : 1.5}
-                className="transition-all cursor-pointer"
+                className={`transition-all cursor-pointer ${p.pages > 0 ? "chart-dot-filled" : "chart-dot-empty"}`}
                 onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
               />
             ))}
@@ -144,7 +144,7 @@ export default function ProgresTab({
 
           {selectedPoint && (
             <div
-              className="absolute z-10 bg-ink text-white text-xs font-semibold rounded-lg px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none"
+              className="absolute z-10 bg-ink-card text-white text-xs font-semibold rounded-lg px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none"
               style={{
                 left: Math.min(selectedPoint.x, (width || 300) - 120),
                 top: Math.max(selectedPoint.y - 36, 4),

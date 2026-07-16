@@ -14,12 +14,10 @@ export default function ReadingModeToggle() {
   return (
     <button
       onClick={toggle}
-      className="fixed bottom-4 left-4 z-50 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 shadow-brutal-xs transition-all hover:shadow-brutal-sm text-[11px] font-semibold"
-      style={{
-        backgroundColor: active ? "#F5EDE0" : "#fff",
-        borderColor: "#0C0C0A",
-        color: active ? "#1A1A1A" : "#0C0C0A",
-      }}
+      className={`fixed bottom-4 left-4 z-50 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 shadow-brutal-xs transition-all hover:shadow-brutal-sm text-[11px] font-semibold ${
+        active ? "bg-cream text-ink" : "bg-surface text-ink"
+      }`}
+      style={{ borderColor: "var(--color-ink)" }}
       aria-label={active ? "Mode baca normal" : "Mode baca ramah mata"}
       title={active ? "Mode baca normal" : "Mode baca ramah mata"}
     >

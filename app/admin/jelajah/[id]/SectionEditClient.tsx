@@ -218,7 +218,7 @@ export default function SectionEditClient({
                     onClick={() => setBannerLayout(n)}
                     className={`flex-1 rounded-lg border-2 py-3 text-sm font-semibold transition-all ${
                       bannerLayout === n
-                        ? "border-ink bg-ink text-white"
+                        ? "border-ink bg-ink-card text-white"
                         : "border-border text-ink-secondary hover:border-ink/30"
                     }`}
                   >

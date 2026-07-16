@@ -136,7 +136,7 @@ export default function MembersClient() {
               key={f.key}
               onClick={() => setMemberType(f.key)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                memberType === f.key ? "bg-ink text-white" : "bg-surface text-ink-secondary hover:bg-border"
+                memberType === f.key ? "bg-ink-card text-white" : "bg-surface text-ink-secondary hover:bg-border"
               }`}
             >
               {f.label}

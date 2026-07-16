@@ -697,7 +697,7 @@ export default function JelajahClient({
                       onClick={() => selectParent(cat.key)}
                       className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
                         isActive
-                          ? "border-ink bg-ink text-white"
+                          ? "border-ink bg-ink-card text-white"
                           : "border-border bg-surface text-ink-secondary hover:border-ink/30 hover:text-ink"
                       }`}
                     >
@@ -1053,7 +1053,7 @@ function FeaturedCard({
           <button
             onClick={() => onAdd(card, "want")}
             disabled={!!isAdding}
-            className="flex items-center gap-1.5 bg-ink text-white text-xs font-semibold px-3 min-h-[34px] rounded-lg hover:bg-ink/80 transition-colors disabled:opacity-40"
+            className="flex items-center gap-1.5 bg-ink-card text-white text-xs font-semibold px-3 min-h-[34px] rounded-lg hover:bg-ink-card/80 transition-colors disabled:opacity-40"
           >
             <Bookmark size={12} strokeWidth={2.5} />
             {isAdding ? "…" : "+ Mau Baca"}

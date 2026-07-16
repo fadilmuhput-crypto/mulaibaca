@@ -258,7 +258,7 @@ export default function LogClient({
 
       {/* ── STREAK HERO — only when no book selected ── */}
       {!selected && (
-        <section className="rounded-2xl p-5 bg-ink brutal-border brutal-shadow-sm">
+        <section className="rounded-2xl p-5 bg-ink-card brutal-border brutal-shadow-sm">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-amber flex items-center justify-center brutal-shadow-xs">

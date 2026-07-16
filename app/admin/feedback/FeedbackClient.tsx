@@ -296,7 +296,7 @@ export default function FeedbackClient() {
                           disabled={saving === item.id}
                           className={`px-2.5 py-1 rounded-lg border text-[11px] font-medium transition-all ${
                             item.status === s
-                              ? "border-ink bg-ink text-white"
+                              ? "border-ink bg-ink-card text-white"
                               : "border-border text-ink-secondary hover:border-ink/40"
                           }`}
                         >

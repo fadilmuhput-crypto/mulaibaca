@@ -50,8 +50,8 @@ export default function GuestBanner() {
     <>
       {/* Banner */}
       <div
-        className="w-full flex items-center justify-between gap-3 px-4 py-2"
-        style={{ backgroundColor: "#C26E2A", borderBottom: "1.5px solid #0C0C0A" }}
+        className="w-full flex items-center justify-between gap-3 px-4 py-2 bg-amber"
+        style={{ borderBottom: "1.5px solid #0C0C0A" }}
       >
         <p className="text-white text-xs font-medium flex-1 text-center">
           Mode Tamu — data tidak disimpan permanen.{" "}

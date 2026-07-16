@@ -102,8 +102,8 @@ function ActivityCard({ activity }: { activity: Activity }) {
     case "finish":
       return (
         <div className="bg-surface rounded-xl border border-border p-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <BookCheck size={14} strokeWidth={1.75} className="text-blue-600" />
+          <div className="w-8 h-8 rounded-lg bg-success-soft flex items-center justify-center flex-shrink-0">
+            <BookCheck size={14} strokeWidth={1.75} className="text-success" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm text-ink">

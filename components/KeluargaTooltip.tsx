@@ -29,9 +29,9 @@ export default function KeluargaTooltip() {
         <Info size={14} strokeWidth={1.75} className="text-ink-muted" />
       </button>
       {open && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-56 px-3 py-2 bg-ink text-white text-xs font-medium rounded-lg shadow-lg z-10">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-56 px-3 py-2 bg-ink-card text-white text-xs font-medium rounded-lg shadow-lg z-10">
           Ruang bersama untuk memantau progres bacaan seluruh anggota keluarga
-          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-ink" />
+          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-[#0C0C0A]" />
         </div>
       )}
     </div>
