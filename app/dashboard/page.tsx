@@ -13,11 +13,9 @@ import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
 
 export default async function DashboardPage() {
-  let session;
   try {
-    session = await getSession();
-  } catch (e) { console.error("[dashboard] getSession error", e); }
-  if (!session) redirect("/masuk");
+    const session = await getSession();
+    if (!session) redirect("/masuk");
 
   const supabase = await createClient();
 
@@ -254,4 +252,8 @@ export default async function DashboardPage() {
       </main>
     </div>
   );
+  } catch (e) {
+    console.error("[dashboard] FATAL", e, e instanceof Error ? { msg: e.message, stack: e.stack, digest: (e as any).digest } : e);
+    throw e;
+  }
 }
