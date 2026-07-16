@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft } from "lucide-react";
 
 const STEPS = ["Memverifikasi akun…", "Menyiapkan sesi…", "Mengalihkan…"];
 
@@ -25,6 +25,10 @@ function MasukForm() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+      document.body.focus?.();
+    }
     setLoading(true);
     setStep(0);
     try {
@@ -46,7 +50,11 @@ function MasukForm() {
   return (
     <div className="min-h-dvh bg-parchment flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
+        <Link href="/" className="inline-flex items-center gap-1 text-sm text-ink-secondary hover:text-ink mb-4" aria-label="Kembali">
+          <ChevronLeft size={16} strokeWidth={2} />
+          Kembali
+        </Link>
+        <div className="mb-6 text-center">
           <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
           <p className="mt-2 text-ink-secondary text-sm">Masuk untuk lanjutkan kebiasaan membaca</p>
         </div>

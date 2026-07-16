@@ -28,6 +28,10 @@ function TulisForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!rating) { setError("Pilih rating bintang dulu"); return; }
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+      document.body.focus?.();
+    }
     setLoading(true);
     setError("");
     try {
@@ -66,6 +70,7 @@ function TulisForm() {
               onClick={() => setRating(s)}
               onMouseEnter={() => setHovered(s)}
               onMouseLeave={() => setHovered(0)}
+              aria-label={`${s} bintang`}
               className={`text-4xl transition-transform hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center ${
                 s <= (hovered || rating) ? "text-amber" : "text-border"
               }`}
@@ -130,6 +135,9 @@ function TulisForm() {
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={isPublic}
+            aria-label="Toggle review publik"
             onClick={() => setIsPublic(!isPublic)}
             className={`w-11 h-6 rounded-full transition-colors relative ${
               isPublic ? "bg-amber" : "bg-border"
@@ -167,7 +175,7 @@ function TulisForm() {
 
 export default function TulisReviewPage() {
   return (
-    <div className="min-h-screen pb-10">
+    <div className="min-h-dvh pb-10">
       <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
         <Link href="/review" className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-secondary hover:text-ink rounded-xl">
           ←

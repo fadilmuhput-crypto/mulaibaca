@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft } from "lucide-react";
 import { trackSignup, trackEvent } from "@/lib/analytics";
 
 const STEPS = ["Membuat akun…", "Menyiapkan profil…", "Mengalihkan…"];
@@ -24,6 +24,10 @@ export default function DaftarPage() {
     if (password.length < 8) {
       setError("Password minimal 8 karakter");
       return;
+    }
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+      document.body.focus?.();
     }
     setLoading(true);
     setStep(0);
@@ -56,7 +60,11 @@ export default function DaftarPage() {
   return (
     <div className="min-h-dvh bg-parchment flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
+        <Link href="/" className="inline-flex items-center gap-1 text-sm text-ink-secondary hover:text-ink mb-4" aria-label="Kembali">
+          <ChevronLeft size={16} strokeWidth={2} />
+          Kembali
+        </Link>
+        <div className="mb-6 text-center">
           <Link href="/" className="text-2xl font-display font-bold text-forest">mulaibaca</Link>
           <p className="mt-2 text-ink-secondary text-sm">Buat akun untuk mulai membaca</p>
         </div>
