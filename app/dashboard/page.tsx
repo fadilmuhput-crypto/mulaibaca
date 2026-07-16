@@ -12,6 +12,8 @@ import { getChallengesData } from "@/lib/challenges";
 import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   try {
     const session = await getSession();
