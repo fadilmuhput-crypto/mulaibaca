@@ -247,6 +247,47 @@ export async function checkAndCompleteChallenges(
           });
       }
 
+      // Auto-join next tier (e.g. streak 3 → streak 7 → streak 14)
+      if (challenge.duration_type === "unlimited") {
+        const { data: nextChallenges } = await adminClient
+          .from("challenges")
+          .select("*")
+          .eq("activity_type", challenge.activity_type)
+          .eq("duration_type", "unlimited")
+          .eq("tier", challenge.tier + 1)
+          .eq("is_active", true)
+          .limit(1);
+
+        const nextChallenge = nextChallenges?.[0] as Challenge | undefined;
+        if (nextChallenge) {
+          const { data: alreadyJoined } = await adminClient
+            .from("challenge_participants")
+            .select("id")
+            .eq("challenge_id", nextChallenge.id)
+            .eq("member_id", memberId)
+            .maybeSingle();
+
+          if (!alreadyJoined) {
+            await adminClient
+              .from("challenge_participants")
+              .insert({ challenge_id: nextChallenge.id, member_id: memberId });
+
+            try {
+              const { createNotification } = await import("@/lib/notifications");
+              await createNotification({
+                memberId,
+                title: `⬆️ Tantangan berikutnya: ${nextChallenge.title}`,
+                body: `Kamu otomatis terdaftar di tantangan "${nextChallenge.title}". Pertahankan streak-mu!`,
+                type: "achievement",
+                link: `/komunitas/tantangan/${nextChallenge.id}`,
+              }, adminClient);
+            } catch (e) {
+              console.error("[challenges] failed to notify next tier", e);
+            }
+          }
+        }
+      }
+
       try {
         const { insertActivity } = await import("@/lib/activity-feed");
         await insertActivity(memberId, familyId, "challenge_earn", {

@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import BookCover from "@/components/BookCover";
 import FeedClient from "@/app/feed/FeedClient";
+import ChallengeEntryCard from "@/components/ChallengeEntryCard";
 import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
 
@@ -104,6 +105,9 @@ export default async function DashboardPage() {
             <span className="font-display text-xl font-black text-ink">{currentStreak}</span>
           </Link>
         </div>
+
+        {/* ── CHALLENGE ENTRY ── */}
+        <ChallengeEntryCard />
 
         {/* ── ONBOARDING: banner tipis (jika belum selesai) ── */}
         {!allOnboardingDone && (

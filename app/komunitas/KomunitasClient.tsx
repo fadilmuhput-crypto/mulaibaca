@@ -136,7 +136,7 @@ export default function KomunitasClient({
                 return (
                   <Link
                     key={c.id}
-                    href={`/tantangan/${c.id}`}
+                    href={`/komunitas/tantangan/${c.id}`}
                     className="flex flex-col bg-surface rounded-xl border border-border p-3.5 hover:border-amber/40 transition-colors"
                   >
                     <div className="flex items-center gap-2 mb-2">

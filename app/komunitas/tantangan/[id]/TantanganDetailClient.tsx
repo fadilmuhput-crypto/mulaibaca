@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Challenge, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
-import { Check } from "lucide-react";
+import { Check, Award } from "lucide-react";
 
 type Props = {
   challenge: Challenge;
@@ -30,7 +30,7 @@ export default function TantanganDetailClient({
   const [joining, setJoining] = useState(false);
   const [isActive, setIsActive] = useState(initialActive);
 
-  const goalLabel = challenge.activity_type === "pages" ? "halaman" : challenge.activity_type === "days" ? "hari" : challenge.activity_type === "count" ? "buku" : "";
+  const goalLabel = challenge.activity_type === "pages" ? "halaman" : challenge.activity_type === "streak" ? "hari" : "buku";
   const pct = Math.min(Math.round((progress / challenge.goal_value) * 100), 100);
 
   async function handleJoin() {
@@ -53,7 +53,7 @@ export default function TantanganDetailClient({
         <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4 ${
           isCompleted ? "bg-success-soft" : isActive ? "bg-amber-soft" : "bg-cream"
         }`}>
-          {isCompleted ? "🏅" : challenge.badge_icon}
+          {isCompleted ? <Award size={36} strokeWidth={1.25} className="text-amber" /> : challenge.badge_icon}
         </div>
         <h1 className="text-h1">{challenge.title}</h1>
         {challenge.description && (
@@ -68,7 +68,7 @@ export default function TantanganDetailClient({
       <div className="bg-surface rounded-2xl border-2 border-border p-5 space-y-4">
         {isCompleted ? (
           <div className="text-center py-4 space-y-3">
-            <div className="text-5xl">🏅</div>
+            <Award size={48} strokeWidth={1.25} className="text-amber mx-auto" />
             <h2 className="font-display font-bold text-ink text-xl">{badge?.badge_name ?? challenge.badge_name}</h2>
             <p className="text-sm text-ink-muted">Tantangan selesai!</p>
           </div>
