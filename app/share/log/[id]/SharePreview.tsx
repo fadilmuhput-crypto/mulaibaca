@@ -23,7 +23,8 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
   const [index, setIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [storyLoaded, setStoryLoaded] = useState(false);
+  const [landscapeLoaded, setLandscapeLoaded] = useState(false);
 
   const current = BG_STYLES[index];
   const storyUrl = `/api/og/log/${logId}/story?bg=${current.key}`;
@@ -34,12 +35,12 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
 
   function prev() {
     setIndex(i => (i === 0 ? BG_STYLES.length - 1 : i - 1));
-    setLoaded(false);
+    setStoryLoaded(false);
   }
 
   function next() {
     setIndex(i => (i === BG_STYLES.length - 1 ? 0 : i + 1));
-    setLoaded(false);
+    setStoryLoaded(false);
   }
 
   async function saveStory() {
@@ -152,7 +153,7 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
           {/* Preview carousel */}
           <div className="relative">
             <div className="aspect-[9/16] max-h-[520px] bg-parchment rounded-xl overflow-hidden relative">
-              {!loaded && (
+              {!storyLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center z-10">
                   <Loader2 size={24} className="animate-spin text-ink-muted/20" />
                 </div>
@@ -161,8 +162,8 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
                 key={`story-${current.key}`}
                 src={storyUrl}
                 alt={`Kartu Story ${current.label}`}
-                className={`w-full h-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
-                onLoad={() => setLoaded(true)}
+                className={`w-full h-full object-contain transition-opacity duration-300 ${storyLoaded ? "opacity-100" : "opacity-0"}`}
+                onLoad={() => setStoryLoaded(true)}
               />
             </div>
 
@@ -188,7 +189,7 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
             {BG_STYLES.map((s, i) => (
               <button
                 key={s.key}
-                onClick={() => { setIndex(i); setLoaded(false); }}
+                onClick={() => { setIndex(i); setStoryLoaded(false); }}
                 className={`w-2 h-2 rounded-full transition-all ${
                   i === index ? "bg-amber w-5" : "bg-border hover:bg-ink-muted/30"
                 }`}
@@ -215,7 +216,7 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
             <span className="text-ink-muted text-xs font-medium">Tampilan saat dibagikan</span>
           </div>
           <div className="aspect-[2/1] bg-parchment rounded-xl overflow-hidden relative">
-            {!loaded && (
+            {!landscapeLoaded && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Loader2 size={24} className="animate-spin text-ink-muted/20" />
               </div>
@@ -223,8 +224,8 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
             <img
               src={`/api/og/log/${logId}`}
               alt="Kartu bacaan"
-              className={`w-full h-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
-              onLoad={() => setLoaded(true)}
+              className={`w-full h-full object-contain transition-opacity duration-300 ${landscapeLoaded ? "opacity-100" : "opacity-0"}`}
+              onLoad={() => setLandscapeLoaded(true)}
             />
           </div>
         </section>
