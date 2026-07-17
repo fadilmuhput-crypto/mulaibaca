@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Download, Share2, Check, Loader2, Smartphone, BookOpen, Clock, Flame } from "lucide-react";
+import { ChevronLeft, Download, Share2, Check, Loader2, Smartphone, BookOpen, Clock, Flame, Moon, Sun, Image as ImageIcon } from "lucide-react";
 
 type Book = {
   title: string;
@@ -11,22 +11,34 @@ type Book = {
   total_pages: number | null;
 };
 
+type BgStyle = "dark" | "light" | "transparent";
+
+const BG_STYLES: { key: BgStyle; label: string; Icon: typeof Moon }[] = [
+  { key: "dark", label: "Gelap", Icon: Moon },
+  { key: "light", label: "Terang", Icon: Sun },
+  { key: "transparent", label: "Bening", Icon: ImageIcon },
+];
+
 export default function SharePreview({ logId, feedItemId, book, pagesRead, duration, note }: { logId: string; feedItemId: string | null; book: Book; pagesRead: number; duration: number | null; note: string | null }) {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [bgStyle, setBgStyle] = useState<BgStyle>("dark");
   const [imgLoaded, setImgLoaded] = useState({ landscape: false, story: false });
+  const [imgKey, setImgKey] = useState(0);
 
   const progress = book.total_pages && book.total_pages > 0
     ? Math.min(Math.round((pagesRead / book.total_pages) * 100), 100)
     : null;
 
+  const storyUrl = `/api/og/log/${logId}/story?bg=${bgStyle}`;
+
   async function saveStory() {
     setSaving(true);
     try {
-      const res = await fetch(`/api/og/log/${logId}/story`);
+      const res = await fetch(storyUrl);
       if (!res.ok) throw new Error("Gagal memuat kartu");
       const blob = await res.blob();
-      const filename = "mulaibaca-story.png";
+      const filename = `mulaibaca-story-${bgStyle}.png`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -116,20 +128,42 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
           <p className="text-ink-muted text-sm italic border-l-2 border-border pl-3">&ldquo;{note}&rdquo;</p>
         )}
 
+        {/* Style selector */}
+        <section>
+          <label className="text-xs font-medium text-ink-muted block mb-2">Gaya Latar</label>
+          <div className="flex gap-2">
+            {BG_STYLES.map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                onClick={() => { setBgStyle(key); setImgLoaded(prev => ({ ...prev, story: false })); setImgKey(k => k + 1); }}
+                className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-xl border text-sm font-medium transition-all active:scale-[0.98] ${
+                  bgStyle === key
+                    ? "border-amber bg-amber/10 text-amber"
+                    : "border-border bg-surface text-ink-muted hover:border-ink-muted/30"
+                }`}
+              >
+                <Icon size={14} />
+                {label}
+              </button>
+            ))}
+          </div>
+        </section>
+
         {/* Story Card (portrait) — can save */}
         <section className="bg-surface rounded-2xl border border-border p-4 space-y-3">
           <div className="flex items-center gap-1.5">
             <Smartphone size={15} className="text-pink-400" />
             <span className="text-ink-muted text-xs font-medium">Untuk Cerita / Story Instagram</span>
           </div>
-          <div className="aspect-[9/16] max-h-[420px] bg-parchment rounded-xl overflow-hidden relative">
+          <div className="aspect-[9/16] max-h-[500px] bg-parchment rounded-xl overflow-hidden relative">
             {!imgLoaded.story && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Loader2 size={24} className="animate-spin text-ink-muted/20" />
               </div>
             )}
             <img
-              src={`/api/og/log/${logId}/story`}
+              key={`story-${imgKey}`}
+              src={storyUrl}
               alt="Kartu untuk Story Instagram"
               className={`w-full h-full object-contain transition-opacity duration-300 ${imgLoaded.story ? "opacity-100" : "opacity-0"}`}
               onLoad={() => setImgLoaded(prev => ({ ...prev, story: true }))}
