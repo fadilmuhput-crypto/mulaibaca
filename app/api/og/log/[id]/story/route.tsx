@@ -85,10 +85,6 @@ export async function GET(
     ? "rgba(0,0,0,0.04)"
     : "rgba(0,0,0,0.14)";
 
-  const logoIconBg = isTransparent ? "rgba(255,255,255,0.15)" : "#1E4530";
-  const logoIconFg = isTransparent ? "#FFFFFF" : "#C26E2A";
-  const logoTextColor = isDarkBg ? "#BFE040" : isLight ? "#1E4530" : "#FFFFFF";
-
   return new ImageResponse(
     <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", background: bgBase, fontFamily: '"Geist", "Inter", sans-serif', position: "relative", overflow: "hidden" }}>
       {/* Decorative circles */}
@@ -101,15 +97,6 @@ export async function GET(
 
       {/* Centered content */}
       <div style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 48px" }}>
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "32px" }}>
-          <svg width="40" height="40" viewBox="0 0 40 40" style={{ display: "flex", borderRadius: "50%" }}>
-            <circle cx="20" cy="20" r="20" fill={logoIconBg} />
-            <text x="20" y="27" textAnchor="middle" fill={logoIconFg} fontFamily="'Geist','Inter',sans-serif" fontWeight="800" fontSize="22">m</text>
-          </svg>
-          <span style={{ color: logoTextColor, fontSize: "20px", letterSpacing: "1px", fontWeight: 600 }}>mulaibaca.id</span>
-        </div>
-
         {/* Book cover */}
         <div style={{ display: "flex", width: "380px", height: "570px", borderRadius: "20px", overflow: "hidden", boxShadow: isTransparent ? "0 8px 32px rgba(0,0,0,0.25)" : "0 20px 60px rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {coverUrl ? (
