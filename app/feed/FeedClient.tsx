@@ -10,6 +10,7 @@ import BookCover from "@/components/BookCover";
 import AvatarIcon from "@/components/AvatarIcon";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ImageLightbox from "@/components/ImageLightbox";
+import BadgePing from "@/components/BadgePing";
 
 const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string; icon: React.ReactNode }> = {
   log:          { verb: "lagi baca", color: "text-amber", icon: <BookOpen size={14} /> },
@@ -170,10 +171,9 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
         </div>
       ) : (item.type === "challenge_earn") ? (
         <div className="px-4 pb-4">
-          <div className="flex items-center gap-3 bg-gradient-to-br from-amber-soft to-orange-soft rounded-xl p-3 border border-amber/20">
-            <div className="w-12 h-12 rounded-xl bg-ink-card flex items-center justify-center text-xl flex-shrink-0 shadow-sm">
-              {item.detail.badge_icon}
-            </div>
+            <div className="flex items-center gap-3 bg-gradient-to-br from-amber-soft to-orange-soft rounded-xl p-3 border border-amber/20">
+              <BadgePing icon={item.detail.badge_icon} color={item.detail.badge_color} size={44} />
+              
             <div className="min-w-0">
               <p className="text-sm font-bold text-ink">{item.detail.badge_name}</p>
               <p className="text-xs text-ink-muted">{item.detail.challenge_title}</p>

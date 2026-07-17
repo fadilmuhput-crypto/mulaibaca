@@ -3,6 +3,7 @@
 import { useMemo, useState, useRef, useEffect, type ElementType } from "react";
 import { BookCheck, BookText, Flame, CalendarDays, Award, BookOpen, Library } from "lucide-react";
 import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
+import BadgePing from "@/components/BadgePing";
 
 type DailyReading = {
   date: string;
@@ -216,7 +217,7 @@ export default function ProgresTab({
                 className="flex items-center gap-2 bg-ink-card text-white text-xs font-semibold rounded-lg px-3 py-1.5"
                 title={b.badge_name}
               >
-                <span>{b.badge_icon}</span>
+                <BadgePing icon={b.badge_icon} color={b.badge_color} size={24} />
                 <span>{b.badge_name}</span>
               </div>
             ))}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
 import { Flame, BookOpen, Award, Library, Users, Calendar, Sparkles, Check, ChevronRight } from "lucide-react";
+import BadgePing from "@/components/BadgePing";
 
 type MainTab = "tantangan" | "klub" | "acara";
 
@@ -106,13 +107,12 @@ export default function KomunitasClient({
               </h2>
               <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
                 {badges.map((b) => {
-                  const Icon = ACTIVITY_ICONS[challengeTypeMap.get(b.challenge_id) ?? ""] ?? Flame;
                   return (
                     <div
                       key={b.id}
                       className="flex flex-col items-center gap-1 flex-shrink-0 p-2.5 rounded-xl bg-parchment border border-border min-w-[72px]"
                     >
-                      <Icon size={22} strokeWidth={1.5} />
+                      <BadgePing icon={b.badge_icon} color={b.badge_color} size={32} />
                       <span className="text-[9px] font-semibold text-ink text-center leading-tight">{b.badge_name}</span>
                       {b.period_label && (
                         <span className="text-[8px] text-ink-muted">{b.period_label}</span>

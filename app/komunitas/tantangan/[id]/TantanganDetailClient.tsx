@@ -1,16 +1,10 @@
 "use client";
 
-import { useState, useMemo, type ElementType } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { Challenge, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
-import { Check, Award, Flame, BookOpen, Library } from "lucide-react";
-
-const ACTIVITY_ICONS: Record<string, ElementType> = {
-  streak: Flame,
-  pages: BookOpen,
-  books: Library,
-};
+import BadgePing from "@/components/BadgePing";
 
 const CONFETTI_COLORS = ["#F59E0B", "#10B981", "#3B82F6", "#EF4444", "#8B5CF6", "#EC4899"];
 
@@ -88,7 +82,6 @@ export default function TantanganDetailClient({
 
   const goalLabel = challenge.activity_type === "pages" ? "halaman" : challenge.activity_type === "streak" ? "hari" : "buku";
   const pct = Math.min(Math.round((progress / challenge.goal_value) * 100), 100);
-  const BadgeIcon = ACTIVITY_ICONS[challenge.activity_type] ?? Award;
 
   async function handleJoin() {
     setJoining(true);
@@ -107,11 +100,11 @@ export default function TantanganDetailClient({
     <div className="space-y-6">
       {/* Hero badge */}
       <div className="flex flex-col items-center text-center py-4">
-        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4 ${
-          isCompleted ? "bg-success-soft" : isActive ? "bg-amber-soft" : "bg-cream"
-        }`}>
-          {isCompleted ? <Award size={36} strokeWidth={1.25} className="text-amber" /> : <BadgeIcon size={36} strokeWidth={1.25} className="text-ink" />}
-        </div>
+        <BadgePing
+          icon={badge?.badge_icon ?? challenge.badge_icon}
+          color={badge?.badge_color ?? challenge.badge_color}
+          size={80}
+        />
         <h1 className="text-h1">{challenge.title}</h1>
         {challenge.description && (
           <p className="text-sm text-ink-muted mt-1 max-w-xs">{challenge.description}</p>
@@ -126,7 +119,9 @@ export default function TantanganDetailClient({
         {isCompleted ? (
           <div className="text-center py-4 space-y-3 relative">
             <Confetti />
-            <Award size={48} strokeWidth={1.25} className="text-amber mx-auto" />
+            <div className="flex justify-center">
+              <BadgePing icon={badge?.badge_icon ?? challenge.badge_icon} color={badge?.badge_color ?? challenge.badge_color} size={72} />
+            </div>
             <h2 className="font-display font-bold text-ink text-xl">{badge?.badge_name ?? challenge.badge_name}</h2>
             <p className="text-sm text-ink-muted">Tantangan selesai!</p>
           </div>
