@@ -85,6 +85,8 @@ export async function GET(
     ? "rgba(0,0,0,0.04)"
     : "rgba(0,0,0,0.14)";
 
+  const baseUrl = `${url.protocol}//${url.host}`;
+
   const logoColor = isDarkBg ? "#BFE040" : isLight ? "#1E4530" : "#FFFFFF";
 
   return new ImageResponse(
@@ -101,11 +103,8 @@ export async function GET(
       <div style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 48px" }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "32px" }}>
-          <svg width="32" height="32" viewBox="0 0 28 28" fill={logoColor} style={{ display: "flex" }}>
-            <path d="M6 4h16v2H8v2h14v2H8v8h-2V6z" />
-            <path d="M8 14h12v2H10v2h10v2H10v2h10v2H8v-8z" />
-          </svg>
-          <span style={{ color: logoColor, fontSize: "18px", letterSpacing: "4px", fontWeight: 700 }}>MULAIBACA</span>
+          <img src={`${baseUrl}/logo.png`} width="40" height="40" style={{ display: "flex", borderRadius: "50%" }} alt="" />
+          <span style={{ color: logoColor, fontSize: "20px", letterSpacing: "1px", fontWeight: 600 }}>mulaibaca.id</span>
         </div>
 
         {/* Book cover */}
@@ -151,7 +150,7 @@ export async function GET(
         {/* Note */}
         {noteText && (
           <div style={{ display: "flex", background: notePill, borderRadius: "16px", padding: "18px 32px", marginTop: "28px", maxWidth: "660px" }}>
-            <span style={{ fontSize: "22px", color: textMuted, fontStyle: "italic", textAlign: "center", lineHeight: 1.5 }}>"{noteText}"</span>
+            <span style={{ fontSize: "30px", color: textMuted, fontStyle: "italic", textAlign: "center", lineHeight: 1.4 }}>"{noteText}"</span>
           </div>
         )}
       </div>
