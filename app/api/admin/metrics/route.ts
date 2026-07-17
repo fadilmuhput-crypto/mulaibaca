@@ -58,7 +58,7 @@ export async function GET() {
     supabase.from("notifications").select("type, is_read"),
     supabase.from("families").select("created_at, id").gte("created_at", _30dAgo),
     supabase.from("members").select("created_at, member_type").not("auth_user_id", "is", null).gte("created_at", _30dAgo),
-    supabase.from("shelf_items").select("book_id, books!inner(title, author)").order("created_at", { ascending: false }),
+    supabase.from("shelf_items").select("book_id, books!inner(title, author)").limit(100000),
     supabase.from("activity_feed").select("id", { count: "exact", head: true }),
     supabase.from("feed_likes").select("id", { count: "exact", head: true }),
     supabase.from("feed_comments").select("id", { count: "exact", head: true }),

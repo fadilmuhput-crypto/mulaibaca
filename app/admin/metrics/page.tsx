@@ -345,13 +345,13 @@ export default function MetricsPage() {
             </div>
           </div>
           <div className="space-y-1">
-            {Object.entries(data.reviews.ratingDistribution).sort().reverse().map(([rating, count]) => {
+            {Object.entries(data.reviews.ratingDistribution).sort(([a], [b]) => Number(b) - Number(a)).map(([rating, count]) => {
               const max = Math.max(...Object.values(data.reviews.ratingDistribution), 1);
               return (
                 <div key={rating} className="flex items-center gap-2 text-xs">
-                  <span className="w-8 text-ink-muted">{'★'.repeat(Number(rating))}{'☆'.repeat(5 - Number(rating))}</span>
+                  <span className="w-16 text-ink-muted flex-shrink-0">{'★'.repeat(Number(rating))}{'☆'.repeat(5 - Number(rating))}</span>
                   <Bar value={count} max={max} color="var(--color-amber)" />
-                  <span className="font-semibold text-ink w-4 text-right">{count}</span>
+                  <span className="font-semibold text-ink w-6 text-right">{count}</span>
                 </div>
               );
             })}
