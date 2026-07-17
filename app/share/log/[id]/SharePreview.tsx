@@ -13,24 +13,17 @@ type Book = {
 
 type BgStyle = "dark" | "light" | "transparent";
 
-const BG_STYLES: { key: BgStyle; label: string; Icon: typeof Moon }[] = [
-  { key: "dark", label: "Gelap", Icon: Moon },
-  { key: "light", label: "Terang", Icon: Sun },
-  { key: "transparent", label: "Bening", Icon: ImageIcon },
+const BG_STYLES: { key: BgStyle; label: string; desc: string; Icon: typeof Moon }[] = [
+  { key: "dark", label: "Gelap", desc: "Latar hijau gelap", Icon: Moon },
+  { key: "light", label: "Terang", desc: "Latar krem hangat", Icon: Sun },
+  { key: "transparent", label: "Bening", desc: "Tanpa latar", Icon: ImageIcon },
 ];
 
-export default function SharePreview({ logId, feedItemId, book, pagesRead, duration, note }: { logId: string; feedItemId: string | null; book: Book; pagesRead: number; duration: number | null; note: string | null }) {
+function StyleCard({ logId, style, book, pagesRead, duration, note }: { logId: string; style: typeof BG_STYLES[0]; book: Book; pagesRead: number; duration: number | null; note: string | null }) {
   const [saving, setSaving] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [bgStyle, setBgStyle] = useState<BgStyle>("dark");
-  const [imgLoaded, setImgLoaded] = useState({ landscape: false, story: false });
-  const [imgKey, setImgKey] = useState(0);
+  const [loaded, setLoaded] = useState(false);
 
-  const progress = book.total_pages && book.total_pages > 0
-    ? Math.min(Math.round((pagesRead / book.total_pages) * 100), 100)
-    : null;
-
-  const storyUrl = `/api/og/log/${logId}/story?bg=${bgStyle}`;
+  const storyUrl = `/api/og/log/${logId}/story?bg=${style.key}`;
 
   async function saveStory() {
     setSaving(true);
@@ -38,7 +31,7 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
       const res = await fetch(storyUrl);
       if (!res.ok) throw new Error("Gagal memuat kartu");
       const blob = await res.blob();
-      const filename = `mulaibaca-story-${bgStyle}.png`;
+      const filename = `mulaibaca-story-${style.key}.png`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -54,10 +47,50 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
     }
   }
 
+  return (
+    <section className="bg-surface rounded-2xl border border-border p-4 space-y-3">
+      <div className="flex items-center gap-1.5">
+        <style.Icon size={15} className={style.key === "dark" ? "text-indigo-400" : style.key === "light" ? "text-amber" : "text-sky-400"} />
+        <span className="text-ink-muted text-xs font-medium">{style.label}</span>
+        <span className="text-ink-muted/40 text-[11px]">— {style.desc}</span>
+      </div>
+      <div className="aspect-[9/16] max-h-[460px] bg-parchment rounded-xl overflow-hidden relative">
+        {!loaded && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Loader2 size={24} className="animate-spin text-ink-muted/20" />
+          </div>
+        )}
+        <img
+          src={storyUrl}
+          alt={`Kartu Story ${style.label}`}
+          className={`w-full h-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+          onLoad={() => setLoaded(true)}
+        />
+      </div>
+      <button
+        onClick={saveStory}
+        disabled={saving}
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm py-3 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
+      >
+        {saving ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+        {saving ? "Menyimpan…" : "Simpan Gambar"}
+      </button>
+    </section>
+  );
+}
+
+export default function SharePreview({ logId, feedItemId, book, pagesRead, duration, note }: { logId: string; feedItemId: string | null; book: Book; pagesRead: number; duration: number | null; note: string | null }) {
+  const [copied, setCopied] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  const progress = book.total_pages && book.total_pages > 0
+    ? Math.min(Math.round((pagesRead / book.total_pages) * 100), 100)
+    : null;
+
   function shareTextFallback() {
     const base = `Lagi baca "${book.title}"`;
     const pages = `${pagesRead} halaman`;
-    const suffix = "via mulaibaca 📚 mulaibaca.id";
+    const suffix = "via mulaibaca mulaibaca.id";
     if (book.author) return `${base} — ${book.author} (${pages}) ${suffix}`;
     return `${base} (${pages}) ${suffix}`;
   }
@@ -128,56 +161,23 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
           <p className="text-ink-muted text-sm italic border-l-2 border-border pl-3">&ldquo;{note}&rdquo;</p>
         )}
 
-        {/* Style selector */}
-        <section>
-          <label className="text-xs font-medium text-ink-muted block mb-2">Gaya Latar</label>
-          <div className="flex gap-2">
-            {BG_STYLES.map(({ key, label, Icon }) => (
-              <button
-                key={key}
-                onClick={() => { setBgStyle(key); setImgLoaded(prev => ({ ...prev, story: false })); setImgKey(k => k + 1); }}
-                className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-xl border text-sm font-medium transition-all active:scale-[0.98] ${
-                  bgStyle === key
-                    ? "border-amber bg-amber/10 text-amber"
-                    : "border-border bg-surface text-ink-muted hover:border-ink-muted/30"
-                }`}
-              >
-                <Icon size={14} />
-                {label}
-              </button>
+        {/* Style selector label */}
+        <div>
+          <label className="text-xs font-medium text-ink-muted block mb-3">Pilih Gaya Kartu Story</label>
+          <div className="space-y-4">
+            {BG_STYLES.map((style) => (
+              <StyleCard
+                key={style.key}
+                logId={logId}
+                style={style}
+                book={book}
+                pagesRead={pagesRead}
+                duration={duration}
+                note={note}
+              />
             ))}
           </div>
-        </section>
-
-        {/* Story Card (portrait) — can save */}
-        <section className="bg-surface rounded-2xl border border-border p-4 space-y-3">
-          <div className="flex items-center gap-1.5">
-            <Smartphone size={15} className="text-pink-400" />
-            <span className="text-ink-muted text-xs font-medium">Untuk Cerita / Story Instagram</span>
-          </div>
-          <div className="aspect-[9/16] max-h-[500px] bg-parchment rounded-xl overflow-hidden relative">
-            {!imgLoaded.story && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 size={24} className="animate-spin text-ink-muted/20" />
-              </div>
-            )}
-            <img
-              key={`story-${imgKey}`}
-              src={storyUrl}
-              alt="Kartu untuk Story Instagram"
-              className={`w-full h-full object-contain transition-opacity duration-300 ${imgLoaded.story ? "opacity-100" : "opacity-0"}`}
-              onLoad={() => setImgLoaded(prev => ({ ...prev, story: true }))}
-            />
-          </div>
-          <button
-            onClick={saveStory}
-            disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm py-3 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
-          >
-            {saving ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-            {saving ? "Menyimpan…" : "Simpan Gambar"}
-          </button>
-        </section>
+        </div>
 
         {/* Post Card (landscape) — preview only, used for share link */}
         <section className="bg-surface rounded-2xl border border-border p-4 space-y-3">
@@ -186,7 +186,7 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
             <span className="text-ink-muted text-xs font-medium">Tampilan saat dibagikan</span>
           </div>
           <div className="aspect-[2/1] bg-parchment rounded-xl overflow-hidden relative">
-            {!imgLoaded.landscape && (
+            {!imgLoaded && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Loader2 size={24} className="animate-spin text-ink-muted/20" />
               </div>
@@ -194,8 +194,8 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
             <img
               src={`/api/og/log/${logId}`}
               alt="Kartu bacaan"
-              className={`w-full h-full object-contain transition-opacity duration-300 ${imgLoaded.landscape ? "opacity-100" : "opacity-0"}`}
-              onLoad={() => setImgLoaded(prev => ({ ...prev, landscape: true }))}
+              className={`w-full h-full object-contain transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+              onLoad={() => setImgLoaded(true)}
             />
           </div>
         </section>
