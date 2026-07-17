@@ -388,29 +388,31 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
           </div>
         )}
 
-        {/* Stats badge */}
-        <div className="flex items-center gap-2 text-xs text-ink-muted px-1">
-          <span className="flex items-center gap-1"><Heart size={12} /> {likeCount}</span>
-          <span>·</span>
-          <span className="flex items-center gap-1"><MessageCircle size={12} /> {comments.length}</span>
-        </div>
-
         {/* Action bar */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center border-b border-border pb-4">
           <button
             onClick={toggleLike}
-            className={`flex items-center gap-2 text-sm font-semibold min-h-[44px] px-4 rounded-xl transition-colors ${
-              liked ? "text-error bg-error/10" : "text-ink-muted bg-surface border border-border hover:text-error hover:border-error/30"
+            className={`flex items-center gap-1.5 text-sm font-semibold min-h-[44px] px-3 transition-colors ${
+              liked ? "text-error" : "text-ink-muted hover:text-error"
             }`}
           >
             <Heart size={16} fill={liked ? "currentColor" : "none"} />
-            {liked ? "Suka" : "Suka"}
+            {likeCount > 0 && <span>{likeCount}</span>}
+            <span className="hidden sm:inline">{liked ? "Suka" : "Suka"}</span>
+          </button>
+          <button
+            onClick={() => commentInputRef.current?.focus()}
+            className="flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-amber min-h-[44px] px-3 transition-colors"
+          >
+            <MessageCircle size={16} />
+            {comments.length > 0 && <span>{comments.length}</span>}
+            <span className="hidden sm:inline">Komentar</span>
           </button>
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 text-sm font-semibold text-ink-muted bg-surface border border-border min-h-[44px] px-4 rounded-xl hover:text-amber hover:border-amber/30 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-amber min-h-[44px] px-3 transition-colors ml-auto"
           >
-            <Share2 size={15} /> Bagikan
+            <Share2 size={15} /> <span className="hidden sm:inline">Bagikan</span>
           </button>
         </div>
 
