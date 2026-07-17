@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Users, BookOpen, Library, Flame, Star, Activity,
   TrendingUp, Target, Check, BookMarked, MessageSquare,
-  BarChart3,
+  BarChart3, Heart, Award, UserPlus, Share2, Zap,
 } from "lucide-react";
 
 type Metrics = {
@@ -24,16 +24,16 @@ type Metrics = {
   funnel: { langkah: string; jumlah: number }[];
   familySize: Record<string, number>;
   notifications: Record<string, { total: number; read: number }>;
+  feed: { totalItems: number; totalLikes: number; totalComments: number; perType: Record<string, number> };
+  challenges: { totalParticipants: number; totalParticipations: number; totalBadges: number; totalCompleted: number };
+  follows: number;
 };
 
 function Bar({ value, max, color = "var(--color-amber)" }: { value: number; max: number; color?: string }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
     <div className="w-full bg-border/40 rounded-full h-2.5 overflow-hidden">
-      <div
-        className="h-full rounded-full transition-all duration-500"
-        style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }}
-      />
+      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }} />
     </div>
   );
 }
@@ -69,20 +69,10 @@ function ReadingChart({ daily }: { daily: { date: string; sesi: number; halaman:
   const chartW = Math.max(width - PAD_L - PAD_R, 0);
   const stepX = daily.length > 1 ? chartW / (daily.length - 1) : 0;
 
-  const pointsH = daily.map((d, i) => ({
-    x: PAD_L + i * stepX,
-    y: PAD_T + (1 - d.halaman / maxHalaman) * (CHART_H - PAD_T - PAD_B),
-    ...d,
-  }));
-  const pointsS = daily.map((d, i) => ({
-    x: PAD_L + i * stepX,
-    y: PAD_T + (1 - d.sesi / maxSesi) * (CHART_H - PAD_T - PAD_B),
-    ...d,
-  }));
-
+  const pointsH = daily.map((d, i) => ({ x: PAD_L + i * stepX, y: PAD_T + (1 - d.halaman / maxHalaman) * (CHART_H - PAD_T - PAD_B), ...d }));
+  const pointsS = daily.map((d, i) => ({ x: PAD_L + i * stepX, y: PAD_T + (1 - d.sesi / maxSesi) * (CHART_H - PAD_T - PAD_B), ...d }));
   const lineH = pointsH.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
   const lineS = pointsS.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
-
   const selected = selectedIdx !== null ? daily[selectedIdx] : null;
 
   function fmtDate(iso: string) {
@@ -99,51 +89,33 @@ function ReadingChart({ daily }: { daily: { date: string; sesi: number; halaman:
         </h3>
         <span className="text-xs text-ink-muted">{daysRead}/{30} hari baca</span>
       </div>
-
       <div ref={chartRef} className="relative w-full">
         <svg width="100%" height={CHART_H} viewBox={`0 0 ${width || 300} ${CHART_H}`} className="overflow-visible">
           {lineH && <path d={lineH} fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity={0.7} />}
           {lineS && <path d={lineS} fill="none" stroke="#1E4530" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity={0.7} />}
-
           {pointsH.map((p, i) => (
-            <circle key={`h-${p.date}`} cx={p.x} cy={p.y}
-              r={selectedIdx === i ? 5 : 3}
+            <circle key={`h-${p.date}`} cx={p.x} cy={p.y} r={selectedIdx === i ? 5 : 3}
               fill={p.halaman > 0 ? (selectedIdx === i ? "#D97706" : "#1E4530") : "none"}
               stroke="#D97706" strokeWidth={selectedIdx === i ? 2.5 : 1.5}
-              className="transition-all cursor-pointer"
-              onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
-            />
+              className="transition-all cursor-pointer" onClick={() => setSelectedIdx(selectedIdx === i ? null : i)} />
           ))}
           {pointsS.map((p, i) => (
-            <circle key={`s-${p.date}`} cx={p.x} cy={p.y}
-              r={selectedIdx === i ? 5 : 3}
+            <circle key={`s-${p.date}`} cx={p.x} cy={p.y} r={selectedIdx === i ? 5 : 3}
               fill={p.sesi > 0 ? (selectedIdx === i ? "#1E4530" : "#D97706") : "none"}
               stroke="#1E4530" strokeWidth={selectedIdx === i ? 2.5 : 1.5}
-              className="transition-all cursor-pointer"
-              onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
-            />
+              className="transition-all cursor-pointer" onClick={() => setSelectedIdx(selectedIdx === i ? null : i)} />
           ))}
         </svg>
-
         {selected && (
           <div className="absolute z-10 bg-ink-card text-white text-xs font-semibold rounded-lg px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none"
-            style={{
-              left: Math.min(PAD_L + selectedIdx! * stepX, (width || 300) - 130),
-              top: Math.max(PAD_T + (1 - selected.halaman / maxHalaman) * (CHART_H - PAD_T - PAD_B) - 36, 4),
-              transform: "translateX(-50%)",
-            }}
-          >
+            style={{ left: Math.min(PAD_L + selectedIdx! * stepX, (width || 300) - 130), top: Math.max(PAD_T + (1 - selected.halaman / maxHalaman) * (CHART_H - PAD_T - PAD_B) - 36, 4), transform: "translateX(-50%)" }}>
             {fmtDate(selected.date)} · {selected.halaman} hal · {selected.sesi} sesi
           </div>
         )}
       </div>
-
       <div className="flex justify-between text-[9px] text-ink-muted mt-1">
-        {daily.filter((_, i) => i % 5 === 0 || i === daily.length - 1).map((d) => (
-          <span key={d.date}>{fmtDate(d.date)}</span>
-        ))}
+        {daily.filter((_, i) => i % 5 === 0 || i === daily.length - 1).map((d) => (<span key={d.date}>{fmtDate(d.date)}</span>))}
       </div>
-
       <div className="flex items-center gap-4 mt-3 text-[10px] text-ink-muted">
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber inline-block" /> Halaman</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-forest inline-block" /> Sesi</span>
@@ -184,9 +156,7 @@ export default function MetricsPage() {
     <div className="space-y-6 animate-pulse">
       <div className="h-8 w-48 bg-border/40 rounded" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-24 bg-border/30 rounded-xl" />
-        ))}
+        {Array.from({ length: 12 }).map((_, i) => (<div key={i} className="h-24 bg-border/30 rounded-xl" />))}
       </div>
     </div>
   );
@@ -198,20 +168,13 @@ export default function MetricsPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-h1">📊 Metrics</h1>
-          <p className="text-sm text-ink-muted mt-0.5">
-            Real-time dashboard — data terkini
-          </p>
+          <h1 className="text-h1">Metrics</h1>
+          <p className="text-sm text-ink-muted mt-0.5">Real-time dashboard — data terkini</p>
         </div>
-        <button
-          onClick={() => window.location.reload()}
-          className="btn-secondary text-sm flex items-center gap-1.5"
-        >
-          <BarChart3 size={14} strokeWidth={2} />
-          Refresh
+        <button onClick={() => window.location.reload()} className="btn-secondary text-sm flex items-center gap-1.5">
+          <BarChart3 size={14} strokeWidth={2} /> Refresh
         </button>
       </div>
 
@@ -233,6 +196,21 @@ export default function MetricsPage() {
           <StatCard label="Aktif 30 Hari" value={s.active30d} icon={Flame} color="var(--color-amber)" />
           <StatCard label="Rata-rata Hal/Sesi" value={s.avgPagesPerSession} icon={TrendingUp} color="var(--color-ink)" />
           <StatCard label="Rata-rata Menit/Sesi" value={s.avgDurationPerSession} icon={TrendingUp} color="var(--color-ink)" />
+          <StatCard label="Feed Items" value={data.feed.totalItems} icon={Share2} color="var(--color-sky)" />
+          <StatCard label="Feed Likes" value={data.feed.totalLikes} icon={Heart} color="var(--color-error)" />
+          <StatCard label="Feed Comments" value={data.feed.totalComments} icon={MessageSquare} color="var(--color-amber)" />
+          <StatCard label="Follows" value={data.follows} icon={UserPlus} color="var(--color-sky)" />
+        </div>
+      </section>
+
+      {/* ── CHALLENGES ── */}
+      <section>
+        <h2 className="text-h3 mb-3">Tantangan & Lencana</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard label="Partisipan Unik" value={data.challenges.totalParticipants} icon={Award} color="var(--color-amber)" />
+          <StatCard label="Total Partisipasi" value={data.challenges.totalParticipations} icon={Zap} color="var(--color-forest)" />
+          <StatCard label="Lencana Diperoleh" value={data.challenges.totalBadges} icon={Star} color="var(--color-amber)" />
+          <StatCard label="Terselesaikan" value={data.challenges.totalCompleted} icon={Check} color="var(--color-lime)" />
         </div>
       </section>
 
@@ -244,12 +222,9 @@ export default function MetricsPage() {
             Keluarga Baru per Hari (30 hari)
           </h3>
           <div className="space-y-1">
-            {Object.entries(data.growth.familiesPerDay).length === 0 && (
-              <p className="text-xs text-ink-muted">Belum ada data</p>
-            )}
+            {Object.entries(data.growth.familiesPerDay).length === 0 && <p className="text-xs text-ink-muted">Belum ada data</p>}
             {Object.entries(data.growth.familiesPerDay).slice(-14).map(([tgl, jml]) => {
-              const all = Object.values(data.growth.familiesPerDay);
-              const max = Math.max(...all, 1);
+              const all = Object.values(data.growth.familiesPerDay); const max = Math.max(...all, 1);
               return (
                 <div key={tgl} className="flex items-center gap-2 text-xs">
                   <span className="w-20 text-ink-muted flex-shrink-0">{tgl.slice(5)}</span>
@@ -266,12 +241,9 @@ export default function MetricsPage() {
             Anggota Baru per Hari (30 hari)
           </h3>
           <div className="space-y-1">
-            {Object.entries(data.growth.membersPerDay).length === 0 && (
-              <p className="text-xs text-ink-muted">Belum ada data</p>
-            )}
+            {Object.entries(data.growth.membersPerDay).length === 0 && <p className="text-xs text-ink-muted">Belum ada data</p>}
             {Object.entries(data.growth.membersPerDay).slice(-14).map(([tgl, jml]) => {
-              const all = Object.values(data.growth.membersPerDay);
-              const max = Math.max(...all, 1);
+              const all = Object.values(data.growth.membersPerDay); const max = Math.max(...all, 1);
               return (
                 <div key={tgl} className="flex items-center gap-2 text-xs">
                   <span className="w-20 text-ink-muted flex-shrink-0">{tgl.slice(5)}</span>
@@ -287,8 +259,29 @@ export default function MetricsPage() {
       {/* ── ACTIVITY ── */}
       <ReadingChart daily={data.activity.daily} />
 
-      {/* ── STREAKS + CONTENT ── */}
-      <section className="grid md:grid-cols-2 gap-6">
+      {/* ── FEED ACTIVITY BY TYPE ── */}
+      <section className="grid md:grid-cols-3 gap-6">
+        {/* Feed activity types */}
+        <div className="bg-surface rounded-xl border border-border p-5">
+          <h3 className="text-sm font-bold text-ink mb-4 flex items-center gap-1.5">
+            <Share2 size={14} strokeWidth={2} className="text-sky" />
+            Aktivitas Feed (30 hari) per Tipe
+          </h3>
+          <div className="space-y-1.5">
+            {Object.entries(data.feed.perType).length === 0 && <p className="text-xs text-ink-muted">Belum ada data</p>}
+            {Object.entries(data.feed.perType).sort((a, b) => b[1] - a[1]).map(([type, count]) => {
+              const max = Math.max(...Object.values(data.feed.perType), 1);
+              return (
+                <div key={type} className="flex items-center gap-2 text-xs">
+                  <span className="w-20 text-ink-muted flex-shrink-0">{type}</span>
+                  <Bar value={count} max={max} color="var(--color-sky)" />
+                  <span className="font-semibold text-ink w-4 text-right">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Streak Distribution */}
         <div className="bg-surface rounded-xl border border-border p-5">
           <h3 className="text-sm font-bold text-ink mb-4 flex items-center gap-1.5">
@@ -312,55 +305,29 @@ export default function MetricsPage() {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="space-y-4">
-          <div className="bg-surface rounded-xl border border-border p-5">
-            <h3 className="text-sm font-bold text-ink mb-3 flex items-center gap-1.5">
-              <Library size={14} strokeWidth={2} className="text-forest" />
-              Status Rak Buku
-            </h3>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              {Object.entries(data.content.shelfStatus).map(([k, v]) => {
-                const total = Object.values(data.content.shelfStatus).reduce((a, b) => a + b, 0);
-                const colors: Record<string, string> = { want: "var(--color-amber)", reading: "var(--color-forest)", done: "var(--color-ink-muted)" };
-                return (
-                  <div key={k} className="bg-parchment rounded-xl p-3">
-                    <div className="font-display text-xl font-black" style={{ color: colors[k] ?? "var(--color-ink)" }}>{v}</div>
-                    <div className="text-[10px] text-ink-muted mt-0.5 font-medium uppercase">{k}</div>
-                    <div className="text-[9px] text-ink-muted">{total > 0 ? Math.round((v / total) * 100) : 0}%</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="bg-surface rounded-xl border border-border p-5">
-            <h3 className="text-sm font-bold text-ink mb-3 flex items-center gap-1.5">
-              <Check size={14} strokeWidth={2} className="text-forest" />
-              Enrichment Buku
-            </h3>
-            <div className="space-y-1.5">
-              {Object.entries(data.content.enrichment).map(([k, v]) => {
-                const total = Object.values(data.content.enrichment).reduce((a, b) => a + b, 0);
-                const colors: Record<string, string> = {
-                  enriched: "var(--color-forest)", pending: "var(--color-amber)", failed: "var(--color-error)",
-                };
-                const color = colors[k] ?? "var(--color-ink-muted)";
-                return (
-                  <div key={k} className="flex items-center gap-2 text-xs">
-                    <span className="w-16 text-ink-muted">{k}</span>
-                    <Bar value={v} max={total} color={color} />
-                    <span className="font-semibold text-ink w-6 text-right">{v}</span>
-                    <span className="text-ink-muted w-8">({total > 0 ? Math.round((v / total) * 100) : 0}%)</span>
-                  </div>
-                );
-              })}
-            </div>
+        {/* Shelf Status */}
+        <div className="bg-surface rounded-xl border border-border p-5">
+          <h3 className="text-sm font-bold text-ink mb-3 flex items-center gap-1.5">
+            <Library size={14} strokeWidth={2} className="text-forest" />
+            Status Rak Buku
+          </h3>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {Object.entries(data.content.shelfStatus).map(([k, v]) => {
+              const total = Object.values(data.content.shelfStatus).reduce((a, b) => a + b, 0);
+              const colors: Record<string, string> = { want: "var(--color-amber)", reading: "var(--color-forest)", done: "var(--color-ink-muted)" };
+              return (
+                <div key={k} className="bg-parchment rounded-xl p-3">
+                  <div className="font-display text-xl font-black" style={{ color: colors[k] ?? "var(--color-ink)" }}>{v}</div>
+                  <div className="text-[10px] text-ink-muted mt-0.5 font-medium uppercase">{k}</div>
+                  <div className="text-[9px] text-ink-muted">{total > 0 ? Math.round((v / total) * 100) : 0}%</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ── REVIEWS ── */}
+      {/* ── REVIEWS + TOP BOOKS ── */}
       <section className="grid md:grid-cols-2 gap-6">
         <div className="bg-surface rounded-xl border border-border p-5">
           <h3 className="text-sm font-bold text-ink mb-4 flex items-center gap-1.5">
@@ -389,9 +356,19 @@ export default function MetricsPage() {
               );
             })}
           </div>
+          {/* Reviews per day */}
+          <div className="mt-4 pt-3 border-t border-border">
+            <h4 className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider mb-2">per Hari (30 hari)</h4>
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
+              {Object.entries(data.reviews.perDay).slice(-10).map(([d, c]) => (
+                <span key={d} className="text-xs text-ink-muted">
+                  {d.slice(5)}: <strong className="text-ink">{c}</strong>
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Top Books */}
         <div className="bg-surface rounded-xl border border-border p-5">
           <h3 className="text-sm font-bold text-ink mb-4 flex items-center gap-1.5">
             <BookOpen size={14} strokeWidth={2} className="text-forest" />
@@ -419,31 +396,32 @@ export default function MetricsPage() {
 
       {/* ── FUNNEL + FAMILY SIZE ── */}
       <section className="grid md:grid-cols-2 gap-6">
-        {/* Onboarding Funnel */}
         <div className="bg-surface rounded-xl border border-border p-5">
           <h3 className="text-sm font-bold text-ink mb-4 flex items-center gap-1.5">
             <Target size={14} strokeWidth={2} className="text-amber" />
-            Funnel Onboarding
+            Funnel Pengguna
           </h3>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {data.funnel.map((f, i) => {
               const max = data.funnel[0]?.jumlah ?? 1;
               const pct = max > 0 ? Math.round((f.jumlah / max) * 100) : 0;
+              const prev = i > 0 ? data.funnel[i - 1].jumlah : max;
+              const drop = prev > 0 ? Math.round((1 - f.jumlah / prev) * 100) : 0;
               return (
                 <div key={f.langkah} className="flex items-center gap-2 text-xs">
                   <span className="w-28 text-ink-muted flex-shrink-0">{f.langkah}</span>
                   <div className="flex-1 flex items-center gap-2">
                     <Bar value={f.jumlah} max={max} color={i === data.funnel.length - 1 ? "var(--color-forest)" : "var(--color-amber)"} />
                   </div>
-                  <span className="font-semibold text-ink w-8 text-right">{pct}%</span>
+                  <span className="font-semibold text-ink w-7 text-right">{pct}%</span>
                   <span className="font-semibold text-ink-muted w-6 text-right">{f.jumlah}</span>
+                  {i > 0 && <span className="text-ink-muted/50 w-8 text-right">{drop > 0 ? `-${drop}%` : ""}</span>}
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Family Size + Notifications */}
         <div className="space-y-4">
           <div className="bg-surface rounded-xl border border-border p-5">
             <h3 className="text-sm font-bold text-ink mb-3 flex items-center gap-1.5">
@@ -451,9 +429,7 @@ export default function MetricsPage() {
               Ukuran Keluarga
             </h3>
             <div className="space-y-1.5">
-              {Object.entries(data.familySize).length === 0 && (
-                <p className="text-xs text-ink-muted">Belum ada data</p>
-              )}
+              {Object.entries(data.familySize).length === 0 && <p className="text-xs text-ink-muted">Belum ada data</p>}
               {Object.entries(data.familySize).map(([size, count]) => {
                 const max = Math.max(...Object.values(data.familySize), 1);
                 return (
@@ -473,9 +449,7 @@ export default function MetricsPage() {
               Notifikasi
             </h3>
             <div className="space-y-1">
-              {Object.entries(data.notifications).length === 0 && (
-                <p className="text-xs text-ink-muted">Belum ada notifikasi</p>
-              )}
+              {Object.entries(data.notifications).length === 0 && <p className="text-xs text-ink-muted">Belum ada notifikasi</p>}
               {Object.entries(data.notifications).map(([type, n]) => (
                 <div key={type} className="flex items-center justify-between text-xs">
                   <span className="text-ink-muted">{type}</span>
