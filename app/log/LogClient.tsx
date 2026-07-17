@@ -9,6 +9,7 @@ import BookTimer from "@/components/BookTimer";
 import ImageLightbox from "@/components/ImageLightbox";
 import { trackEvent } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase";
+import { shareCard } from "@/lib/share-card";
 
 type Book = {
   id: string;
@@ -105,6 +106,7 @@ export default function LogClient({
   const [uploadQueue, setUploadQueue] = useState<{ id: string; status: "uploading" | "done" | "error" }[]>([]);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [doneShelfId, setDoneShelfId] = useState<string | null>(null);
+  const [lastLogId, setLastLogId] = useState<string | null>(null);
 
   useEffect(() => {
     if (defaultBookId && shelf.length > 0 && !selected) {
@@ -224,6 +226,7 @@ export default function LogClient({
           trackEvent("streak_milestone", { streak: data.streak.current_streak });
         }
       }
+      setLastLogId(data.log?.id ?? null);
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
         document.body.focus?.();
@@ -353,6 +356,14 @@ export default function LogClient({
                     >
                       Ke Dashboard
                     </button>
+                    {lastLogId && (
+                      <button
+                        onClick={() => { shareCard(lastLogId, `Selesai baca ${shelf.find(s => s.id === doneShelfId)?.books?.title ?? "buku"}! 🎉 mulaibaca.id`); }}
+                        className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 px-3 rounded-xl hover:bg-white/20 transition-colors"
+                      >
+                        <Share2 size={14} /> Kartu
+                      </button>
+                    )}
                     <button
                       onClick={() => { setCelebrated(false); setDoneShelfId(null); if (shelf.length === 1) setSelected(shelf[0]); }}
                       className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
@@ -383,11 +394,16 @@ export default function LogClient({
                   >
                     Ke Dashboard
                   </button>
+                  {lastLogId && (
+                    <button
+                      onClick={() => { shareCard(lastLogId, `Lagi baca ${shelf.find(s => s.id === selected?.id)?.books?.title ?? "buku"} di mulaibaca 📚`); }}
+                      className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 px-3 rounded-xl hover:bg-white/20 transition-colors"
+                    >
+                      <Share2 size={14} /> Kartu
+                    </button>
+                  )}
                   <button
-                    onClick={() => {
-                      setCelebrated(false);
-                      if (shelf.length === 1) setSelected(shelf[0]);
-                    }}
+                    onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
                     className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
                   >
                     Catat Lagi

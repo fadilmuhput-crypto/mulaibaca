@@ -9,6 +9,7 @@ export type FeedDetail = {
   to_page?: number | null;
   images?: string[] | null;
   note?: string | null;
+  log_id?: string | null;
   rating?: number;
   excerpt?: string;
   review_slug?: string;
@@ -72,7 +73,7 @@ export function rowToFeedItem(row: ActivityRow): FeedItem {
     case "shelf_status":
       return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { from_status: d.from_status as string, to_status: d.to_status as string } as FeedDetail };
     case "log":
-      return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { pages_read: d.pages_read as number, duration_minutes: (d.duration_minutes as number | null) ?? null, from_page: (d.from_page as number | null) ?? null, to_page: (d.to_page as number | null) ?? null, images: (d.images as string[] | null) ?? null, note: (d.note as string | null) ?? null } as FeedDetail };
+      return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { pages_read: d.pages_read as number, duration_minutes: (d.duration_minutes as number | null) ?? null, from_page: (d.from_page as number | null) ?? null, to_page: (d.to_page as number | null) ?? null, images: (d.images as string[] | null) ?? null, note: (d.note as string | null) ?? null, log_id: (d.log_id as string | null) ?? null } as FeedDetail };
     case "review":
       return { ...base, book_id: d.book_id as string, book_title: d.book_title as string, book_slug: d.book_slug as string, book_cover: (d.book_cover as string | null) ?? null, detail: { rating: d.rating as number, excerpt: d.excerpt as string | undefined, review_slug: d.review_slug as string } as FeedDetail };
     case "finish":

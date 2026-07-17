@@ -449,7 +449,15 @@ function shareText(item: FeedItem): string {
   }
 }
 
+import { shareCard } from "@/lib/share-card";
+
+// ... (this import is in the right place)
+
 async function shareItem(item: FeedItem) {
+  if (item.type === "log" && item.detail.log_id) {
+    await shareCard(item.detail.log_id, shareText(item));
+    return;
+  }
   if (navigator.share) {
     try {
       await navigator.share({ title: "mulaibaca", text: shareText(item) });
