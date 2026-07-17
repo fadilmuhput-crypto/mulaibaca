@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { FeedItem } from "@/lib/feed";
 import type { FeedComment } from "@/app/api/feed/[id]/comments/route";
 import { BookOpen, Star, CheckCircle, RefreshCw, ChevronLeft, Share2, BookmarkPlus, ArrowRightLeft, UserPlus, Trash2, Heart, MessageCircle, Send, Award } from "lucide-react";
@@ -9,7 +10,6 @@ import BookCover from "@/components/BookCover";
 import AvatarIcon from "@/components/AvatarIcon";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ImageLightbox from "@/components/ImageLightbox";
-import { shareCard } from "@/lib/share-card";
 
 const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string; icon: React.ReactNode }> = {
   log:          { verb: "lagi baca", color: "text-amber", icon: <BookOpen size={14} /> },
@@ -452,7 +452,7 @@ function shareText(item: FeedItem): string {
 
 async function shareItem(item: FeedItem) {
   if (item.type === "log" && item.detail.log_id) {
-    await shareCard(item.detail.log_id, shareText(item));
+    window.location.href = `/share/log/${item.detail.log_id}`;
     return;
   }
   if (navigator.share) {

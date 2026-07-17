@@ -9,7 +9,6 @@ import BookTimer from "@/components/BookTimer";
 import ImageLightbox from "@/components/ImageLightbox";
 import { trackEvent } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase";
-import { shareCard } from "@/lib/share-card";
 
 type Book = {
   id: string;
@@ -358,7 +357,7 @@ export default function LogClient({
                     </button>
                     {lastLogId && (
                       <button
-                        onClick={() => { shareCard(lastLogId, `Selesai baca ${shelf.find(s => s.id === doneShelfId)?.books?.title ?? "buku"}! 🎉 mulaibaca.id`); }}
+                        onClick={() => { router.push(`/share/log/${lastLogId}`); }}
                         className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 px-3 rounded-xl hover:bg-white/20 transition-colors"
                       >
                         <Share2 size={14} /> Kartu
@@ -394,19 +393,19 @@ export default function LogClient({
                   >
                     Ke Dashboard
                   </button>
-                  {lastLogId && (
+                    {lastLogId && (
+                      <button
+                        onClick={() => { router.push(`/share/log/${lastLogId}`); }}
+                        className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 px-3 rounded-xl hover:bg-white/20 transition-colors"
+                      >
+                        <Share2 size={14} /> Kartu
+                      </button>
+                    )}
                     <button
-                      onClick={() => { shareCard(lastLogId, `Lagi baca ${shelf.find(s => s.id === selected?.id)?.books?.title ?? "buku"} di mulaibaca 📚`); }}
-                      className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 px-3 rounded-xl hover:bg-white/20 transition-colors"
+                      onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
+                      className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
                     >
-                      <Share2 size={14} /> Kartu
-                    </button>
-                  )}
-                  <button
-                    onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
-                    className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
-                  >
-                    Catat Lagi
+                      Catat Lagi
                   </button>
                 </div>
               </>
