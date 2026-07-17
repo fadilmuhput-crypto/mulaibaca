@@ -97,6 +97,12 @@ export async function GET(
 
       {/* Centered content */}
       <div style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 48px" }}>
+        {/* Branding */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "28px" }}>
+          <span style={{ color: isDarkBg ? "#BFE040" : isLight ? "#1E4530" : "rgba(255,255,255,0.8)", fontSize: "20px", letterSpacing: "4px", fontWeight: 700 }}>MULAIBACA.ID</span>
+          <div style={{ display: "flex", width: "40px", height: "2px", background: isDarkBg ? "rgba(191,224,64,0.3)" : isLight ? "rgba(30,69,48,0.2)" : "rgba(255,255,255,0.2)", borderRadius: "1px" }} />
+        </div>
+
         {/* Book cover */}
         <div style={{ display: "flex", width: "380px", height: "570px", borderRadius: "20px", overflow: "hidden", boxShadow: isTransparent ? "0 8px 32px rgba(0,0,0,0.25)" : "0 20px 60px rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {coverUrl ? (
