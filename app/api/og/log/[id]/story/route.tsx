@@ -99,6 +99,15 @@ export async function GET(
 
       {/* Centered content */}
       <div style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 48px" }}>
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "32px" }}>
+          <svg width="32" height="32" viewBox="0 0 28 28" fill={logoColor} style={{ display: "flex" }}>
+            <path d="M6 4h16v2H8v2h14v2H8v8h-2V6z" />
+            <path d="M8 14h12v2H10v2h10v2H10v2h10v2H8v-8z" />
+          </svg>
+          <span style={{ color: logoColor, fontSize: "18px", letterSpacing: "4px", fontWeight: 700 }}>MULAIBACA</span>
+        </div>
+
         {/* Book cover */}
         <div style={{ display: "flex", width: "380px", height: "570px", borderRadius: "20px", overflow: "hidden", boxShadow: isTransparent ? "0 8px 32px rgba(0,0,0,0.25)" : "0 20px 60px rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {coverUrl ? (
@@ -141,19 +150,10 @@ export async function GET(
 
         {/* Note */}
         {noteText && (
-          <div style={{ display: "flex", background: notePill, borderRadius: "14px", padding: "16px 28px", marginTop: "28px", maxWidth: "620px" }}>
-            <span style={{ fontSize: "18px", color: textMuted, fontStyle: "italic", textAlign: "center", lineHeight: 1.5 }}>"{noteText}"</span>
+          <div style={{ display: "flex", background: notePill, borderRadius: "16px", padding: "18px 32px", marginTop: "28px", maxWidth: "660px" }}>
+            <span style={{ fontSize: "22px", color: textMuted, fontStyle: "italic", textAlign: "center", lineHeight: 1.5 }}>"{noteText}"</span>
           </div>
         )}
-      </div>
-
-      {/* Bottom logo */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "0 0 40px" }}>
-        <svg width="20" height="20" viewBox="0 0 28 28" fill={logoColor} style={{ display: "flex" }}>
-          <path d="M6 4h16v2H8v2h14v2H8v8h-2V6z" />
-          <path d="M8 14h12v2H10v2h10v2H10v2h10v2H8v-8z" />
-        </svg>
-        <span style={{ color: textMuted2, fontSize: "13px", letterSpacing: "3px", fontWeight: 600 }}>MULAIBACA.ID</span>
       </div>
     </div>,
     { width: 1080, height: 1920 }
