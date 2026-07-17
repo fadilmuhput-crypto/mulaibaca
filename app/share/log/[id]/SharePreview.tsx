@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ReactDOM from "react-dom";
 import Link from "next/link";
 import { ChevronLeft, Download, Share2, Check, Loader2, BookOpen, Clock, Flame, Moon, Sun, Image as ImageIcon, ChevronLeft as ChevronLeftIcon, ChevronRight } from "lucide-react";
 
@@ -32,6 +33,9 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
   const progress = book.total_pages && book.total_pages > 0
     ? Math.min(Math.round((pagesRead / book.total_pages) * 100), 100)
     : null;
+
+  ReactDOM.preload(`/api/og/log/${logId}`, { as: "image" });
+  ReactDOM.preload(`/api/og/log/${logId}/story?bg=dark`, { as: "image" });
 
   function prev() {
     setIndex(i => (i === 0 ? BG_STYLES.length - 1 : i - 1));
@@ -224,6 +228,7 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
             <img
               src={`/api/og/log/${logId}`}
               alt="Kartu bacaan"
+              loading="lazy"
               className={`w-full h-full object-contain transition-opacity duration-300 ${landscapeLoaded ? "opacity-100" : "opacity-0"}`}
               onLoad={() => setLandscapeLoaded(true)}
             />

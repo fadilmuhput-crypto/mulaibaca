@@ -127,6 +127,6 @@ export async function GET(
         <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "13px" }}>baca, catat, review</span>
       </div>
     </div>,
-    { width: 1080, height: 540 }
+    { width: 1080, height: 540, headers: { "Cache-Control": "public, max-age=3600, s-maxage=3600" } }
   );
 }

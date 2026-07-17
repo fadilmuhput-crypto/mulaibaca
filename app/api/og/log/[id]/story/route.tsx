@@ -151,6 +151,6 @@ export async function GET(
         )}
       </div>
     </div>,
-    { width: 1080, height: 1920 }
+    { width: 1080, height: 1920, headers: { "Cache-Control": "public, max-age=3600, s-maxage=3600" } }
   );
 }
