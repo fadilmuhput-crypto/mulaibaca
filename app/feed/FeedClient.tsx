@@ -215,6 +215,11 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
                   {item.detail.duration_minutes != null && item.detail.duration_minutes > 0 && (
                     <p className="text-[11px] text-ink-muted/60">{item.detail.duration_minutes} menit</p>
                   )}
+                  {item.detail.note && (
+                    <p className="text-xs text-ink-secondary italic leading-relaxed line-clamp-2 pt-1 border-t border-border/50">
+                      "{item.detail.note.length > 120 ? item.detail.note.slice(0, 120) + "…" : item.detail.note}"
+                    </p>
+                  )}
                 </div>
               )}
               {item.type === "shelf_add" && (

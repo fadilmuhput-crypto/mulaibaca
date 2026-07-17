@@ -13,6 +13,7 @@ export type ActivityData = {
   from_page?: number | null;
   to_page?: number | null;
   images?: string[] | null;
+  note?: string | null;
   rating?: number;
   excerpt?: string;
   review_slug?: string;
