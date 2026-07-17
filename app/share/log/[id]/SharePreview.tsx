@@ -11,7 +11,7 @@ type Book = {
   total_pages: number | null;
 };
 
-export default function SharePreview({ logId, book, pagesRead, duration, note }: { logId: string; book: Book; pagesRead: number; duration: number | null; note: string | null }) {
+export default function SharePreview({ logId, feedItemId, book, pagesRead, duration, note }: { logId: string; feedItemId: string | null; book: Book; pagesRead: number; duration: number | null; note: string | null }) {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [imgLoaded, setImgLoaded] = useState({ landscape: false, story: false });
@@ -60,7 +60,9 @@ export default function SharePreview({ logId, book, pagesRead, duration, note }:
   }
 
   async function handleShareLink() {
-    const url = `https://www.mulaibaca.id/share/log/${logId}`;
+    const url = feedItemId
+      ? `https://www.mulaibaca.id/feed/${feedItemId}`
+      : `https://www.mulaibaca.id/share/log/${logId}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: "mulaibaca", text: shareTextFallback(), url });

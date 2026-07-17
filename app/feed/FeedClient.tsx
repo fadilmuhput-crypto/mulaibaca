@@ -438,15 +438,14 @@ function shareText(item: FeedItem): string {
 }
 
 async function shareItem(item: FeedItem) {
-  if (item.type === "log" && item.detail.log_id) {
-    window.location.href = `/share/log/${item.detail.log_id}`;
-    return;
-  }
+  const url = `https://www.mulaibaca.id/feed/${item.id}`;
   if (navigator.share) {
     try {
-      await navigator.share({ title: "mulaibaca", text: shareText(item) });
+      await navigator.share({ title: "mulaibaca", text: shareText(item), url });
+      return;
     } catch {}
   }
+  await navigator.clipboard.writeText(url);
 }
 
 function FeedList({ items, currentMemberId, onDelete, likesMap }: { items: FeedItem[]; currentMemberId?: string; onDelete?: (id: string) => void; likesMap?: Record<string, LikeState> }) {

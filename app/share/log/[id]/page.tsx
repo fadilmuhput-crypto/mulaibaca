@@ -27,5 +27,12 @@ export default async function ShareLogPage({ params }: { params: Promise<{ id: s
     books: { id: string; title: string; author: string | null; cover_url: string | null; total_pages: number | null };
   };
 
-  return <SharePreview logId={id} book={shelfRow.books} pagesRead={log.pages_read} duration={log.duration_minutes} note={log.note} />;
+  const { data: feedRow } = await admin
+    .from("activity_feed")
+    .select("id")
+    .eq("activity_type", "log")
+    .filter("data->>log_id", "eq", id)
+    .maybeSingle();
+
+  return <SharePreview logId={id} feedItemId={feedRow?.id ?? null} book={shelfRow.books} pagesRead={log.pages_read} duration={log.duration_minutes} note={log.note} />;
 }
