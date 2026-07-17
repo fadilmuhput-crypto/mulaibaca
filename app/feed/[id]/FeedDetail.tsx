@@ -133,6 +133,10 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
   }
 
   async function handleShare() {
+    if (item.type === "log" && item.detail.log_id) {
+      window.location.href = `/share/log/${item.detail.log_id}`;
+      return;
+    }
     const url = `https://www.mulaibaca.id/feed/${item.id}`;
     const text = shareTextFallback();
     if (navigator.share) {
