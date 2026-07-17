@@ -9,6 +9,7 @@ import BookCover from "@/components/BookCover";
 import AvatarIcon from "@/components/AvatarIcon";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ImageLightbox from "@/components/ImageLightbox";
+import { shareCard } from "@/lib/share-card";
 
 const ACTIVITY_LABELS: Record<FeedItem["type"], { verb: string; color: string; icon: React.ReactNode }> = {
   log:          { verb: "lagi baca", color: "text-amber", icon: <BookOpen size={14} /> },
@@ -448,10 +449,6 @@ function shareText(item: FeedItem): string {
       return base;
   }
 }
-
-import { shareCard } from "@/lib/share-card";
-
-// ... (this import is in the right place)
 
 async function shareItem(item: FeedItem) {
   if (item.type === "log" && item.detail.log_id) {
