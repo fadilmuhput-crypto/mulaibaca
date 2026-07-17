@@ -27,25 +27,16 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
       if (!res.ok) throw new Error("Gagal memuat kartu");
       const blob = await res.blob();
       const filename = "mulaibaca-story.png";
-
-      if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: "image/png" })] })) {
-        const file = new File([blob], filename, { type: "image/png" });
-        await navigator.share({ files: [file], title: "mulaibaca" });
-      } else {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(URL.createObjectURL(blob));
-      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Save failed:", err);
-      const text = `${book.title} — ${pagesRead} halaman di mulaibaca 📚 mulaibaca.id`;
-      if (navigator.share) {
-        try { await navigator.share({ title: "mulaibaca", text }); } catch {}
-      }
     } finally {
       setSaving(false);
     }

@@ -92,6 +92,7 @@ function useCommentsState(feedId: string) {
   }
 
   async function deleteComment(commentId: string) {
+    if (!confirm("Hapus komentar ini?")) return false;
     const res = await fetch(`/api/feed/${feedId}/comments?comment_id=${commentId}`, {
       method: "DELETE",
     });
