@@ -51,68 +51,73 @@ export async function GET(
   const coverUrl = book.cover_url?.startsWith("http") ? book.cover_url : null;
 
   return new ImageResponse(
-    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", background: "linear-gradient(180deg, #0F2A1E 0%, #1A3D2B 50%, #0F2A1E 100%)", fontFamily: '"Geist", "Inter", sans-serif' }}>
-      {/* Top spacing */}
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, padding: "60px 48px 40px", alignItems: "center", justifyContent: "center" }}>
-        {/* Book cover — large and centered */}
-        <div style={{ display: "flex", width: "360px", height: "540px", borderRadius: "24px", overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", background: "linear-gradient(160deg, #0A1E14 0%, #143A26 35%, #0F2A1E 70%, #081A10 100%)", fontFamily: '"Geist", "Inter", sans-serif', position: "relative", overflow: "hidden" }}>
+      {/* Decorative circles */}
+      <div style={{ display: "flex", position: "absolute", top: "-120px", right: "-80px", width: "400px", height: "400px", borderRadius: "50%", background: "rgba(191, 224, 64, 0.04)" }} />
+      <div style={{ display: "flex", position: "absolute", bottom: "200px", left: "-100px", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(194, 110, 42, 0.04)" }} />
+      <div style={{ display: "flex", position: "absolute", top: "500px", right: "-50px", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(255, 255, 255, 0.03)" }} />
+
+      {/* Top bar: user info */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "48px 48px 0" }}>
+        <div style={{ display: "flex", width: "40px", height: "40px", borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontSize: "16px", fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>{memberName.charAt(0)}</span>
+        </div>
+        <span style={{ fontSize: "16px", color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>{memberName}</span>
+      </div>
+
+      {/* Content area */}
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, padding: "24px 48px 32px", alignItems: "center", justifyContent: "center" }}>
+        {/* Book cover */}
+        <div style={{ display: "flex", width: "240px", height: "360px", borderRadius: "16px", overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {coverUrl ? (
             <img src={coverUrl} alt="" style={{ display: "flex", width: "100%", height: "100%", objectFit: "cover" }} />
           ) : (
             <div style={{ display: "flex", width: "100%", height: "100%", background: "linear-gradient(135deg, #1E4530, #2A5E40)", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: "100px", fontWeight: 800, color: "rgba(255,255,255,0.15)" }}>{book.title?.charAt(0) ?? "B"}</span>
+              <span style={{ fontSize: "72px", fontWeight: 800, color: "rgba(255,255,255,0.12)" }}>{book.title?.charAt(0) ?? "B"}</span>
             </div>
           )}
         </div>
 
-        {/* Book info */}
-        <span style={{ fontSize: "30px", fontWeight: 800, color: "#FAF7F2", textAlign: "center", lineHeight: 1.25, marginTop: "28px", maxWidth: "600px" }}>{book.title}</span>
-        {book.author && <span style={{ fontSize: "18px", color: "#BFE040", marginTop: "6px" }}>{book.author}</span>}
+        {/* Title + author */}
+        <span style={{ fontSize: "26px", fontWeight: 800, color: "#FAF7F2", textAlign: "center", lineHeight: 1.3, marginTop: "24px", maxWidth: "540px" }}>{book.title}</span>
+        {book.author && <span style={{ fontSize: "16px", color: "#BFE040", marginTop: "6px", opacity: 0.9 }}>{book.author}</span>}
 
         {/* Stats row */}
-        <div style={{ display: "flex", gap: "14px", marginTop: "28px" }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.08)", borderRadius: "16px", padding: "16px 28px" }}>
-            <span style={{ fontSize: "34px", fontWeight: 800, color: "#C26E2A" }}>{pagesRead}</span>
-            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontWeight: 600, letterSpacing: "0.5px" }}>HALAMAN</span>
+        <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.06)", borderRadius: "14px", padding: "14px 24px", minWidth: "90px" }}>
+            <span style={{ fontSize: "30px", fontWeight: 800, color: "#C26E2A" }}>{pagesRead}</span>
+            <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "1px" }}>HALAMAN</span>
             {progress !== null && (
-              <div style={{ display: "flex", width: "100%", minWidth: "80px", height: "3px", background: "rgba(255,255,255,0.08)", borderRadius: "2px", marginTop: "8px", overflow: "hidden" }}>
-                <div style={{ display: "flex", width: `${progress}%`, height: "100%", background: "#C26E2A", borderRadius: "2px" }} />
+              <div style={{ display: "flex", width: "100%", height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px", marginTop: "6px", overflow: "hidden" }}>
+                <div style={{ display: "flex", width: `${progress}%`, height: "100%", background: "#C26E2A", borderRadius: "1px" }} />
               </div>
             )}
           </div>
           {duration && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.08)", borderRadius: "16px", padding: "16px 28px" }}>
-              <span style={{ fontSize: "34px", fontWeight: 800, color: "#BFE040" }}>{duration}</span>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontWeight: 600, letterSpacing: "0.5px" }}>MENIT</span>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.06)", borderRadius: "14px", padding: "14px 24px", minWidth: "90px" }}>
+              <span style={{ fontSize: "30px", fontWeight: 800, color: "#BFE040" }}>{duration}</span>
+              <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "1px" }}>MENIT</span>
             </div>
           )}
           {currentStreak > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.08)", borderRadius: "16px", padding: "16px 28px" }}>
-              <span style={{ fontSize: "34px", fontWeight: 800, color: "#FF6B6B" }}>{currentStreak}</span>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontWeight: 600, letterSpacing: "0.5px" }}>STREAK</span>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.06)", borderRadius: "14px", padding: "14px 24px", minWidth: "90px" }}>
+              <span style={{ fontSize: "30px", fontWeight: 800, color: "#FF6B6B" }}>{currentStreak}</span>
+              <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "1px" }}>STREAK</span>
             </div>
           )}
         </div>
 
         {/* Note */}
         {noteText && (
-          <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: "14px", padding: "16px 24px", marginTop: "24px", maxWidth: "560px" }}>
-            <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", fontStyle: "italic", textAlign: "center", lineHeight: 1.4 }}>"{noteText}"</span>
+          <div style={{ display: "flex", background: "rgba(255,255,255,0.04)", borderRadius: "12px", padding: "12px 20px", marginTop: "20px", maxWidth: "520px" }}>
+            <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", fontStyle: "italic", textAlign: "center", lineHeight: 1.5 }}>"{noteText}"</span>
           </div>
         )}
-
-        {/* User info */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "auto", paddingTop: "32px" }}>
-          <div style={{ display: "flex", width: "32px", height: "32px", borderRadius: "50%", background: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: "14px", fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>{memberName.charAt(0)}</span>
-          </div>
-          <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.4)" }}>{memberName} via mulaibaca</span>
-        </div>
       </div>
 
       {/* Bottom branding */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 0 48px" }}>
-        <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", letterSpacing: "2px" }}>MULAIBACA.ID</span>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 0 40px" }}>
+        <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "11px", letterSpacing: "3px", fontWeight: 600 }}>MULAIBACA.ID</span>
       </div>
     </div>,
     { width: 1080, height: 1920 }
