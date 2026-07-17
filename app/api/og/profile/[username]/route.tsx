@@ -105,7 +105,7 @@ export async function GET(
               boxShadow: "0 4px 12px rgba(194,110,42,0.3)",
             }}
           >
-            {member.avatar ? (
+            {member.avatar?.startsWith("http") ? (
               <img src={member.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
               firstLetter
@@ -219,6 +219,7 @@ export async function GET(
     {
       width: 1080,
       height: 540,
+      emoji: "noto",
     }
   );
 }

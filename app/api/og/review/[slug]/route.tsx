@@ -175,7 +175,7 @@ export async function GET(
                   overflow: "hidden",
                 }}
               >
-                {member?.avatar ? (
+                {member?.avatar?.startsWith("http") ? (
                   <img src={member.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
                   reviewerName.charAt(0)
@@ -258,6 +258,7 @@ export async function GET(
     {
       width: 1080,
       height: 540,
+      emoji: "noto",
     }
   );
 }
