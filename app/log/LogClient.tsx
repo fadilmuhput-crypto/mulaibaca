@@ -322,50 +322,49 @@ export default function LogClient({
 
       {/* ── CELEBRATION POPUP (includes book done state) ── */}
       {celebrated && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setCelebrated(false); setDoneShelfId(null); router.push("/dashboard"); }}>
-          <div className="bg-forest rounded-2xl brutal-border brutal-shadow-sm p-6 text-center max-w-sm w-full mx-4 animate-in fade-in zoom-in-95" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => { setCelebrated(false); setDoneShelfId(null); }}>
+          <div className="bg-forest rounded-2xl brutal-border brutal-shadow-sm p-6 text-center max-w-sm w-full mx-4 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             {doneShelfId ? (
               <>
-                <div className="text-4xl mb-3">🎉</div>
+                <div className="text-4xl mb-3 animate-bounce">🎉</div>
                 <div className="text-xl font-display font-black text-white mb-1">
                   Selesai baca buku ini!
                 </div>
                 <p className="text-white/70 text-sm mb-1">
                   +{lastPages} halaman terakhir
                 </p>
-                {streak.current_streak > 1 && (
+                {streak.current_streak > 1 ? (
                   <p className="text-white/60 text-xs mb-4">
                     🔥 Streak {streak.current_streak} hari berturut-turut
                   </p>
-                )}
-                {streak.current_streak <= 1 && (
+                ) : (
                   <p className="text-white/40 text-[11px] mb-4">Berhasil dicatat</p>
                 )}
                 <div className="flex flex-col gap-2">
                   <Link
                     href={`/review/tulis?shelf=${doneShelfId}`}
-                    className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-colors text-center"
+                    className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98] text-center"
                   >
-                    Tulis Review
+                    Tulis Review →
                   </Link>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={() => router.push("/dashboard")}
-                      className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
+                      className="bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
                     >
-                      Ke Dashboard
+                      Dashboard
                     </button>
                     {lastLogId && (
                       <button
                         onClick={() => { router.push(`/share/log/${lastLogId}`); }}
-                        className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 px-3 rounded-xl hover:bg-white/20 transition-colors"
+                        className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
                       >
                         <Share2 size={14} /> Kartu
                       </button>
                     )}
                     <button
                       onClick={() => { setCelebrated(false); setDoneShelfId(null); if (shelf.length === 1) setSelected(shelf[0]); }}
-                      className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
+                      className={`bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98] ${lastLogId ? "" : "col-span-2"}`}
                     >
                       Catat Lagi
                     </button>
@@ -374,38 +373,37 @@ export default function LogClient({
               </>
             ) : (
               <>
-                <div className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3">
+                <div className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3 animate-in zoom-in duration-300">
                   <Check size={28} strokeWidth={2.5} className="text-white" />
                 </div>
                 <div className="text-3xl font-display font-black text-white mb-1">
                   +{lastPages} halaman!
                 </div>
                 {streak.current_streak > 1 ? (
-                  <p className="text-white/70 text-sm mb-2">🔥 Streak {streak.current_streak} hari! Terus pertahankan!</p>
+                  <p className="text-white/70 text-sm mb-4">🔥 Streak {streak.current_streak} hari! Terus pertahankan!</p>
                 ) : (
-                  <p className="text-white/70 text-sm mb-2">Bacaan hari ini tercatat. Keep going!</p>
+                  <p className="text-white/70 text-sm mb-4">Bacaan hari ini tercatat. Keep going!</p>
                 )}
-                <p className="text-white/40 text-[11px] mb-4">Berhasil dicatat — akan kembali ke dashboard</p>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => router.push("/dashboard")}
-                    className="flex-1 bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-colors"
+                    className="bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98]"
                   >
-                    Ke Dashboard
+                    Dashboard
                   </button>
-                    {lastLogId && (
-                      <button
-                        onClick={() => { router.push(`/share/log/${lastLogId}`); }}
-                        className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 px-3 rounded-xl hover:bg-white/20 transition-colors"
-                      >
-                        <Share2 size={14} /> Kartu
-                      </button>
-                    )}
+                  {lastLogId && (
                     <button
-                      onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
-                      className="flex-1 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-colors"
+                      onClick={() => { router.push(`/share/log/${lastLogId}`); }}
+                      className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
                     >
-                      Catat Lagi
+                      <Share2 size={14} /> Kartu
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
+                    className={`bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98] ${lastLogId ? "" : "col-span-2"}`}
+                  >
+                    Catat Lagi
                   </button>
                 </div>
               </>
