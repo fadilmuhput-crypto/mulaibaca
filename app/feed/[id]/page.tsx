@@ -6,7 +6,6 @@ import FeedDetail from "./FeedDetail";
 
 export default async function FeedDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
-  if (!session) redirect("/masuk");
 
   const { id } = await params;
   const admin = createAdminClient();
@@ -22,5 +21,5 @@ export default async function FeedDetailPage({ params }: { params: Promise<{ id:
   const rawItem: FeedItem = rowToFeedItem(row as unknown as Parameters<typeof rowToFeedItem>[0]);
   await enrichFinishItems([rawItem], admin);
 
-  return <FeedDetail item={rawItem} currentMemberId={session.memberId} />;
+  return <FeedDetail item={rawItem} currentMemberId={session?.memberId ?? null} />;
 }

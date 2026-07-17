@@ -38,6 +38,7 @@ function timeAgo(date: string) {
 type LikeState = { count: number; liked: boolean };
 function useLikeState(
   feedId: string,
+  currentMemberId: string | undefined,
   initial?: LikeState | null
 ) {
   const [count, setCount] = useState(initial?.count ?? 0);
@@ -51,6 +52,7 @@ function useLikeState(
   }, [feedId, initial]);
 
   async function toggle() {
+    if (!currentMemberId) { window.location.href = "/masuk"; return; }
     if (liked) {
       setLiked(false); setCount((c) => Math.max(c - 1, 0));
       await fetch(`/api/feed/${feedId}/like`, { method: "DELETE" });
@@ -109,7 +111,7 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<HTMLInputElement>(null);
-  const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id, initialLike);
+  const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id, currentMemberId, initialLike);
   const { comments, open: commentsOpen, toggleOpen: toggleComments, addComment, deleteComment } = useCommentsState(item.id);
   const label = ACTIVITY_LABELS[item.type];
 
@@ -117,6 +119,7 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
     e.preventDefault();
     const text = commentText.trim();
     if (!text) return;
+    if (!currentMemberId) { window.location.href = "/masuk"; return; }
     const ok = await addComment(text);
     if (ok) setCommentText("");
   }
@@ -439,15 +442,15 @@ function shareText(item: FeedItem): string {
 }
 
 async function shareItem(item: FeedItem) {
-  if (item.type === "log" && item.detail.log_id) {
-    window.location.href = `/share/log/${item.detail.log_id}`;
-    return;
-  }
+  const url = `https://www.mulaibaca.id/feed/${item.id}`;
+  const text = shareText(item);
   if (navigator.share) {
     try {
-      await navigator.share({ title: "mulaibaca", text: shareText(item) });
+      await navigator.share({ title: "mulaibaca", text, url });
     } catch {}
+    return;
   }
+  await navigator.clipboard.writeText(url);
 }
 
 function FeedList({ items, currentMemberId, onDelete, likesMap }: { items: FeedItem[]; currentMemberId?: string; onDelete?: (id: string) => void; likesMap?: Record<string, LikeState> }) {

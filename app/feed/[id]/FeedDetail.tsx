@@ -13,7 +13,7 @@ import BadgePing from "@/components/BadgePing";
 
 type LikeState = { count: number; liked: boolean };
 
-function useLikeState(feedId: string, initial?: LikeState | null) {
+function useLikeState(feedId: string, currentMemberId: string | null, initial?: LikeState | null) {
   const [count, setCount] = useState(initial?.count ?? 0);
   const [liked, setLiked] = useState(initial?.liked ?? false);
 
@@ -25,6 +25,7 @@ function useLikeState(feedId: string, initial?: LikeState | null) {
   }, [feedId, initial]);
 
   async function toggle() {
+    if (!currentMemberId) { window.location.href = "/masuk"; return; }
     if (liked) {
       setLiked(false); setCount((c) => Math.max(c - 1, 0));
       await fetch(`/api/feed/${feedId}/like`, { method: "DELETE" });
@@ -99,12 +100,12 @@ function timeAgo(date: string) {
   return new Date(date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 }
 
-export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; currentMemberId: string }) {
+export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; currentMemberId: string | null }) {
   const [deleting, setDeleting] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<HTMLInputElement>(null);
-  const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id);
+  const { count: likeCount, liked, toggle: toggleLike } = useLikeState(item.id, currentMemberId);
   const { comments, loading: commentsLoading, addComment, deleteComment } = useCommentsState(item.id);
   const label = ACTIVITY_LABELS[item.type];
 
@@ -112,6 +113,7 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
     e.preventDefault();
     const text = commentText.trim();
     if (!text) return;
+    if (!currentMemberId) { window.location.href = "/masuk"; return; }
     const ok = await addComment(text);
     if (ok) setCommentText("");
   }
@@ -122,34 +124,24 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
       case "log":
         return `Lagi baca "${item.book_title}" — +${item.detail.pages_read} halaman${item.detail.duration_minutes ? ` dalam ${item.detail.duration_minutes} menit` : ""}! Catat progres bacamu juga di mulaibaca 📚\nmulaibaca.id`;
       case "review":
-        return `Review "${item.book_title}" ${item.detail.rating ? "⭐".repeat(item.detail.rating) : ""} — "${item.detail.excerpt?.slice(0, 100)}"\n\nBaca review lengkapnya di mulaibaca 📚\nmulaibaca.id/review/${item.detail.review_slug}`;
+        return `Review "${item.book_title}" ${item.detail.rating ? "⭐".repeat(item.detail.rating) : ""} — "${item.detail.excerpt?.slice(0, 100)}"\n\nBaca review lengkapnya di mulaibaca 📚\nmulaibaca.id`;
       case "finish":
         return `Selesai baca "${item.book_title}"! 🎉 Pantau progres dan temukan buku baru di mulaibaca 📚\nmulaibaca.id`;
-      case "shelf_add":
-        return `Mulai baca "${item.book_title}" 📖 Catat perjalanan bacamu biar makin semangat di mulaibaca 📚\nmulaibaca.id`;
-      case "shelf_status":
-        return `Update status bacaan "${item.book_title}" → ${item.detail.to_status} di mulaibaca. Atur rak dan catat progres bacaanmu! 📚\nmulaibaca.id`;
-      case "follow":
-        return `Ikutin ${item.detail.following_name} di mulaibaca — lihat aktivitas dan rekomendasi buku dari teman! 📚\nmulaibaca.id/u/${item.detail.following_username}`;
-      case "challenge_earn":
-        return `${item.detail.badge_name} — ${item.detail.challenge_title}! Selesaikan tantangan bacamu juga di mulaibaca 📚\nmulaibaca.id/komunitas`;
       default:
         return base;
     }
   }
 
   async function handleShare() {
-    if (item.type === "log" && item.detail.log_id) {
-      window.location.href = `/share/log/${item.detail.log_id}`;
-      return;
-    }
+    const url = `https://www.mulaibaca.id/feed/${item.id}`;
+    const text = shareTextFallback();
     if (navigator.share) {
       try {
-        await navigator.share({ title: "mulaibaca", text: shareTextFallback() });
+        await navigator.share({ title: "mulaibaca", text, url });
         return;
       } catch {}
     }
-    await navigator.clipboard.writeText(shareTextFallback());
+    await navigator.clipboard.writeText(url);
   }
 
   return (
