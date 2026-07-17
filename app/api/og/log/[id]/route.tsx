@@ -59,14 +59,22 @@ export async function GET(
     ? `${pagesRead} / ${book.total_pages} halaman`
     : `${pagesRead} halaman`;
 
+  const coverUrl = book.cover_url?.startsWith("http") ? book.cover_url : null;
+
   return new ImageResponse(
     <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", background: "#0F2A1E", padding: "32px" }}>
       <div style={{ display: "flex", flex: 1, background: "#FAF7F2", borderRadius: "20px", overflow: "hidden" }}>
-        <div style={{ display: "flex", flexDirection: "column", width: "35%", background: "#1E4530", alignItems: "center", justifyContent: "center", padding: "28px" }}>
-          <div style={{ display: "flex", width: "100%", height: "85%", background: "rgba(255,255,255,0.1)", borderRadius: "8px", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: "40px", fontWeight: 700, color: "rgba(255,255,255,0.3)" }}>{book.title?.charAt(0) ?? "B"}</span>
-          </div>
+        {/* Left panel — book cover */}
+        <div style={{ display: "flex", width: "35%", background: "#1E4530", alignItems: "center", justifyContent: "center", padding: "28px" }}>
+          {coverUrl ? (
+            <img src={coverUrl} alt="" style={{ display: "flex", width: "100%", height: "85%", objectFit: "cover", borderRadius: "8px" }} />
+          ) : (
+            <div style={{ display: "flex", width: "100%", height: "85%", background: "rgba(255,255,255,0.1)", borderRadius: "8px", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: "40px", fontWeight: 700, color: "rgba(255,255,255,0.3)" }}>{book.title?.charAt(0) ?? "B"}</span>
+            </div>
+          )}
         </div>
+        {/* Right panel — info */}
         <div style={{ display: "flex", flexDirection: "column", flex: 1, padding: "32px 32px", justifyContent: "center" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

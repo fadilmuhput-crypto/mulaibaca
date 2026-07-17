@@ -405,14 +405,6 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
             <span className="hidden sm:inline">{liked ? "Suka" : "Suka"}</span>
           </button>
           <button
-            onClick={() => commentInputRef.current?.focus()}
-            className="flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-amber min-h-[44px] px-3 transition-colors"
-          >
-            <MessageCircle size={16} />
-            {comments.length > 0 && <span>{comments.length}</span>}
-            <span className="hidden sm:inline">Komentar</span>
-          </button>
-          <button
             onClick={handleShare}
             className="flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-amber min-h-[44px] px-3 transition-colors ml-auto"
           >
