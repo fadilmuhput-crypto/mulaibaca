@@ -150,10 +150,10 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
         </div>
       </div>
 
-      {/* Main content */}
-      {(item.type === "follow") ? (
-        <div className="px-4 pb-4">
-          <Link href={`/u/${item.detail.following_username}`} className="flex items-center gap-3 bg-parchment rounded-xl p-3 hover:bg-amber-soft/30 transition-colors">
+      {/* Main content — all types link to feed detail page */}
+      <Link href={`/feed/${item.id}`} className="block px-4 pb-4">
+        {(item.type === "follow") ? (
+          <div className="flex items-center gap-3 bg-parchment rounded-xl p-3">
             <div className="w-10 h-10 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center text-amber overflow-hidden flex-shrink-0">
               {item.detail.following_avatar ? (
                 <AvatarIcon avatar={item.detail.following_avatar} size={18} />
@@ -167,13 +167,10 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
                 <p className="text-xs text-ink-muted truncate">@{item.detail.following_username}</p>
               )}
             </div>
-          </Link>
-        </div>
-      ) : (item.type === "challenge_earn") ? (
-        <div className="px-4 pb-4">
-            <div className="flex items-center gap-3 bg-gradient-to-br from-amber-soft to-orange-soft rounded-xl p-3 border border-amber/20">
-              <BadgePing icon={item.detail.badge_icon} color={item.detail.badge_color} size={44} />
-              
+          </div>
+        ) : (item.type === "challenge_earn") ? (
+          <div className="flex items-center gap-3 bg-gradient-to-br from-amber-soft to-orange-soft rounded-xl p-3 border border-amber/20">
+            <BadgePing icon={item.detail.badge_icon} color={item.detail.badge_color} size={44} />
             <div className="min-w-0">
               <p className="text-sm font-bold text-ink">{item.detail.badge_name}</p>
               <p className="text-xs text-ink-muted">{item.detail.challenge_title}</p>
@@ -182,99 +179,89 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
               )}
             </div>
           </div>
-        </div>
-      ) : (
-        <Link href={(() => {
-          if (!item.book_id) return "#";
-          switch (item.type) {
-            case "log": return `/log?bookId=${item.book_id}`;
-            case "review": return item.detail.review_slug ? `/review/${item.detail.review_slug}` : "#";
-            case "finish": return "/rak";
-            case "shelf_add": return "/rak";
-            case "shelf_status": return "/rak";
-            default: return "#";
-          }
-        })()} className="block px-4 pb-4">
-          <div className="flex gap-4">
-            {item.book_cover && (
-              <div className="flex-shrink-0">
-                <BookCover src={item.book_cover} title={item.book_title ?? ""} className="w-16 h-22 rounded-lg shadow-sm" />
+        ) : (
+          <div>
+            <div className="flex gap-4">
+              {item.book_cover && (
+                <div className="flex-shrink-0">
+                  <BookCover src={item.book_cover} title={item.book_title ?? ""} className="w-16 h-22 rounded-lg shadow-sm" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0 pt-1">
+                <p className="text-sm font-semibold text-ink leading-snug line-clamp-2">{item.book_title}</p>
+                {item.type === "log" && item.detail.pages_read && (
+                  <div className="mt-1.5 space-y-1">
+                    <p className="text-xs text-ink-muted">
+                      <span className="font-semibold text-amber">+{item.detail.pages_read}</span> halaman
+                    </p>
+                    {(item.detail.from_page != null || item.detail.to_page != null) && (
+                      <p className="text-[11px] text-ink-muted/60">
+                        Hal {item.detail.from_page ?? "—"} → {item.detail.to_page ?? "—"}
+                      </p>
+                    )}
+                    {item.detail.duration_minutes != null && item.detail.duration_minutes > 0 && (
+                      <p className="text-[11px] text-ink-muted/60">{item.detail.duration_minutes} menit</p>
+                    )}
+                    {item.detail.note && (
+                      <p className="text-xs text-ink-secondary italic leading-relaxed line-clamp-2 pt-1 border-t border-border/50">
+                        "{item.detail.note.length > 120 ? item.detail.note.slice(0, 120) + "…" : item.detail.note}"
+                      </p>
+                    )}
+                  </div>
+                )}
+                {item.type === "shelf_add" && (
+                  <p className="text-xs font-medium text-ink-muted mt-1.5">
+                    {item.detail.status === "want" ? "Masuk daftar ingin baca" : "Menambahkan ke rak baca"}
+                  </p>
+                )}
+                {item.type === "shelf_status" && (
+                  <p className="text-xs font-medium text-ink-muted mt-1.5">
+                    {item.detail.from_status} → {item.detail.to_status}
+                  </p>
+                )}
+                {item.type === "review" && (
+                  <div className="mt-1.5 space-y-1.5">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <span key={s} className={`text-sm ${s <= (item.detail.rating ?? 0) ? "text-amber" : "text-border"}`}>★</span>
+                      ))}
+                    </div>
+                    {item.detail.excerpt && (
+                      <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 italic">"{item.detail.excerpt}"</p>
+                    )}
+                  </div>
+                )}
+                {item.type === "finish" && (
+                  <div className="mt-1.5 space-y-1">
+                    <p className="text-xs font-semibold text-lime flex items-center gap-1">
+                      <CheckCircle size={12} /> Selesai dibaca
+                    </p>
+                    {item.book_total_pages && (
+                      <p className="text-[11px] text-ink-muted/60">{item.book_total_pages} halaman · 100%</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+            {item.detail.images && item.detail.images.length > 0 && (
+              <div className="mt-2 mb-1 overflow-x-auto no-scrollbar">
+                <div className="flex gap-2">
+                  {item.detail.images.map((url: string, idx: number) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightboxUrl(url); }}
+                      className="flex-shrink-0"
+                    >
+                      <img src={url} alt="" className="h-24 w-auto rounded-lg object-cover border border-border cursor-pointer" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-            <div className="flex-1 min-w-0 pt-1">
-              <p className="text-sm font-semibold text-ink leading-snug line-clamp-2">{item.book_title}</p>
-              {item.type === "log" && item.detail.pages_read && (
-                <div className="mt-1.5 space-y-1">
-                  <p className="text-xs text-ink-muted">
-                    <span className="font-semibold text-amber">+{item.detail.pages_read}</span> halaman
-                  </p>
-                  {(item.detail.from_page != null || item.detail.to_page != null) && (
-                    <p className="text-[11px] text-ink-muted/60">
-                      Hal {item.detail.from_page ?? "—"} → {item.detail.to_page ?? "—"}
-                    </p>
-                  )}
-                  {item.detail.duration_minutes != null && item.detail.duration_minutes > 0 && (
-                    <p className="text-[11px] text-ink-muted/60">{item.detail.duration_minutes} menit</p>
-                  )}
-                  {item.detail.note && (
-                    <p className="text-xs text-ink-secondary italic leading-relaxed line-clamp-2 pt-1 border-t border-border/50">
-                      "{item.detail.note.length > 120 ? item.detail.note.slice(0, 120) + "…" : item.detail.note}"
-                    </p>
-                  )}
-                </div>
-              )}
-              {item.type === "shelf_add" && (
-                <p className="text-xs font-medium text-ink-muted mt-1.5">
-                  {item.detail.status === "want" ? "Masuk daftar ingin baca" : "Menambahkan ke rak baca"}
-                </p>
-              )}
-              {item.type === "shelf_status" && (
-                <p className="text-xs font-medium text-ink-muted mt-1.5">
-                  {item.detail.from_status} → {item.detail.to_status}
-                </p>
-              )}
-              {item.type === "review" && (
-                <div className="mt-1.5 space-y-1.5">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <span key={s} className={`text-sm ${s <= (item.detail.rating ?? 0) ? "text-amber" : "text-border"}`}>★</span>
-                    ))}
-                  </div>
-                  {item.detail.excerpt && (
-                    <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 italic">"{item.detail.excerpt}"</p>
-                  )}
-                </div>
-              )}
-              {item.type === "finish" && (
-                <div className="mt-1.5 space-y-1">
-                  <p className="text-xs font-semibold text-lime flex items-center gap-1">
-                    <CheckCircle size={12} /> Selesai dibaca
-                  </p>
-                  {item.book_total_pages && (
-                    <p className="text-[11px] text-ink-muted/60">{item.book_total_pages} halaman · 100%</p>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
-          {item.detail.images && item.detail.images.length > 0 && (
-            <div className="mt-2 mb-1 overflow-x-auto no-scrollbar">
-              <div className="flex gap-2">
-                {item.detail.images.map((url: string, idx: number) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightboxUrl(url); }}
-                    className="flex-shrink-0"
-                  >
-                    <img src={url} alt="" className="h-24 w-auto rounded-lg object-cover border border-border cursor-pointer" loading="lazy" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </Link>
-      )}
+        )}
+      </Link>
 
       {/* Action bar */}
       <div className="flex items-center px-4 pb-2 min-h-[44px]">
