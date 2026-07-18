@@ -31,57 +31,63 @@ self.addEventListener("fetch", (event) => {
   // Skip non-GET
   if (request.method !== "GET") return;
 
-  // Skip API, Supabase, and Next.js internal routes
+  // Skip API and Next.js internal data routes only
   if (
     url.pathname.startsWith("/api/") ||
-    url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/_next/data/") ||
-    url.pathname.startsWith("/__nextjs_") ||
-    url.pathname === "/" ||
-    url.pathname === ""
+    url.pathname.startsWith("/__nextjs_")
   ) {
     return;
   }
 
-  // Cache-first for static assets (fonts, images, JS, CSS)
+  // Cache-first for static assets (JS, CSS, fonts, images)
   if (
-    url.pathname.match(/\.(js|css|woff2?|png|jpg|jpeg|gif|svg|webp|ico)$/)
+    url.pathname.match(/\.(js|css|woff2?|png|jpg|jpeg|gif|svg|webp|ico)$/) ||
+    url.pathname.startsWith("/_next/static/")
   ) {
     event.respondWith(cacheFirst(request));
     return;
   }
 
-  // Network-first for HTML pages
-  if (request.mode === "navigate") {
+  // Network-first for HTML pages (including root /)
+  if (request.mode === "navigate" || url.pathname === "/" || url.pathname === "") {
     event.respondWith(networkFirst(request));
   }
 });
 
 async function networkFirst(request) {
+  const cacheKey = stripQuery(request.url);
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    if (response.ok && response.type === "basic") {
       const cache = await caches.open(CACHE);
-      cache.put(request, response.clone());
+      cache.put(cacheKey, response.clone());
     }
     return response;
   } catch {
-    const cached = await caches.match(request);
-    return cached || new Response("Offline", { status: 503 });
+    const cached = await caches.match(cacheKey);
+    return cached || new Response("Anda sedang offline", { status: 503, headers: { "Content-Type": "text/plain;charset=UTF-8" } });
   }
 }
 
 async function cacheFirst(request) {
-  const cached = await caches.match(request);
+  const cacheKey = stripQuery(request.url);
+  const cached = await caches.match(cacheKey);
   if (cached) return cached;
   try {
     const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(CACHE);
-      cache.put(request, response.clone());
+    if (response.ok && response.type === "basic") {
+      const cache = await caches.open(ASSET_CACHE);
+      cache.put(cacheKey, response.clone());
     }
     return response;
   } catch {
     return new Response("", { status: 404 });
   }
+}
+
+function stripQuery(url) {
+  const u = new URL(url);
+  u.search = "";
+  return u.toString();
 }
