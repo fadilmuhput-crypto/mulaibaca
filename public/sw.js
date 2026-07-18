@@ -1,0 +1,87 @@
+const CACHE = "mulaibaca-v1";
+const ASSET_CACHE = "mulaibaca-assets-v1";
+
+// Assets to precache (auto-generated at build)
+const PRECACHE = [];
+
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(ASSET_CACHE).then((cache) => cache.addAll(PRECACHE))
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE && k !== ASSET_CACHE).map((k) => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+// Network-first for navigations (fresh HTML, cache as fallback)
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Same-origin only
+  if (url.origin !== self.location.origin) return;
+
+  // Skip non-GET
+  if (request.method !== "GET") return;
+
+  // Skip API, Supabase, and Next.js internal routes
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/_next/data/") ||
+    url.pathname.startsWith("/__nextjs_") ||
+    url.pathname === "/" ||
+    url.pathname === ""
+  ) {
+    return;
+  }
+
+  // Cache-first for static assets (fonts, images, JS, CSS)
+  if (
+    url.pathname.match(/\.(js|css|woff2?|png|jpg|jpeg|gif|svg|webp|ico)$/)
+  ) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  // Network-first for HTML pages
+  if (request.mode === "navigate") {
+    event.respondWith(networkFirst(request));
+  }
+});
+
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    const cached = await caches.match(request);
+    return cached || new Response("Offline", { status: 503 });
+  }
+}
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    return new Response("", { status: 404 });
+  }
+}
