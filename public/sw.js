@@ -28,8 +28,8 @@ self.addEventListener("push", (event) => {
   }
   const options = {
     body: data.body,
-    icon: "/api/pwa-icon?size=192",
-    badge: "/api/pwa-icon?size=192",
+    icon: "/logo.png",
+    badge: "/logo.png",
     vibrate: [200, 100, 200],
   };
   event.waitUntil(self.registration.showNotification(data.title || "Mulaibaca", options));
