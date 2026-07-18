@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 
+const FOREST = "#1E4530";
+const AMBER = "#C26E2A";
+const WHITE = "#FFFFFF";
+
 export default function SplashScreen({ children }: { children: React.ReactNode }) {
   const [phase, setPhase] = useState<"visible" | "fading" | "hidden">("visible");
   const hidden = useRef(false);
@@ -43,7 +47,7 @@ export default function SplashScreen({ children }: { children: React.ReactNode }
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "var(--color-forest)",
+          background: FOREST,
           transition: "opacity 0.4s ease",
           opacity: phase === "fading" ? 0 : 1,
         }}
@@ -53,7 +57,7 @@ export default function SplashScreen({ children }: { children: React.ReactNode }
             width: 96,
             height: 96,
             borderRadius: 28,
-            background: "var(--color-parchment)",
+            background: WHITE,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -69,7 +73,7 @@ export default function SplashScreen({ children }: { children: React.ReactNode }
             fontFamily: "var(--font-display)",
             fontSize: "1.75rem",
             fontWeight: 800,
-            color: "var(--color-parchment)",
+            color: WHITE,
             letterSpacing: "-0.02em",
             margin: 0,
           }}
@@ -78,7 +82,7 @@ export default function SplashScreen({ children }: { children: React.ReactNode }
         </h1>
         <p
           style={{
-            color: "var(--color-amber)",
+            color: AMBER,
             fontSize: "0.875rem",
             fontWeight: 500,
             marginTop: 6,
@@ -95,7 +99,7 @@ export default function SplashScreen({ children }: { children: React.ReactNode }
                 width: 8,
                 height: 8,
                 borderRadius: "50%",
-                background: "var(--color-amber)",
+                background: AMBER,
                 opacity: 0.6,
                 animation: "pulse 1.4s ease-in-out infinite",
                 animationDelay: `${delay}s`,
