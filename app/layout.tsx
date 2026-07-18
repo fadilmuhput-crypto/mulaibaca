@@ -7,6 +7,7 @@ import ReadingModeProvider from "@/components/ReadingModeProvider";
 import ReadingModeToggle from "@/components/ReadingModeToggle";
 import ThemeProvider from "@/components/ThemeProvider";
 import PwaRegister from "@/components/PwaRegister";
+import SplashScreen from "@/components/SplashScreen";
 import "./globals.css";
 
 const geist = Geist({
@@ -88,11 +89,13 @@ export default function RootLayout({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteLd) }} />
         <ThemeProvider>
           <ReadingModeProvider>
-            {children}
-            <ReadingModeToggle />
-            <CookieConsentBanner />
-            <AnalyticsWithConsent />
-            <PwaRegister />
+            <SplashScreen>
+              {children}
+              <ReadingModeToggle />
+              <CookieConsentBanner />
+              <AnalyticsWithConsent />
+              <PwaRegister />
+            </SplashScreen>
           </ReadingModeProvider>
         </ThemeProvider>
       </body>

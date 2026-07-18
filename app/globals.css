@@ -452,6 +452,11 @@
   animation: shimmer 1.2s ease-in-out infinite;
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
 /* ━━━ DARK MODE ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .dark {
   --color-amber:         #D48A4A;
