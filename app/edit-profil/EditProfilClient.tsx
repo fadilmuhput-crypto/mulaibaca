@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@/lib/session";
 import type { ProfilStats, ActingAsInfo, FamilyMember } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
-import { Check, AtSign, Lock, ExternalLink, Users, Target, Trophy, Baby, Smile, Heart, User, LogIn, Palette } from "lucide-react";
+import { Check, AtSign, Lock, ExternalLink, Users, Target, Trophy, Baby, Smile, Heart, User, LogIn, Palette, Bell, BellOff } from "lucide-react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -37,6 +37,8 @@ export default function ProfilClient({
   const [weeklyChallenge, setWeeklyChallenge] = useState(initialWeeklyChallenge);
   const [memberType, setMemberType] = useState(session.memberType);
   const [birthDate, setBirthDate] = useState(session.memberBirthDate ?? "");
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState("19:00");
   const [username, setUsername] = useState(session.memberUsername ?? "");
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [usernameError, setUsernameError] = useState("");
@@ -97,6 +99,7 @@ export default function ProfilClient({
         name, avatar, birthDate, familyName,
         weeklyPagesGoal: weeklyGoal, memberType,
         familyWeeklyChallenge: weeklyChallenge,
+        reminderEnabled, reminderTime,
       };
       if (!usernameAlreadySet && username.trim() && usernameStatus === "available") {
         body.username = username.trim();
@@ -327,6 +330,72 @@ export default function ProfilClient({
         </div>
       )}
 
+      {/* Pengingat baca */}
+      <div className="card-elevated p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {reminderEnabled ? <Bell size={15} strokeWidth={2} className="text-amber" /> : <BellOff size={15} strokeWidth={2} className="text-ink-muted" />}
+            <h2 className="text-h3">Pengingat Baca</h2>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              const next = !reminderEnabled;
+              setReminderEnabled(next);
+              if (next && "Notification" in window && Notification.permission === "default") {
+                await Notification.requestPermission();
+              }
+              if (next && "serviceWorker" in navigator && "PushManager" in window) {
+                try {
+                  const reg = await navigator.serviceWorker.ready;
+                  const sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(
+                      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""
+                    ),
+                  });
+                  await fetch("/api/notifications/subscribe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(sub.toJSON()),
+                  });
+                } catch {}
+              }
+              if (!next && "serviceWorker" in navigator) {
+                try {
+                  const reg = await navigator.serviceWorker.ready;
+                  const sub = await reg.pushManager.getSubscription();
+                  if (sub) {
+                    await fetch("/api/notifications/unsubscribe", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ endpoint: sub.endpoint }),
+                    });
+                    await sub.unsubscribe();
+                  }
+                } catch {}
+              }
+            }}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${reminderEnabled ? "bg-amber" : "bg-border"}`}
+            role="switch"
+            aria-checked={reminderEnabled}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${reminderEnabled ? "translate-x-6" : "translate-x-1"}`} />
+          </button>
+        </div>
+        <p className="text-xs text-ink-muted">Dapatkan notifikasi untuk mengingatkan membacamu setiap hari.</p>
+        <div>
+          <label htmlFor="reminder-time" className="input-label">Jam pengingat</label>
+          <input
+            id="reminder-time"
+            type="time"
+            value={reminderTime}
+            onChange={(e) => setReminderTime(e.target.value)}
+            className="input mt-1"
+          />
+        </div>
+      </div>
+
       {/* Tampilan */}
       <div className="card-elevated p-6 space-y-4">
         <h2 className="text-h3">Tampilan</h2>
@@ -345,4 +414,15 @@ export default function ProfilClient({
       </button>
     </div>
   );
+}
+
+function urlBase64ToUint8Array(base64String: string): BufferSource {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const output = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    output[i] = rawData.charCodeAt(i);
+  }
+  return output;
 }

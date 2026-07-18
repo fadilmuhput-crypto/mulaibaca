@@ -20,6 +20,34 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Display push notifications
+self.addEventListener("push", (event) => {
+  let data = { title: "Mulaibaca", body: "" };
+  if (event.data) {
+    try { data = JSON.parse(event.data.text()); } catch {}
+  }
+  const options = {
+    body: data.body,
+    icon: "/api/pwa-icon?size=192",
+    badge: "/api/pwa-icon?size=192",
+    vibrate: [200, 100, 200],
+  };
+  event.waitUntil(self.registration.showNotification(data.title || "Mulaibaca", options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      if (clientList.length > 0) {
+        clientList[0].focus();
+      } else {
+        clients.openWindow("/dashboard");
+      }
+    })
+  );
+});
+
 // Network-first for navigations (fresh HTML, cache as fallback)
 self.addEventListener("fetch", (event) => {
   const { request } = event;
