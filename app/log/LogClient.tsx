@@ -106,6 +106,7 @@ export default function LogClient({
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [doneShelfId, setDoneShelfId] = useState<string | null>(null);
   const [lastLogId, setLastLogId] = useState<string | null>(null);
+  const toPageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (defaultBookId && shelf.length > 0 && !selected) {
@@ -226,9 +227,9 @@ export default function LogClient({
         }
       }
       setLastLogId(data.log?.id ?? null);
+      toPageRef.current?.blur();
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
-        document.body.focus?.();
       }
       setLastPages(pagesRead);
       setCelebrated(true);
@@ -334,11 +335,11 @@ export default function LogClient({
                   +{lastPages} halaman terakhir
                 </p>
                 {streak.current_streak > 1 ? (
-                  <p className="text-white/60 text-xs mb-4">
+                  <p className="text-white/60 text-xs mb-5">
                     🔥 Streak {streak.current_streak} hari berturut-turut
                   </p>
                 ) : (
-                  <p className="text-white/40 text-[11px] mb-4">Berhasil dicatat</p>
+                  <p className="text-white/40 text-[11px] mb-5">Berhasil dicatat</p>
                 )}
                 <div className="flex flex-col gap-2">
                   <Link
@@ -347,28 +348,12 @@ export default function LogClient({
                   >
                     Tulis Review →
                   </Link>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => router.push("/dashboard")}
-                      className="bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
-                    >
-                      Dashboard
-                    </button>
-                    {lastLogId && (
-                      <button
-                        onClick={() => { router.push(`/share/log/${lastLogId}`); }}
-                        className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
-                      >
-                        <Share2 size={14} /> Kartu
-                      </button>
-                    )}
-                    <button
-                      onClick={() => { setCelebrated(false); setDoneShelfId(null); if (shelf.length === 1) setSelected(shelf[0]); }}
-                      className={`bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98] ${lastLogId ? "" : "col-span-2"}`}
-                    >
-                      Catat Lagi
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => { setCelebrated(false); setDoneShelfId(null); if (shelf.length === 1) setSelected(shelf[0]); }}
+                    className="w-full bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
+                  >
+                    Catat Lagi
+                  </button>
                 </div>
               </>
             ) : (
@@ -380,32 +365,16 @@ export default function LogClient({
                   +{lastPages} halaman!
                 </div>
                 {streak.current_streak > 1 ? (
-                  <p className="text-white/70 text-sm mb-4">🔥 Streak {streak.current_streak} hari! Terus pertahankan!</p>
+                  <p className="text-white/70 text-sm mb-5">🔥 Streak {streak.current_streak} hari! Terus pertahankan!</p>
                 ) : (
-                  <p className="text-white/70 text-sm mb-4">Bacaan hari ini tercatat. Keep going!</p>
+                  <p className="text-white/70 text-sm mb-5">Bacaan hari ini tercatat. Keep going!</p>
                 )}
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => router.push("/dashboard")}
-                    className="bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98]"
-                  >
-                    Dashboard
-                  </button>
-                  {lastLogId && (
-                    <button
-                      onClick={() => { router.push(`/share/log/${lastLogId}`); }}
-                      className="flex items-center justify-center gap-1.5 bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
-                    >
-                      <Share2 size={14} /> Kartu
-                    </button>
-                  )}
-                  <button
-                    onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
-                    className={`bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98] ${lastLogId ? "" : "col-span-2"}`}
-                  >
-                    Catat Lagi
-                  </button>
-                </div>
+                <button
+                  onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
+                  className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98]"
+                >
+                  Catat Lagi
+                </button>
               </>
             )}
           </div>
@@ -573,6 +542,7 @@ export default function LogClient({
                   <div className="flex-1 min-w-0">
                     <p className="text-[10px] text-ink-muted mb-1 text-center">Sampai hal</p>
                     <input
+                      ref={toPageRef}
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"

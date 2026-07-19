@@ -133,10 +133,6 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
   }
 
   async function handleShare() {
-    if (item.type === "log" && item.detail.log_id) {
-      window.location.href = `/share/log/${item.detail.log_id}`;
-      return;
-    }
     const url = `https://www.mulaibaca.id/feed/${item.id}`;
     const text = shareTextFallback();
     if (navigator.share) {
@@ -399,7 +395,7 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
           >
             <Heart size={16} fill={liked ? "currentColor" : "none"} />
             {likeCount > 0 && <span>{likeCount}</span>}
-            <span className="hidden sm:inline">{liked ? "Suka" : "Suka"}</span>
+            <span className="hidden sm:inline">Suka</span>
           </button>
           <button
             onClick={handleShare}
@@ -407,6 +403,14 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
           >
             <Share2 size={15} /> <span className="hidden sm:inline">Bagikan</span>
           </button>
+          {item.type === "log" && item.detail.log_id && (
+            <Link
+              href={`/share/log/${item.detail.log_id}`}
+              className="flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-amber min-h-[44px] px-3 transition-colors"
+            >
+              <Sparkles size={15} /> <span className="hidden sm:inline">Kartu</span>
+            </Link>
+          )}
         </div>
 
         {/* Comments */}

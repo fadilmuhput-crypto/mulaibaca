@@ -442,10 +442,6 @@ function shareText(item: FeedItem): string {
 }
 
 async function shareItem(item: FeedItem) {
-  if (item.type === "log" && item.detail.log_id) {
-    window.location.href = `/share/log/${item.detail.log_id}`;
-    return;
-  }
   const url = `https://www.mulaibaca.id/feed/${item.id}`;
   const text = shareText(item);
   if (navigator.share) {
@@ -523,10 +519,16 @@ export default function FeedClient({ initial, compact, currentMemberId }: { init
           </div>
         </div>
         {display.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-border p-6 text-center">
+          <div className="rounded-2xl border-2 border-dashed border-border p-6 text-center space-y-3">
             <p className="text-sm text-ink-muted">
               Belum ada aktivitas. Ikuti pengguna lain untuk melihat aktivitas mereka.
             </p>
+            <Link
+              href="/jelajah"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-amber hover:bg-amber-dark transition-colors rounded-xl px-4 py-2"
+            >
+              Cari Teman
+            </Link>
           </div>
         ) : (
           <FeedList items={display} currentMemberId={currentMemberId} onDelete={handleDelete} likesMap={likesMap ?? undefined} />

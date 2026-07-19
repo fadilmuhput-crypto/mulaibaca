@@ -9,6 +9,8 @@ import FeedClient from "@/app/feed/FeedClient";
 import ChallengeEntryCard from "@/components/ChallengeEntryCard";
 import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
+import GoalTrigger from "@/components/GoalTrigger";
+import QuickLogButtons from "@/components/QuickLogButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -91,9 +93,13 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-h1">Halo, {session.memberName}!</h1>
-            {currentStreak > 0 && (
+            {currentStreak > 0 ? (
               <p className="text-xs text-ink-muted mt-0.5">
                 🔥 {currentStreak} hari berturut-turut
+              </p>
+            ) : (
+              <p className="text-xs text-ink-muted mt-0.5">
+                Mulai streak bacamu hari ini!
               </p>
             )}
           </div>
@@ -102,7 +108,11 @@ export default async function DashboardPage() {
             className="flex items-center gap-2 bg-surface rounded-xl px-3.5 py-2.5 brutal-border brutal-shadow-sm hover:border-amber/40 transition-colors"
           >
             <Flame size={18} strokeWidth={1.75} className="text-amber" />
-            <span className="font-display text-xl font-black text-ink">{currentStreak}</span>
+            {currentStreak > 0 ? (
+              <span className="font-display text-xl font-black text-ink">{currentStreak}</span>
+            ) : (
+              <span className="font-display text-sm font-black text-ink">Mulai!</span>
+            )}
           </Link>
         </div>
 
@@ -150,9 +160,9 @@ export default async function DashboardPage() {
               </p>
               {hasFirstBook && !hasFirstLog && <span className="text-amber text-xs font-bold">Catat →</span>}
             </Link>
-            <Link
-              href="/edit-profil"
-              className={`flex items-center gap-3 rounded-xl p-2.5 transition-colors ${
+            <GoalTrigger
+              currentGoal={session.weeklyPagesGoal}
+              className={`flex items-center gap-3 rounded-xl p-2.5 transition-colors w-full text-left ${
                 hasWeeklyGoal ? "opacity-60" : hasFirstLog ? "bg-parchment hover:bg-amber-soft/40" : "opacity-40 pointer-events-none"
               }`}
             >
@@ -165,15 +175,15 @@ export default async function DashboardPage() {
                 Atur target mingguan
               </p>
               {hasFirstLog && !hasWeeklyGoal && <span className="text-amber text-xs font-bold">Atur →</span>}
-            </Link>
+            </GoalTrigger>
           </section>
         )}
 
         {/* ── WEEKLY GOAL ── (hidden jika sudah achieved) */}
         {shouldShowGoal && (
-          <Link
-            href="/edit-profil"
-            className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors"
+          <GoalTrigger
+            currentGoal={session.weeklyPagesGoal}
+            className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3 hover:border-amber/40 transition-colors w-full text-left"
           >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-soft">
               <Target size={15} strokeWidth={1.75} className="text-amber" />
@@ -187,7 +197,7 @@ export default async function DashboardPage() {
                 <div className="progress-fill transition-all" style={{ width: `${Math.min(Math.round((weeklyPagesRead / session.weeklyPagesGoal) * 100), 100)}%` }} />
               </div>
             </div>
-          </Link>
+          </GoalTrigger>
         )}
 
         {/* ── SEDANG DI BACA ── (compact horizontal scroll, langsung di atas timeline) */}
@@ -209,13 +219,14 @@ export default async function DashboardPage() {
                   ? Math.min(Math.round((item.current_page / book.total_pages) * 100), 100)
                   : 0;
                 return (
-                  <Link
+                  <div
                     key={item.id}
-                    href={`/log?bookId=${book.id}`}
                     className="flex-shrink-0 w-32 bg-surface rounded-xl border border-border p-2.5 hover:border-amber/40 transition-colors"
                   >
-                    <BookCover src={book.cover_url} title={book.title} className="w-full aspect-[3/4] rounded-lg mb-2" />
-                    <p className="font-medium text-ink text-xs truncate">{book.title}</p>
+                    <Link href={`/log?bookId=${book.id}`} className="block">
+                      <BookCover src={book.cover_url} title={book.title} className="w-full aspect-[3/4] rounded-lg mb-2" />
+                      <p className="font-medium text-ink text-xs truncate">{book.title}</p>
+                    </Link>
                     <div className="mt-1.5">
                       <div className="progress-bar h-1.5">
                         <div className="progress-fill" style={{ width: `${progress}%` }} />
@@ -224,7 +235,8 @@ export default async function DashboardPage() {
                         {progress > 0 ? `${item.current_page}/${book.total_pages} · ${progress}%` : "Belum mulai"}
                       </p>
                     </div>
-                  </Link>
+                    <QuickLogButtons shelfItemId={item.id} />
+                  </div>
                 );
               })}
             </div>

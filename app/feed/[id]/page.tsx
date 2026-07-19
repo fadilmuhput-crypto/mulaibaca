@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase-route";
 import { rowToFeedItem, enrichFinishItems, type FeedItem } from "@/lib/feed";
@@ -16,7 +16,7 @@ export default async function FeedDetailPage({ params }: { params: Promise<{ id:
     .eq("id", id)
     .single();
 
-  if (!row) redirect("/feed");
+  if (!row) notFound();
 
   const rawItem: FeedItem = rowToFeedItem(row as unknown as Parameters<typeof rowToFeedItem>[0]);
   await enrichFinishItems([rawItem], admin);
