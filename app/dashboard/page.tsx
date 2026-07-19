@@ -11,6 +11,7 @@ import { rowToFeedItem, type FeedItem } from "@/lib/feed";
 import { Flame, Target, Check } from "lucide-react";
 import GoalTrigger from "@/components/GoalTrigger";
 import QuickLogButtons from "@/components/QuickLogButtons";
+import MonthlyInsight from "@/components/MonthlyInsight";
 
 export const dynamic = "force-dynamic";
 
@@ -199,6 +200,9 @@ export default async function DashboardPage() {
             </div>
           </GoalTrigger>
         )}
+
+        {/* ── MONTHLY INSIGHT ── */}
+        <MonthlyInsight />
 
         {/* ── SEDANG DI BACA ── (compact horizontal scroll, langsung di atas timeline) */}
         {readingNow.length > 0 && (

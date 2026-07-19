@@ -4,6 +4,7 @@ import { useMemo, useState, useRef, useEffect, type ElementType } from "react";
 import { BookCheck, BookText, Flame, CalendarDays, Award, BookOpen, Library } from "lucide-react";
 import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
 import BadgePing from "@/components/BadgePing";
+import MonthDelta from "@/components/MonthDelta";
 
 type DailyReading = {
   date: string;
@@ -193,7 +194,10 @@ export default function ProgresTab({
         </div>
         <div className="bg-surface rounded-xl border border-border p-4">
           <p className="text-[10px] text-ink-muted font-medium uppercase tracking-wider">Bulan Ini</p>
-          <p className="font-display text-2xl font-black text-ink mt-1">{pagesThisMonth} hal</p>
+          <p className="font-display text-2xl font-black text-ink mt-1 flex items-center">
+            {pagesThisMonth} hal
+            <MonthDelta />
+          </p>
         </div>
         <div className="bg-surface rounded-xl border border-border p-4">
           <p className="text-[10px] text-ink-muted font-medium uppercase tracking-wider">Rata-rata/hari</p>
