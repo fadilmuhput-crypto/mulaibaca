@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-route";
+import { getPeriodBounds } from "@/lib/challenges";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,24 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       if (existing.completed_at) {
+        const { data: challenge } = await admin
+          .from("challenges")
+          .select("duration_type")
+          .eq("id", challengeId)
+          .single();
+
+        if (challenge && challenge.duration_type !== "unlimited") {
+          const completedDate = new Date(existing.completed_at);
+          const bounds = getPeriodBounds(challenge.duration_type);
+          if (completedDate < bounds.start) {
+            await admin
+              .from("challenge_participants")
+              .update({ completed_at: null, progress: 0, started_at: new Date().toISOString() })
+              .eq("id", existing.id);
+            return NextResponse.json({ data: { id: existing.id, reset: true } });
+          }
+        }
+
         return NextResponse.json({ error: "Already completed this challenge" }, { status: 409 });
       }
       return NextResponse.json({ error: "Already joined this challenge" }, { status: 409 });

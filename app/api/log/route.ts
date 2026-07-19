@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     const isFirstLog = count === 1;
+    let completedChallenges: { title: string; badge_name: string; badge_icon: string }[] = [];
 
     if (book) {
       const newPage = endPage != null ? endPage : (shelf.current_page ?? 0) + pagesRead;
@@ -136,7 +137,7 @@ export async function POST(req: NextRequest) {
           link: "/log",
         }, admin));
       }
-      promises.push(checkAndCompleteChallenges(supabase, memberId, familyId, admin));
+      completedChallenges = (await checkAndCompleteChallenges(supabase, memberId, familyId, admin)).completed;
       const streakVal = streak?.current_streak ?? 0;
       if ([7, 14, 21, 30, 60, 100].includes(streakVal)) {
         const checkNotif = async () => {
@@ -153,7 +154,7 @@ export async function POST(req: NextRequest) {
       Promise.allSettled(promises);
     }
 
-    return NextResponse.json({ log, streak, is_first_log: isFirstLog }, { status: 201 });
+    return NextResponse.json({ log, streak, is_first_log: isFirstLog, completedChallenges }, { status: 201 });
   }
 
   return NextResponse.json({ error: "Shelf item not found" }, { status: 404 });

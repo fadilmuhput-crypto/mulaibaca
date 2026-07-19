@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
   const isFirstLog = count === 1;
 
   let bookDone = false;
+  let completedChallenges: { title: string; badge_name: string; badge_icon: string }[] = [];
   if (book) {
     const newPage = (shelf.current_page ?? 0) + pagesRead;
     const updates: Record<string, unknown> = { current_page: newPage };
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
         memberId, title: "Catatan bacaan pertama!", body: "Kamu baru saja mencatat bacaan pertamamu. Tidak ada kata terlambat untuk memulai!", type: "achievement", link: "/log",
       }, admin));
     }
-    promises.push(checkAndCompleteChallenges(supabase, memberId, familyId, admin));
+    completedChallenges = (await checkAndCompleteChallenges(supabase, memberId, familyId, admin)).completed;
     const streakVal = streak?.current_streak ?? 0;
     if ([7, 14, 21, 30, 60, 100].includes(streakVal)) {
       promises.push((async () => {
@@ -110,5 +111,5 @@ export async function POST(req: NextRequest) {
     Promise.allSettled(promises);
   }
 
-  return NextResponse.json({ log, streak, is_first_log: isFirstLog, pagesRead, bookDone }, { status: 201 });
+  return NextResponse.json({ log, streak, is_first_log: isFirstLog, pagesRead, bookDone, completedChallenges }, { status: 201 });
 }

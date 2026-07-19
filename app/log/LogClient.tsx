@@ -106,6 +106,7 @@ export default function LogClient({
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [doneShelfId, setDoneShelfId] = useState<string | null>(null);
   const [lastLogId, setLastLogId] = useState<string | null>(null);
+  const [completedChallenges, setCompletedChallenges] = useState<{ title: string; badge_name: string; badge_icon: string }[]>([]);
   const toPageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -232,6 +233,7 @@ export default function LogClient({
         document.activeElement.blur();
       }
       setLastPages(pagesRead);
+      setCompletedChallenges(data.completedChallenges ?? []);
       setCelebrated(true);
       setFromPage(String(toNum));
       setToPage("");
@@ -323,7 +325,7 @@ export default function LogClient({
 
       {/* ── CELEBRATION POPUP (includes book done state) ── */}
       {celebrated && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => { setCelebrated(false); setDoneShelfId(null); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => { setCelebrated(false); setDoneShelfId(null); setCompletedChallenges([]); }}>
           <div className="bg-forest rounded-2xl brutal-border brutal-shadow-sm p-6 text-center max-w-sm w-full mx-4 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             {doneShelfId ? (
               <>
@@ -341,6 +343,9 @@ export default function LogClient({
                 ) : (
                   <p className="text-white/40 text-[11px] mb-5">Berhasil dicatat</p>
                 )}
+                {completedChallenges.length > 0 && completedChallenges.map((c) => (
+                  <p key={c.title} className="text-white/70 text-xs mt-1">{c.badge_icon} {c.badge_name}</p>
+                ))}
                 <div className="flex flex-col gap-2">
                   <Link
                     href={`/review/tulis?shelf=${doneShelfId}`}
@@ -369,6 +374,9 @@ export default function LogClient({
                 ) : (
                   <p className="text-white/70 text-sm mb-5">Bacaan hari ini tercatat. Keep going!</p>
                 )}
+                {completedChallenges.length > 0 && completedChallenges.map((c) => (
+                  <p key={c.title} className="text-white/70 text-xs mb-2">{c.badge_icon} {c.badge_name}</p>
+                ))}
                 <button
                   onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
                   className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98]"

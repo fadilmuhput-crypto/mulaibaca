@@ -44,6 +44,7 @@ export default async function ProgressPage() {
   let feed: { id: string; activity_type: string; data: Record<string, unknown>; created_at: string }[] | null = null;
   let followerCount: number | null = null;
   let followingCount: number | null = null;
+  let active: Awaited<ReturnType<typeof getChallengesData>>["active"] = [];
   let completed: Awaited<ReturnType<typeof getChallengesData>>["completed"] = [];
   let badges: Awaited<ReturnType<typeof getChallengesData>>["badges"] = [];
   try {
@@ -69,6 +70,7 @@ export default async function ProgressPage() {
     challengesResult = await getChallengesData(supabase, session.memberId);
   } catch { /* graceful degradation */ }
   if (challengesResult) {
+    active = challengesResult.active;
     completed = challengesResult.completed;
     badges = challengesResult.badges;
   }
@@ -112,6 +114,7 @@ export default async function ProgressPage() {
           activities={activities}
           followerCount={followerCount ?? 0}
           followingCount={followingCount ?? 0}
+          active={active}
           completed={completed}
           badges={badges}
         />

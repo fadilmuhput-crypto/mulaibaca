@@ -12,7 +12,7 @@ export default function QuickLogButtons({
   shelfItemId: string;
 }) {
   const router = useRouter();
-  const [toast, setToast] = useState<{ pages: number; bookDone: boolean } | null>(null);
+  const [toast, setToast] = useState<{ pages: number; bookDone: boolean; completedBadges: { badge_icon: string; badge_name: string }[] } | null>(null);
   const [loading, setLoading] = useState<number | null>(null);
 
   const handleQuickLog = useCallback(async (pages: number) => {
@@ -25,7 +25,7 @@ export default function QuickLogButtons({
       });
       if (!res.ok) return;
       const data = await res.json();
-      setToast({ pages, bookDone: data.bookDone ?? false });
+      setToast({ pages, bookDone: data.bookDone ?? false, completedBadges: data.completedChallenges ?? [] });
       router.refresh();
       setTimeout(() => setToast(null), 2500);
     } finally {
@@ -49,7 +49,7 @@ export default function QuickLogButtons({
       </div>
 
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-200 pointer-events-none">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-200 pointer-events-none flex flex-col items-center gap-1.5">
           <div className="bg-forest text-white rounded-xl px-5 py-3 shadow-lg flex items-center gap-2.5">
             <Check size={16} strokeWidth={2.5} className="text-white/80" />
             <span className="text-sm font-semibold whitespace-nowrap">
@@ -58,6 +58,12 @@ export default function QuickLogButtons({
                 : `+${toast.pages} halaman`}
             </span>
           </div>
+          {toast.completedBadges.map((b) => (
+            <div key={b.badge_name} className="bg-forest/90 text-white rounded-xl px-4 py-2 shadow-lg flex items-center gap-1.5">
+              <span>{b.badge_icon}</span>
+              <span className="text-xs font-semibold whitespace-nowrap">{b.badge_name}</span>
+            </div>
+          ))}
         </div>
       )}
     </>

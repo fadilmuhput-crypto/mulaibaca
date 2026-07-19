@@ -138,14 +138,26 @@ export async function getChallengesData(
     const participant = participants.find((p) => p.challenge_id === c.id);
     const hasBadge = completedIds.has(c.id);
     const isUnlimitedCompleted = c.duration_type === "unlimited" && hasBadge;
-    const isRecurringCompleted = c.duration_type !== "unlimited" && participant?.completed_at != null;
+
+    let isRecurringCompleted = false;
+    if (c.duration_type !== "unlimited" && participant?.completed_at != null) {
+      const bounds = getPeriodBounds(c.duration_type);
+      isRecurringCompleted = new Date(participant.completed_at) >= bounds.start;
+    }
 
     if (isUnlimitedCompleted || isRecurringCompleted) {
       completed.push({ ...c, status: "completed", progress: c.goal_value, period_label: periodLabel, deadline });
-    } else if (participant) {
+    } else if (participant && !participant.completed_at && c.duration_type === "unlimited") {
       active.push({ ...c, status: "active", progress, period_label: periodLabel, deadline });
+    } else if (participant && !participant.completed_at) {
+      const bounds = getPeriodBounds(c.duration_type);
+      if (new Date(participant.started_at) >= bounds.start) {
+        active.push({ ...c, status: "active", progress, period_label: periodLabel, deadline });
+      } else {
+        available.push({ ...c, status: "available", progress, period_label: periodLabel, deadline });
+      }
     } else {
-      available.push({ ...c, status: "available", progress, goal_value: c.goal_value, period_label: periodLabel, deadline });
+      available.push({ ...c, status: "available", progress, period_label: periodLabel, deadline });
     }
   }
 
@@ -199,8 +211,9 @@ export async function checkAndCompleteChallenges(
   memberId: string,
   familyId: string,
   admin?: any
-): Promise<void> {
+): Promise<{ completed: { title: string; badge_name: string; badge_icon: string }[] }> {
   const adminClient = admin ?? supabase;
+  const completedChallenges: { title: string; badge_name: string; badge_icon: string }[] = [];
 
   const { data: participants } = await adminClient
     .from("challenge_participants")
@@ -208,7 +221,7 @@ export async function checkAndCompleteChallenges(
     .eq("member_id", memberId)
     .is("completed_at", null);
 
-  if (!participants || participants.length === 0) return;
+  if (!participants || participants.length === 0) return { completed: [] };
 
   const { data: existingBadges } = await adminClient
     .from("challenge_badges")
@@ -222,6 +235,12 @@ export async function checkAndCompleteChallenges(
     if (!challenge) continue;
     if (challenge.duration_type === "unlimited" && earnedIds.has(challenge.id)) continue;
     if (challenge.duration_type !== "unlimited" && p.completed_at) continue;
+
+    // Skip if recurring participant is from a previous period (must opt-in again)
+    if (challenge.duration_type !== "unlimited") {
+      const periodStart = getPeriodBounds(challenge.duration_type).start;
+      if (new Date(p.started_at) < periodStart) continue;
+    }
 
     const bounds = getPeriodBounds(challenge.duration_type);
     const progress = await calculateProgress(supabase, memberId, challenge, bounds);
@@ -253,6 +272,8 @@ export async function checkAndCompleteChallenges(
 
     if (progress >= challenge.goal_value) {
       const periodLabel = getPeriodLabel(challenge.duration_type);
+
+      completedChallenges.push({ title: challenge.title, badge_name: challenge.badge_name, badge_icon: challenge.badge_icon });
 
       await adminClient
         .from("challenge_participants")
@@ -341,4 +362,6 @@ export async function checkAndCompleteChallenges(
       }
     }
   }
+
+  return { completed: completedChallenges };
 }

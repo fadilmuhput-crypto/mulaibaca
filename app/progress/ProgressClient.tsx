@@ -39,6 +39,7 @@ export default function ProgressClient({
   activities,
   followerCount,
   followingCount,
+  active,
   completed,
   badges,
 }: {
@@ -51,6 +52,7 @@ export default function ProgressClient({
   activities: Activity[];
   followerCount: number;
   followingCount: number;
+  active: ChallengeWithStatus[];
   completed: ChallengeWithStatus[];
   badges: Badge[];
 }) {
@@ -128,6 +130,7 @@ export default function ProgressClient({
           longestStreak={longestStreak}
           totalPagesRead={totalPagesRead}
           booksFinished={booksFinished}
+          active={active}
           completed={completed}
           badges={badges}
         />

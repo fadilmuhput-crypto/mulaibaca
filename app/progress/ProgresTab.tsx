@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useRef, useEffect, type ElementType } from "react";
+import Link from "next/link";
 import { BookCheck, BookText, Flame, CalendarDays, Award, BookOpen, Library } from "lucide-react";
 import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
 import BadgePing from "@/components/BadgePing";
@@ -23,6 +24,7 @@ export default function ProgresTab({
   longestStreak,
   totalPagesRead,
   booksFinished,
+  active,
   completed,
   badges,
 }: {
@@ -31,6 +33,7 @@ export default function ProgresTab({
   longestStreak: number;
   totalPagesRead: number;
   booksFinished: number;
+  active: ChallengeWithStatus[];
   completed: ChallengeWithStatus[];
   badges: Badge[];
 }) {
@@ -206,6 +209,40 @@ export default function ProgresTab({
           </p>
         </div>
       </div>
+
+      {/* Active challenges */}
+      {active.length > 0 && (
+        <div className="bg-surface rounded-xl border border-border p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Flame size={14} strokeWidth={1.75} className="text-amber" />
+            <h3 className="text-xs font-black uppercase tracking-widest text-ink-muted">Tantangan Aktif</h3>
+          </div>
+          <div className="space-y-3">
+            {active.map((c) => {
+              const Icon = ACTIVITY_ICONS[c.activity_type] ?? Flame;
+              const pct = c.progress > 0 ? Math.min(Math.round((c.progress / c.goal_value) * 100), 100) : 0;
+              return (
+                <Link
+                  key={c.id}
+                  href={`/komunitas/tantangan/${c.id}`}
+                  className="block hover:opacity-80 transition-opacity"
+                >
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <Icon size={14} strokeWidth={1.75} className="text-amber flex-shrink-0" />
+                    <span className="text-sm font-medium text-ink truncate">{c.title}</span>
+                    <span className="text-xs font-bold text-ink ml-auto flex-shrink-0">
+                      {c.progress}/{c.goal_value}
+                    </span>
+                  </div>
+                  <div className="progress-bar ml-7">
+                    <div className="progress-fill" style={{ width: `${pct}%` }} />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Badge gallery */}
       {badges.length > 0 && (
