@@ -70,22 +70,22 @@ create policy "challenge_badges_write" on challenge_badges for all using (true);
 
 -- Seed: Streak challenges (one-time, unlimited duration)
 insert into challenges (title, description, category, activity_type, goal_type, goal_value, duration_type, tier, badge_icon, badge_name, badge_color, sort_order) values
-  ('Pemula Aktif',    'Baca 3 hari berturut-turut',              'streak', 'streak', 'days',  3,  'unlimited', 1, '🔥', 'Bronze Streak',  '#DC2626', 1),
-  ('Rajin Membaca',   'Baca 7 hari berturut-turut',              'streak', 'streak', 'days',  7,  'unlimited', 2, '🔥', 'Silver Streak',  '#DC2626', 2),
-  ('Kecanduan Baca',  'Baca 14 hari berturut-turut',             'streak', 'streak', 'days',  14, 'unlimited', 3, '🔥', 'Gold Streak',    '#DC2626', 3)
+  ('Pemula Aktif',    'Baca 3 hari berturut-turut',              'streak', 'streak', 'days',  3,  'unlimited', 1, '🔥', 'Bronze Streak',  '#CD7F32', 1),
+  ('Rajin Membaca',   'Baca 7 hari berturut-turut',              'streak', 'streak', 'days',  7,  'unlimited', 2, '🔥', 'Silver Streak',  '#A8A8A8', 2),
+  ('Kecanduan Baca',  'Baca 14 hari berturut-turut',             'streak', 'streak', 'days',  14, 'unlimited', 3, '🔥', 'Gold Streak',    '#FFD700', 3)
 on conflict do nothing;
 
--- Seed: Pages challenges (monthly, opt-in each month)
+-- Seed: Pages challenges (weekly, opt-in each week)
 insert into challenges (title, description, category, activity_type, goal_type, goal_value, duration_type, tier, badge_icon, badge_name, badge_color, sort_order) values
-  ('Minggu Produktif',   'Baca 100 halaman dalam seminggu',      'pages', 'pages', 'pages', 100,  'weekly',  1, '📖', 'Bronze Reader',  '#C26E2A', 4),
-  ('Minggu Rajin',       'Baca 250 halaman dalam seminggu',      'pages', 'pages', 'pages', 250,  'weekly',  2, '📖', 'Silver Reader',  '#C26E2A', 5),
-  ('Minggu Marathon',    'Baca 500 halaman dalam seminggu',      'pages', 'pages', 'pages', 500,  'weekly',  3, '📖', 'Gold Reader',    '#C26E2A', 6),
-  ('Bookworm Bulanan',   'Baca 1000 halaman dalam sebulan',      'pages', 'pages', 'pages', 1000, 'monthly', 1, '🏅', 'Marathoner',    '#1E4530', 7)
+  ('Minggu Produktif',   'Baca 100 halaman dalam seminggu',      'pages', 'pages', 'pages', 100,  'weekly',  1, '📖', 'Bronze Reader',  '#CD7F32', 4),
+  ('Minggu Rajin',       'Baca 250 halaman dalam seminggu',      'pages', 'pages', 'pages', 250,  'weekly',  2, '📖', 'Silver Reader',  '#A8A8A8', 5),
+  ('Minggu Marathon',    'Baca 500 halaman dalam seminggu',      'pages', 'pages', 'pages', 500,  'weekly',  3, '📖', 'Gold Reader',    '#FFD700', 6),
+  ('Bookworm Bulanan',   'Baca 1000 halaman dalam sebulan',      'pages', 'pages', 'pages', 1000, 'monthly', 1, '🏅', 'Marathoner',     '#1E4530', 7)
 on conflict do nothing;
 
 -- Seed: Books challenges (monthly, opt-in each month)
 insert into challenges (title, description, category, activity_type, goal_type, goal_value, duration_type, tier, badge_icon, badge_name, badge_color, sort_order) values
-  ('Kolektor Buku',      'Selesaikan 1 buku dalam sebulan',      'books', 'books', 'count', 1, 'monthly', 1, '📚', 'Book Collector', '#2D4D7A', 8),
-  ('Kolektor Buku 3',    'Selesaikan 3 buku dalam sebulan',      'books', 'books', 'count', 3, 'monthly', 2, '📚', 'Book Worm',     '#2D4D7A', 9),
-  ('Kolektor Buku 5',    'Selesaikan 5 buku dalam sebulan',      'books', 'books', 'count', 5, 'monthly', 3, '📚', 'Book Master',   '#2D4D7A', 10)
+  ('Kolektor Buku',      'Selesaikan 1 buku dalam sebulan',      'books', 'books', 'count', 1, 'monthly', 1, '📚', 'Book Collector', '#CD7F32', 8),
+  ('Kolektor Buku 3',    'Selesaikan 3 buku dalam sebulan',      'books', 'books', 'count', 3, 'monthly', 2, '📚', 'Book Worm',      '#A8A8A8', 9),
+  ('Kolektor Buku 5',    'Selesaikan 5 buku dalam sebulan',      'books', 'books', 'count', 5, 'monthly', 3, '📚', 'Book Master',    '#FFD700', 10)
 on conflict do nothing;
