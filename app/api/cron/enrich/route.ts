@@ -9,13 +9,17 @@ export async function GET() {
     ? { "x-cron-secret": process.env.CRON_SECRET }
     : null;
 
-  const [enrichRes, reminderRes] = await Promise.allSettled([
+  const [enrichRes, reminderRes, reviewReminderRes] = await Promise.allSettled([
     fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://mulaibaca.id"}/api/cron/enrich/run`,
       { headers: authHeader ?? {} }
     ),
     fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://mulaibaca.id"}/api/cron/reminder`,
+      { headers: authHeader ?? {} }
+    ),
+    fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://mulaibaca.id"}/api/cron/review-reminder`,
       { headers: authHeader ?? {} }
     ),
   ]);
@@ -28,7 +32,11 @@ export async function GET() {
     ? await reminderRes.value.json()
     : { error: reminderRes.reason?.message };
 
-  return NextResponse.json({ enrich: enrichResult, reminder: reminderResult });
+  const reviewReminderResult = reviewReminderRes.status === "fulfilled"
+    ? await reviewReminderRes.value.json()
+    : { error: reviewReminderRes.reason?.message };
+
+  return NextResponse.json({ enrich: enrichResult, reminder: reminderResult, reviewReminder: reviewReminderResult });
 }
 
 export async function POST() {

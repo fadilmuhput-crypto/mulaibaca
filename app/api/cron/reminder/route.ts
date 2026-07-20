@@ -18,9 +18,8 @@ export async function GET() {
     const admin = createAdminClient();
     const { publicKey, privateKey } = await getVapidKeys();
 
-    // Find members with reminder enabled whose reminder_time matches current hour
     const now = new Date();
-    const currentHour = now.getUTCHours() + 7; // WIB (UTC+7)
+    const currentHour = now.getUTCHours() + 7;
     const wibHour = Math.max(0, Math.min(23, currentHour));
     const timeStr = `${String(wibHour).padStart(2, "0")}:00`;
 
@@ -36,7 +35,16 @@ export async function GET() {
 
     const memberIds = members.map((m) => m.id as string);
 
-    // Fetch push subscriptions for these members
+    // Fetch streaks & today's logs in parallel
+    const today = new Date().toISOString().split("T")[0];
+    const [{ data: streaks }, { data: todayLogs }] = await Promise.all([
+      admin.from("streaks").select("member_id, current_streak").in("member_id", memberIds),
+      admin.from("reading_logs").select("member_id").eq("log_date", today).in("member_id", memberIds),
+    ]);
+
+    const streakMap = new Map((streaks ?? []).map((s: any) => [s.member_id, s.current_streak]));
+    const todayLogSet = new Set((todayLogs ?? []).map((l: any) => l.member_id));
+
     const { data: subs } = await admin
       .from("push_subscriptions")
       .select("id, member_id, endpoint, p256dh, auth")
@@ -46,7 +54,6 @@ export async function GET() {
       return NextResponse.json({ sent: 0, message: "No push subscriptions found" });
     }
 
-    // Import web-push dynamically (ESM)
     const webpush = await import("web-push");
 
     webpush.setVapidDetails(
@@ -60,6 +67,21 @@ export async function GET() {
 
     const results = await Promise.allSettled(
       subs.map(async (sub) => {
+        const memberId = sub.member_id as string;
+        const streak = streakMap.get(memberId) ?? 0;
+        const hasLoggedToday = todayLogSet.has(memberId);
+
+        let title: string;
+        let body: string;
+
+        if (streak > 0 && !hasLoggedToday) {
+          title = `🔥 Streak ${streak} hari belum aman!`;
+          body = `Kamu belum catat bacaan hari ini. Ayo baca 1 halaman dulu biar streak ${streak} hari tetap aman!`;
+        } else {
+          title = "Waktunya baca!";
+          body = "Jangan lupa catat progres bacaan hari ini di Mulaibaca.";
+        }
+
         const subscription = {
           endpoint: sub.endpoint as string,
           keys: {
@@ -67,16 +89,12 @@ export async function GET() {
             auth: sub.auth as string,
           },
         };
-        const payload = JSON.stringify({
-          title: "Waktunya baca!",
-          body: "Jangan lupa catat progres bacaan hari ini di Mulaibaca.",
-        });
+        const payload = JSON.stringify({ title, body });
         await webpush.sendNotification(subscription, payload);
         sent++;
       })
     );
 
-    // Delete invalid subscriptions (410 Gone = endpoint expired)
     for (let i = 0; i < results.length; i++) {
       const r = results[i];
       if (r.status === "rejected") {
@@ -88,7 +106,7 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ sent, errors, totalMembers: memberIds.length });
+    return NextResponse.json({ sent, errors, totalMembers: memberIds.length, streakSaverCount: memberIds.filter((id) => (streakMap.get(id) ?? 0) > 0 && !todayLogSet.has(id)).length });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Unknown error" },
