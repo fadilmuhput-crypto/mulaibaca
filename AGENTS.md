@@ -28,7 +28,7 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 ## Scheduled (vercel.json)
 | Route | Schedule (UTC) | Purpose |
 |---|---|---|
-| `/api/cron/enrich` | `0 6 * * *` | Main dispatcher — triggers enrich/run + reminder + review-reminder |
+| `/api/cron/enrich` | `0 6 * * *` | Main dispatcher — triggers enrich/run + reminder + review-reminder + import-books |
 
 ## Individual cron routes
 - `/api/cron/enrich/run` — enriches book metadata from OpenLibrary (pending/failed books)
@@ -54,3 +54,12 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 ## Automation
 - Reminder cron enhanced: checks streaks + today's logs, sends personalized push for at-risk streaks
 - New `/api/cron/review-reminder`: 3 days after book finished, notif if no review
+- New `/api/cron/import-books`: bulk import books from OpenLibrary by predefined queries (12 queries, ~15-20 results each)
+- New `scripts/import-books.ts`: CLI runner for same logic (`npx tsx --env-file=.env.local scripts/import-books.ts`)
+- New `lib/import-books.ts`: shared logic — search OL, dedup by OL ID, insert new books
+
+## Book discovery improvements
+- New `/api/books/search-ol`: proxy to OpenLibrary Search API; returns 12 results with `already_exists` flag
+- Search page (`/cari`): when local results = 0, shows "Cari di OpenLibrary" button → displays OL results → "Mau Baca" button imports via `/api/shelf`
+- New `lib/recommendations.ts`: `getCollaborativeRecs()` — finds users with overlapping shelf books, recommends their other books (zero dependency on tags)
+- Jelajah page (`/jelajah`): new section "Pembaca Lain Juga Baca…" using collaborative filtering (alongside existing "Karena Kamu Baca…" tag-based recs)
