@@ -6,6 +6,7 @@ import JelajahClient from "./JelajahClient";
 import type { Book } from "@/lib/books";
 import type { JelajahSection } from "@/lib/jelajah-sections";
 import type { Metadata } from "next";
+import { getCollaborativeRecs } from "@/lib/recommendations";
 
 export type FamilyBook = {
   memberName: string;
@@ -191,6 +192,13 @@ export default async function JelajahPage() {
         .slice(0, 10)
     : [];
 
+  const collabIds = session
+    ? await getCollaborativeRecs(session.memberId, myBookIds, 10)
+    : [];
+  const collabBooks = collabIds
+    .map((id) => bookMap.get(id))
+    .filter((b): b is Book => !!b);
+
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
       {session && <NavBar session={session} noStickyTop />}
@@ -200,6 +208,7 @@ export default async function JelajahPage() {
         sections={sections}
         trendingBooks={trendingBooks}
         personalBooks={personalBooks}
+        collabBooks={collabBooks}
         memberType={session?.memberType ?? "dewasa"}
         memberAge={session?.memberAge ?? null}
         memberName={session?.memberName ?? "Pengunjung"}

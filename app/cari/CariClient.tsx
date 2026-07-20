@@ -6,7 +6,7 @@ import Link from "next/link";
 import BookCover from "@/components/BookCover";
 import type { Book } from "@/lib/books";
 import { CATEGORY_TREE, findSubCategory } from "@/lib/category-tree";
-import { Search, ChevronLeft, X, Bookmark } from "lucide-react";
+import { Search, ChevronLeft, X, Bookmark, BookOpen } from "lucide-react";
 
 type BookCard = {
   id: string;
@@ -44,6 +44,17 @@ function fromBook(b: Book): BookCard {
   };
 }
 
+type OLResult = {
+  ol_id: string;
+  title: string;
+  author: string;
+  first_publish_year: number | null;
+  isbn: string | null;
+  cover_url: string | null;
+  total_pages: number | null;
+  already_exists: boolean;
+};
+
 export default function CariClient({ allBooks }: { allBooks: Book[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,11 +63,17 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
   const [activeParent, setActiveParent] = useState<string | null>(null);
   const [activeSub, setActiveSub] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
+  const [olResults, setOlResults] = useState<OLResult[] | null>(null);
+  const [olLoading, setOlLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
   }, []);
+
+  useEffect(() => {
+    setOlResults(null);
+  }, [query, activeSub, activeParent]);
 
   const filtered = useMemo(() => {
     let list = allBooks;
@@ -80,6 +97,19 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
   }, [allBooks, query, activeParent, activeSub]);
 
   const results = filtered.map(fromBook);
+
+  async function searchOL() {
+    setOlLoading(true);
+    try {
+      const res = await fetch(`/api/books/search-ol?q=${encodeURIComponent(query)}`);
+      const json = await res.json();
+      setOlResults(json.data ?? []);
+    } catch {
+      setOlResults([]);
+    } finally {
+      setOlLoading(false);
+    }
+  }
 
   async function addBook(card: BookCard, status: "reading" | "want") {
     const key = card.id + status;
@@ -195,9 +225,32 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
           <div className="text-center py-16">
             <p className="text-2xl mb-3">🔍</p>
             <p className="text-sm font-semibold text-ink mb-1">Tidak ditemukan</p>
-            <p className="text-xs text-ink-muted">Coba kata kunci lain atau ubah filter kategori</p>
+            <p className="text-xs text-ink-muted mb-4">Coba kata kunci lain atau ubah filter kategori</p>
+            {query.trim().length >= 2 && !olResults && (
+              <button
+                onClick={searchOL}
+                disabled={olLoading}
+                className="btn-primary-sm mx-auto"
+              >
+                {olLoading ? "Mencari…" : "Cari di OpenLibrary"}
+              </button>
+            )}
+            {olResults && olResults.length === 0 && (
+              <p className="text-xs text-ink-muted">Tidak ditemukan juga di OpenLibrary</p>
+            )}
           </div>
         ) : (
+          <>
+          {olResults && olResults.length > 0 && (
+            <div className="mb-4">
+              <button
+                onClick={() => setOlResults(null)}
+                className="text-xs text-ink-muted hover:text-ink flex items-center gap-1 mb-2 transition-colors"
+              >
+                &larr; Kembali ke hasil lokal
+              </button>
+            </div>
+          )}
           <div className="space-y-3">
             {results.map((card) => {
               const isAdding = adding?.startsWith(card.id);
@@ -228,6 +281,82 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
                           <Bookmark size={12} strokeWidth={2} />
                           {isAdding ? "…" : "Mau Baca"}
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          </>
+        )}
+
+        {olResults && olResults.length > 0 && (
+          <div className="space-y-3 mt-6">
+            <p className="text-xs font-semibold text-ink-muted mb-3">
+              Hasil dari OpenLibrary:
+            </p>
+            {olResults.map((r) => {
+              const isAdding = adding?.startsWith(r.ol_id);
+              return (
+                <div key={r.ol_id} className="bg-surface rounded-2xl border border-border p-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-12 h-16 rounded-lg bg-muted/30 flex items-center justify-center overflow-hidden">
+                      {r.cover_url ? (
+                        <img src={r.cover_url} alt={r.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <BookOpen size={20} className="text-ink-muted" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-ink text-sm line-clamp-2">{r.title}</p>
+                      <p className="text-xs text-ink-muted mt-0.5">{r.author}</p>
+                      <p className="text-[11px] text-ink-muted mt-0.5">
+                        {r.total_pages && `${r.total_pages} hlm`}
+                        {r.total_pages && r.first_publish_year && " · "}
+                        {r.first_publish_year && `Terbit ${r.first_publish_year}`}
+                      </p>
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          onClick={async () => {
+                            setAdding(r.ol_id + "want");
+                            try {
+                              const res = await fetch("/api/shelf", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  book: {
+                                    title: r.title,
+                                    author: r.author,
+                                    cover_url: r.cover_url,
+                                    isbn: r.isbn,
+                                    open_library_id: r.ol_id,
+                                    total_pages: r.total_pages,
+                                  },
+                                  status: "want",
+                                }),
+                              });
+                              if (!res.ok) throw new Error();
+                              router.push("/rak");
+                            } catch {
+                              setAdding(null);
+                            }
+                          }}
+                          disabled={!!isAdding || r.already_exists}
+                          className={`btn-primary-sm flex items-center gap-1.5 ${
+                            r.already_exists ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                        >
+                          <Bookmark size={12} strokeWidth={2} />
+                          {r.already_exists ? "Sudah ada" : isAdding ? "…" : "Mau Baca"}
+                        </button>
+                        <Link
+                          href={`https://openlibrary.org${r.ol_id.startsWith("OL") ? `/works/${r.ol_id}` : ""}`}
+                          target="_blank"
+                          className="text-xs text-ink-muted hover:text-ink self-center transition-colors"
+                        >
+                          OL
+                        </Link>
                       </div>
                     </div>
                   </div>
