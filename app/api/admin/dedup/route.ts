@@ -3,18 +3,22 @@ import { createRouteClient } from "@/lib/supabase-route";
 import { findDuplicateGroups, resolveDuplicates } from "@/lib/dedup";
 import type { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
+async function isAdmin(req: NextRequest) {
   const supabase = createRouteClient(req);
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return false;
 
   const { data: member } = await supabase
     .from("members")
-    .select("member_type")
+    .select("is_cms_admin")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
-  if (!member || member.member_type !== "admin") {
+  return member?.is_cms_admin === true;
+}
+
+export async function GET(req: NextRequest) {
+  if (!(await isAdmin(req))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -30,17 +34,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteClient(req);
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: member } = await supabase
-    .from("members")
-    .select("member_type")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (!member || member.member_type !== "admin") {
+  if (!(await isAdmin(req))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
