@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, X } from "lucide-react";
+import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, Flame, BookOpen, Clock, Trophy } from "lucide-react";
 import type { Club, ClubMember } from "@/lib/clubs";
+import type { MemberStats } from "@/lib/club-stats";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Props = {
@@ -29,6 +30,11 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   const [transferring, setTransferring] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverUrl, setCoverUrl] = useState(club.cover_url);
+  const [stats, setStats] = useState<MemberStats[] | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/clubs/${club.id}/stats`).then((r) => r.ok && r.json()).then((d) => setStats(d));
+  }, [club.id]);
 
   const isAdmin = members.some((m) => m.member_id === memberId && m.role === "admin");
   const isMember = members.some((m) => m.member_id === memberId);
@@ -208,6 +214,54 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
           </>
         )}
       </div>
+
+      {/* Stats dashboard */}
+      {stats && (
+        <section className="mb-4">
+          <h2 className="text-xs font-black uppercase tracking-widest text-ink-muted mb-3 flex items-center gap-1.5">
+            <Trophy size={12} /> Statistik Anggota
+          </h2>
+          <div className="space-y-2">
+            {stats.map((s) => {
+              const me = s.member_id === memberId;
+              return (
+                <div key={s.member_id} className={`bg-surface rounded-xl border ${me ? "border-amber/30" : "border-border"} p-3`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-parchment border border-border flex items-center justify-center text-sm flex-shrink-0">
+                        {s.avatar}
+                      </div>
+                      <p className="text-sm font-semibold text-ink truncate">{s.name}{me && " (Kamu)"}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
+                    <div className="bg-parchment rounded-lg p-2">
+                      <Flame size={14} className="mx-auto mb-0.5 text-orange-400" />
+                      <span className="font-bold text-ink">{s.current_streak}</span>
+                      <span className="text-ink-muted block">Streak</span>
+                    </div>
+                    <div className="bg-parchment rounded-lg p-2">
+                      <BookOpen size={14} className="mx-auto mb-0.5 text-blue-400" />
+                      <span className="font-bold text-ink">{s.pages_this_week}</span>
+                      <span className="text-ink-muted block">Hlm/mgg</span>
+                    </div>
+                    <div className="bg-parchment rounded-lg p-2">
+                      <Clock size={14} className="mx-auto mb-0.5 text-green-400" />
+                      <span className="font-bold text-ink">{s.minutes_this_week}</span>
+                      <span className="text-ink-muted block">Mnt/mgg</span>
+                    </div>
+                  </div>
+                  {s.books_finished_this_month > 0 && (
+                    <p className="text-[11px] text-ink-muted text-center mt-1.5">
+                      {s.books_finished_this_month} buku selesai bulan ini
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Members */}
       <section>
