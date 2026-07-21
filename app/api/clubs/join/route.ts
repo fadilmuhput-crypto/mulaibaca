@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteClient } from "@/lib/supabase-route";
+import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
 
-export async function POST(req: NextRequest) {
+async function getMemberId(req: NextRequest) {
   const supabase = createRouteClient(req);
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+  if (!user) return null;
   const { data: member } = await supabase
     .from("members")
     .select("id")
     .eq("auth_user_id", user.id)
     .maybeSingle();
+  return member?.id ?? null;
+}
 
-  if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
+export async function POST(req: NextRequest) {
+  const memberId = await getMemberId(req);
+  if (!memberId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { inviteCode } = await req.json();
 
@@ -20,8 +23,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Kode undangan diperlukan" }, { status: 400 });
   }
 
-  // Find club by invite code
-  const { data: club } = await supabase
+  const admin = createAdminClient();
+
+  const { data: club } = await admin
     .from("clubs")
     .select("id, max_members")
     .eq("invite_code", inviteCode.trim().toUpperCase())
@@ -32,21 +36,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Kode undangan tidak valid" }, { status: 404 });
   }
 
-  // Check if already a member
-  const { data: existing } = await supabase
+  const { data: existing } = await admin
     .from("club_members")
     .select("id")
     .eq("club_id", club.id)
-    .eq("member_id", member.id)
+    .eq("member_id", memberId)
     .maybeSingle();
 
   if (existing) {
     return NextResponse.json({ error: "Kamu sudah bergabung di klub ini" }, { status: 409 });
   }
 
-  // Check max members
   if (club.max_members) {
-    const { count } = await supabase
+    const { count } = await admin
       .from("club_members")
       .select("id", { count: "exact", head: true })
       .eq("club_id", club.id);
@@ -56,10 +58,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Join
-  const { error: joinErr } = await supabase
+  const { error: joinErr } = await admin
     .from("club_members")
-    .insert({ club_id: club.id, member_id: member.id, role: "member" });
+    .insert({ club_id: club.id, member_id: memberId, role: "member" });
 
   if (joinErr) {
     return NextResponse.json({ error: "Gagal bergabung" }, { status: 500 });

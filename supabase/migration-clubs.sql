@@ -38,7 +38,7 @@ create policy "clubs_select" on clubs for select using (is_active = true);
 
 -- Club policies: authenticated users can create clubs
 create policy "clubs_insert" on clubs for insert with check (
-  created_by = auth.uid()
+  (select auth_user_id from members where id = created_by) = auth.uid()
 );
 
 -- Club policies: only creator can update

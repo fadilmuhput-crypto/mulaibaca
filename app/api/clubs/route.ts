@@ -1,36 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteClient } from "@/lib/supabase-route";
+import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
 import { getUserClubs } from "@/lib/clubs";
 
-export async function GET(req: NextRequest) {
+async function getMemberId(req: NextRequest) {
   const supabase = createRouteClient(req);
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+  if (!user) return null;
   const { data: member } = await supabase
     .from("members")
     .select("id")
     .eq("auth_user_id", user.id)
     .maybeSingle();
+  return member?.id ?? null;
+}
 
-  if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
+export async function GET(req: NextRequest) {
+  const memberId = await getMemberId(req);
+  if (!memberId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const clubs = await getUserClubs(member.id);
+  const clubs = await getUserClubs(memberId);
   return NextResponse.json({ data: clubs });
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteClient(req);
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: member } = await supabase
-    .from("members")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  const memberId = await getMemberId(req);
+  if (!memberId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { name, description } = await req.json();
 
@@ -38,13 +32,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nama klub wajib diisi" }, { status: 400 });
   }
 
-  // Create club
-  const { data: club, error: clubErr } = await supabase
+  const admin = createAdminClient();
+
+  const { data: club, error: clubErr } = await admin
     .from("clubs")
     .insert({
       name: name.trim(),
       description: description?.trim() ?? "",
-      created_by: member.id,
+      created_by: memberId,
     })
     .select()
     .single();
@@ -53,10 +48,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Gagal membuat klub" }, { status: 500 });
   }
 
-  // Auto-join creator as admin
-  const { error: joinErr } = await supabase
+  const { error: joinErr } = await admin
     .from("club_members")
-    .insert({ club_id: club.id, member_id: member.id, role: "admin" });
+    .insert({ club_id: club.id, member_id: memberId, role: "admin" });
 
   if (joinErr) {
     return NextResponse.json({ error: "Gagal bergabung" }, { status: 500 });
