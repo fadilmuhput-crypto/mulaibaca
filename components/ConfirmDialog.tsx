@@ -1,7 +1,20 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { X } from "lucide-react";
+
+type Props = {
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  destructive?: boolean;
+  variant?: "danger" | "default";
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading?: boolean;
+};
 
 export default function ConfirmDialog({
   open,
@@ -9,80 +22,48 @@ export default function ConfirmDialog({
   message,
   confirmLabel = "Hapus",
   cancelLabel = "Batal",
-  destructive = true,
+  destructive,
+  variant,
   onConfirm,
   onCancel,
-}: {
-  open: boolean;
-  title: string;
-  message: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  destructive?: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  const handleKey = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    },
-    [onCancel]
-  );
-
+  loading,
+}: Props) {
   useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onCancel();
+    }
     document.addEventListener("keydown", handleKey);
-    if (open) document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
-    };
-  }, [handleKey, open]);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, onCancel]);
 
   if (!open) return null;
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-    >
-      <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
+  const isDanger = destructive || variant === "danger";
 
-      <div
-        className="relative w-full max-w-sm bg-surface rounded-t-3xl sm:rounded-2xl p-6 space-y-4"
-        style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal)" }}
-      >
-        <div className="flex items-start justify-between">
-          <h2 className="font-display font-black text-lg text-ink">{title}</h2>
-          <button
-            onClick={onCancel}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-muted hover:text-ink rounded-xl -mr-2 -mt-2"
-            aria-label="Tutup"
-          >
-            <X size={18} strokeWidth={2} />
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/30" onClick={onCancel} />
+      <div className="relative bg-surface rounded-2xl border-2 border-ink shadow-brutal w-full max-w-sm p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-ink text-sm">{title}</h3>
+          <button onClick={onCancel} className="text-ink-muted hover:text-ink p-0.5 transition-colors">
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
-
         <p className="text-sm text-ink-secondary leading-relaxed">{message}</p>
-
-        <div className="flex gap-3 pt-1">
-          <button
-            onClick={onCancel}
-            className="btn-ghost-ink flex-1 text-sm"
-          >
-            {cancelLabel}
-          </button>
+        <div className="flex gap-2">
+          <button onClick={onCancel} className="btn-secondary-sm flex-1">{cancelLabel}</button>
           <button
             onClick={onConfirm}
-            className={`flex-1 text-sm font-semibold py-2.5 px-4 rounded-xl transition-colors ${
-              destructive
-                ? "bg-error text-white hover:bg-error/90"
-                : "btn-primary-sm"
+            disabled={loading}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 ${
+              isDanger
+                ? "bg-red-500 text-white hover:bg-red-600"
+                : "bg-amber text-white hover:bg-amber-hover"
             }`}
           >
-            {confirmLabel}
+            {loading ? "…" : confirmLabel}
           </button>
         </div>
       </div>

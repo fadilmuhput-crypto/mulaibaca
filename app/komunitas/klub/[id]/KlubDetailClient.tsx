@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, X } from "lucide-react";
 import type { Club, ClubMember } from "@/lib/clubs";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Props = {
   club: Club & { member_count: number };
@@ -21,7 +22,9 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   const [editDesc, setEditDesc] = useState(club.description);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [transferTo, setTransferTo] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [confirmTransfer, setConfirmTransfer] = useState<string | null>(null);
   const [transferring, setTransferring] = useState(false);
 
   const isAdmin = members.some((m) => m.member_id === memberId && m.role === "admin");
@@ -54,17 +57,16 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   }
 
   async function handleDelete() {
-    if (!confirm(`Yakin hapus "${club.name}"? Semua data klub akan hilang.`)) return;
     setDeleting(true);
     try {
       await fetch(`/api/clubs/${club.id}`, { method: "DELETE" });
       router.push("/komunitas");
     } catch {}
     setDeleting(false);
+    setConfirmDelete(false);
   }
 
   async function handleTransfer(toMemberId: string) {
-    if (!confirm("Yakin transfer admin ke anggota ini?")) return;
     setTransferring(true);
     try {
       await fetch(`/api/clubs/${club.id}/transfer`, {
@@ -75,17 +77,17 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       router.refresh();
     } catch {}
     setTransferring(false);
-    setTransferTo(null);
+    setConfirmTransfer(null);
   }
 
   async function handleLeave() {
-    if (!confirm("Yakin mau keluar dari klub ini?")) return;
     setLeaving(true);
     try {
       await fetch(`/api/clubs/${club.id}/leave`, { method: "POST" });
       router.push("/komunitas");
     } catch {}
     setLeaving(false);
+    setConfirmLeave(false);
   }
 
   return (
@@ -173,7 +175,7 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
               </div>
               {isAdmin && m.member_id !== memberId && (
                 <button
-                  onClick={() => setTransferTo(m.member_id)}
+                  onClick={() => setConfirmTransfer(m.member_id)}
                   className="text-[10px] text-ink-muted hover:text-amber transition-colors flex-shrink-0"
                   title="Transfer admin"
                 >
@@ -185,29 +187,49 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
         </div>
       </section>
 
-      {/* Transfer confirmation */}
-      {transferTo && (
-        <div className="mt-4 bg-surface rounded-2xl border border-border p-4 space-y-3">
-          <p className="text-sm text-ink">Transfer admin ke anggota ini?</p>
-          <div className="flex gap-2">
-            <button onClick={() => setTransferTo(null)} className="btn-secondary-sm flex-1">Batal</button>
-            <button onClick={() => handleTransfer(transferTo)} disabled={transferring} className="btn-primary-sm flex-1">
-              {transferring ? "…" : "Ya, Transfer"}
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Confirm dialogs */}
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Hapus klub"
+        message={`Yakin hapus "${club.name}"? Semua data klub akan hilang.`}
+        confirmLabel="Ya, Hapus"
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+        loading={deleting}
+      />
+
+      <ConfirmDialog
+        open={confirmLeave}
+        title="Keluar dari klub"
+        message={`Yakin mau keluar dari "${club.name}"?`}
+        confirmLabel="Ya, Keluar"
+        variant="danger"
+        onConfirm={handleLeave}
+        onCancel={() => setConfirmLeave(false)}
+        loading={leaving}
+      />
+
+      <ConfirmDialog
+        open={!!confirmTransfer}
+        title="Transfer Admin"
+        message="Yakin transfer admin ke anggota ini? Kamu akan menjadi anggota biasa."
+        confirmLabel="Ya, Transfer"
+        variant="default"
+        onConfirm={() => confirmTransfer && handleTransfer(confirmTransfer)}
+        onCancel={() => setConfirmTransfer(null)}
+        loading={transferring}
+      />
 
       {/* Admin actions */}
       {isAdmin && !editing && (
         <div className="mt-8 space-y-3">
           <button
-            onClick={handleDelete}
-            disabled={deleting}
+            onClick={() => setConfirmDelete(true)}
             className="w-full flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-500 bg-surface border border-border rounded-xl p-3 transition-colors"
           >
             <Trash2 size={14} />
-            {deleting ? "…" : "Hapus klub"}
+            Hapus klub
           </button>
         </div>
       )}
@@ -215,8 +237,8 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       {/* Leave button */}
       {isMember && !isAdmin && (
         <div className="mt-8 text-center">
-          <button onClick={handleLeave} disabled={leaving} className="text-xs text-red-400 hover:text-red-500 transition-colors">
-            {leaving ? "…" : "Keluar dari klub"}
+          <button onClick={() => setConfirmLeave(true)} className="text-xs text-red-400 hover:text-red-500 transition-colors">
+            Keluar dari klub
           </button>
         </div>
       )}
