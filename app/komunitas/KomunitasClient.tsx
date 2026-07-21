@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, type ElementType } from "react";
+import { useState, useEffect, type ElementType } from "react";
 import Link from "next/link";
 import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
-import { Flame, BookOpen, Award, Library, Users, Calendar, Sparkles, Check, ChevronRight } from "lucide-react";
+import { Flame, BookOpen, Award, Library, Users, Calendar, Sparkles, Check, ChevronRight, Plus, LogIn, Copy } from "lucide-react";
 import BadgePing from "@/components/BadgePing";
+
+type Club = {
+  id: string;
+  name: string;
+  description: string;
+  cover_url: string | null;
+  invite_code: string;
+  member_count: number;
+  created_at: string;
+};
 
 type MainTab = "tantangan" | "klub" | "acara";
 
@@ -48,6 +58,27 @@ export default function KomunitasClient({
   const [available, setAvailable] = useState(initialAvailable);
   const [completed] = useState(initialCompleted);
   const [joining, setJoining] = useState<string | null>(null);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [clubsLoading, setClubsLoading] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createDesc, setCreateDesc] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [showJoin, setShowJoin] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joiningClub, setJoiningClub] = useState(false);
+  const [clubError, setClubError] = useState("");
+
+  useEffect(() => {
+    if (mainTab === "klub") {
+      setClubsLoading(true);
+      fetch("/api/clubs")
+        .then((r) => r.json())
+        .then((json) => setClubs(json.data ?? []))
+        .catch(() => {})
+        .finally(() => setClubsLoading(false));
+    }
+  }, [mainTab]);
 
   const allChallenges = [...active, ...available, ...completed];
   const challengeTypeMap = new Map(allChallenges.map((c) => [c.id, c.activity_type]));
@@ -204,12 +235,159 @@ export default function KomunitasClient({
 
       {/* ── TAB 2: KLUB ── */}
       {mainTab === "klub" && (
-        <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-parchment border border-border flex items-center justify-center">
-            <Users size={28} strokeWidth={1.5} className="text-ink-muted" />
+        <div className="space-y-4">
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <button onClick={() => { setShowCreate(true); setClubError(""); }} className="btn-primary-sm flex items-center gap-1.5 flex-1 justify-center">
+              <Plus size={14} /> Buat Klub
+            </button>
+            <button onClick={() => { setShowJoin(true); setClubError(""); }} className="btn-secondary-sm flex items-center gap-1.5 flex-1 justify-center">
+              <LogIn size={14} /> Gabung
+            </button>
           </div>
-          <h2 className="text-h2">Klub Baca</h2>
-          <p className="text-sm text-ink-muted max-w-xs">Fitur klub baca sedang dikembangkan. Nantikan update selanjutnya!</p>
+
+          {/* Create club form */}
+          {showCreate && (
+            <div className="bg-surface rounded-2xl border border-border p-4 space-y-3">
+              <input
+                type="text"
+                placeholder="Nama klub"
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                className="input w-full"
+                maxLength={50}
+              />
+              <textarea
+                placeholder="Deskripsi (opsional)"
+                value={createDesc}
+                onChange={(e) => setCreateDesc(e.target.value)}
+                className="input w-full resize-none"
+                rows={2}
+                maxLength={200}
+              />
+              {clubError && <p className="text-xs text-red-500">{clubError}</p>}
+              <div className="flex gap-2">
+                <button onClick={() => setShowCreate(false)} className="btn-secondary-sm flex-1">Batal</button>
+                <button
+                  onClick={async () => {
+                    if (!createName.trim()) return;
+                    setCreating(true);
+                    setClubError("");
+                    try {
+                      const res = await fetch("/api/clubs", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: createName, description: createDesc }),
+                      });
+                      const json = await res.json();
+                      if (!res.ok) { setClubError(json.error); return; }
+                      setClubs((prev) => [...prev, { ...json.data, member_count: 1 }]);
+                      setShowCreate(false);
+                      setCreateName("");
+                      setCreateDesc("");
+                    } catch { setClubError("Gagal membuat klub"); }
+                    finally { setCreating(false); }
+                  }}
+                  disabled={creating || !createName.trim()}
+                  className="btn-primary-sm flex-1"
+                >
+                  {creating ? "…" : "Simpan"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Join club form */}
+          {showJoin && (
+            <div className="bg-surface rounded-2xl border border-border p-4 space-y-3">
+              <input
+                type="text"
+                placeholder="Masukkan kode undangan"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                className="input w-full uppercase"
+                maxLength={6}
+              />
+              {clubError && <p className="text-xs text-red-500">{clubError}</p>}
+              <div className="flex gap-2">
+                <button onClick={() => setShowJoin(false)} className="btn-secondary-sm flex-1">Batal</button>
+                <button
+                  onClick={async () => {
+                    if (!joinCode.trim()) return;
+                    setJoiningClub(true);
+                    setClubError("");
+                    try {
+                      const res = await fetch("/api/clubs/join", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ inviteCode: joinCode }),
+                      });
+                      const json = await res.json();
+                      if (!res.ok) { setClubError(json.error); return; }
+                      // Refetch clubs
+                      const r = await fetch("/api/clubs");
+                      const j = await r.json();
+                      setClubs(j.data ?? []);
+                      setShowJoin(false);
+                      setJoinCode("");
+                    } catch { setClubError("Gagal bergabung"); }
+                    finally { setJoiningClub(false); }
+                  }}
+                  disabled={joiningClub || !joinCode.trim()}
+                  className="btn-primary-sm flex-1"
+                >
+                  {joiningClub ? "…" : "Gabung"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Club list */}
+          {clubsLoading ? (
+            <p className="text-sm text-ink-muted text-center py-8">Memuat klub…</p>
+          ) : clubs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
+              <div className="w-16 h-16 rounded-2xl bg-parchment border border-border flex items-center justify-center">
+                <Users size={28} strokeWidth={1.5} className="text-ink-muted" />
+              </div>
+              <h2 className="text-h2">Belum ada klub</h2>
+              <p className="text-sm text-ink-muted max-w-xs">Buat klub baca atau gabung dengan kode undangan</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {clubs.map((club) => (
+                <div key={club.id} className="bg-surface rounded-2xl border border-border p-4">
+                  <Link href={`/komunitas/klub/${club.id}`} className="hover:text-amber transition-colors">
+                    <h3 className="font-semibold text-ink text-sm">{club.name}</h3>
+                  </Link>
+                  {club.description && (
+                    <p className="text-xs text-ink-muted mt-1 line-clamp-2">{club.description}</p>
+                  )}
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center gap-3 text-[11px] text-ink-muted">
+                      <span className="flex items-center gap-1"><Users size={12} />{club.member_count}</span>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(club.invite_code);
+                          } catch {}
+                        }}
+                        className="flex items-center gap-1 hover:text-ink transition-colors"
+                      >
+                        <Copy size={12} /> {club.invite_code}
+                      </button>
+                    </div>
+                    <Link
+                      href={`/komunitas/klub/${club.id}`}
+                      className="text-[11px] font-semibold text-amber hover:text-amber-hover transition-colors"
+                    >
+                      Detail
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
