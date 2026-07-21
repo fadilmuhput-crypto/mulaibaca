@@ -7,6 +7,7 @@ import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, Fl
 import type { Club, ClubMember } from "@/lib/clubs";
 import type { MemberStats } from "@/lib/club-stats";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import AvatarIcon from "@/components/AvatarIcon";
 
 type Props = {
   club: Club & { member_count: number };
@@ -228,8 +229,8 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
                 <div key={s.member_id} className={`bg-surface rounded-xl border ${me ? "border-amber/30" : "border-border"} p-3`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-full bg-parchment border border-border flex items-center justify-center text-sm flex-shrink-0">
-                        {s.avatar}
+                      <div className="w-7 h-7 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
+                        <AvatarIcon avatar={s.avatar} size={14} />
                       </div>
                       <p className="text-sm font-semibold text-ink truncate">{s.name}{me && " (Kamu)"}</p>
                     </div>
@@ -271,8 +272,8 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
         <div className="space-y-2">
           {members.map((m) => (
             <div key={m.id} className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3">
-              <div className="w-9 h-9 rounded-full bg-parchment border border-border flex items-center justify-center text-base flex-shrink-0">
-                {m.members?.avatar ?? "📖"}
+              <div className="w-9 h-9 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
+                <AvatarIcon avatar={m.members?.avatar ?? "book"} size={18} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-ink truncate flex items-center gap-1.5">
