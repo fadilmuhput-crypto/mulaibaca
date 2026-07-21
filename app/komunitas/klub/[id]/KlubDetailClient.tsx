@@ -23,6 +23,8 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(club.name);
   const [editDesc, setEditDesc] = useState(club.description);
+  const [editVisibility, setEditVisibility] = useState<"public" | "private">(club.visibility);
+  const [editJoinType, setEditJoinType] = useState<"auto" | "approval">(club.join_type);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -32,14 +34,22 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   const [uploading, setUploading] = useState(false);
   const [coverUrl, setCoverUrl] = useState(club.cover_url);
   const [stats, setStats] = useState<MemberStats[] | null>(null);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [approving, setApproving] = useState<string | null>(null);
+
+  const isAdmin = members.some((m) => m.member_id === memberId && m.role === "admin");
+  const isMember = members.some((m) => m.member_id === memberId);
+  const otherMembers = members.filter((m) => m.member_id !== memberId);
 
   useEffect(() => {
     fetch(`/api/clubs/${club.id}/stats`).then((r) => r.ok && r.json()).then((d) => setStats(d));
   }, [club.id]);
 
-  const isAdmin = members.some((m) => m.member_id === memberId && m.role === "admin");
-  const isMember = members.some((m) => m.member_id === memberId);
-  const otherMembers = members.filter((m) => m.member_id !== memberId);
+  useEffect(() => {
+    if (isAdmin) {
+      fetch(`/api/clubs/${club.id}/requests`).then((r) => r.ok && r.json()).then((d) => setRequests(d ?? [])).catch(() => {});
+    }
+      }, [club.id, isAdmin]);
 
   async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -77,7 +87,7 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       const res = await fetch(`/api/clubs/${club.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName, description: editDesc }),
+        body: JSON.stringify({ name: editName, description: editDesc, visibility: editVisibility, join_type: editJoinType }),
       });
       if (res.ok) {
         setEditing(false);
@@ -179,6 +189,34 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
               rows={2}
               maxLength={200}
             />
+            <div>
+              <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Visibilitas</label>
+              <div className="flex gap-2 mt-1">
+                {(["public", "private"] as const).map((v) => (
+                  <button key={v} type="button" onClick={() => setEditVisibility(v)}
+                    className={`flex-1 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
+                      editVisibility === v ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"
+                    }`}
+                  >
+                    {v === "public" ? "Terbuka" : "Privat"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Cara Gabung</label>
+              <div className="flex gap-2 mt-1">
+                {(["auto", "approval"] as const).map((t) => (
+                  <button key={t} type="button" onClick={() => setEditJoinType(t)}
+                    className={`flex-1 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
+                      editJoinType === t ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"
+                    }`}
+                  >
+                    {t === "auto" ? "Langsung" : "Persetujuan"}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex gap-2">
               <button onClick={() => setEditing(false)} className="btn-secondary-sm flex-1">Batal</button>
               <button onClick={handleSave} disabled={saving || !editName.trim()} className="btn-primary-sm flex-1">
@@ -260,6 +298,62 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
                 </div>
               );
             })}
+          </div>
+        </section>
+      )}
+
+      {/* Pending requests */}
+      {isAdmin && requests.length > 0 && (
+        <section className="mb-4">
+          <h2 className="text-xs font-black uppercase tracking-widest text-amber mb-3 flex items-center gap-1.5">
+            <Users size={12} /> Permintaan Gabung ({requests.length})
+          </h2>
+          <div className="space-y-2">
+            {requests.map((r: any) => (
+              <div key={r.id} className="bg-surface rounded-xl border border-border p-3 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
+                  <AvatarIcon avatar={r.members?.avatar ?? "book"} size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-ink truncate">{r.members?.name}</p>
+                </div>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={async () => {
+                      setApproving(r.id);
+                      try {
+                        const res = await fetch(`/api/clubs/${club.id}/approve`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ requestId: r.id }),
+                        });
+                        if (res.ok) setRequests((prev) => prev.filter((x: any) => x.id !== r.id));
+                      } catch {}
+                      setApproving(null);
+                    }}
+                    disabled={approving === r.id}
+                    className="text-[10px] font-semibold text-white bg-forest hover:bg-forest/80 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {approving === r.id ? "…" : "Terima"}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await fetch(`/api/clubs/${club.id}/reject`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ requestId: r.id }),
+                        });
+                        setRequests((prev) => prev.filter((x: any) => x.id !== r.id));
+                      } catch {}
+                    }}
+                    className="text-[10px] font-semibold text-red-400 border border-border px-2.5 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                  >
+                    Tolak
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       )}

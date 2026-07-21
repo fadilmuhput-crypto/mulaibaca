@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   const { data: club } = await admin
     .from("clubs")
-    .select("id, max_members")
+    .select("id, max_members, join_type, visibility")
     .eq("invite_code", inviteCode.trim().toUpperCase())
     .eq("is_active", true)
     .maybeSingle();
@@ -56,6 +56,35 @@ export async function POST(req: NextRequest) {
     if (count && count >= club.max_members) {
       return NextResponse.json({ error: "Klub sudah penuh" }, { status: 403 });
     }
+  }
+
+  // Approval flow
+  if (club.join_type === "approval") {
+    const { data: existingReq } = await admin
+      .from("join_requests")
+      .select("id, status")
+      .eq("club_id", club.id)
+      .eq("member_id", memberId)
+      .maybeSingle();
+
+    if (existingReq) {
+      if (existingReq.status === "pending") {
+        return NextResponse.json({ error: "Permintaanmu masih menunggu persetujuan admin" }, { status: 409 });
+      }
+      if (existingReq.status === "rejected") {
+        return NextResponse.json({ error: "Permintaanmu sebelumnya ditolak. Hubungi admin klub." }, { status: 403 });
+      }
+    }
+
+    const { error: reqErr } = await admin
+      .from("join_requests")
+      .insert({ club_id: club.id, member_id: memberId });
+
+    if (reqErr) {
+      return NextResponse.json({ error: "Gagal mengirim permintaan" }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: { club_id: club.id, status: "pending" } });
   }
 
   const { error: joinErr } = await admin

@@ -27,8 +27,9 @@ export async function GET(req: NextRequest) {
 
   let query = admin
     .from("clubs")
-    .select("id, name, description, cover_url, invite_code, created_at, max_members, is_active")
+    .select("id, name, description, cover_url, invite_code, created_at, max_members, is_active, visibility, join_type")
     .eq("is_active", true)
+    .eq("visibility", "public")
     .order("created_at", { ascending: false })
     .limit(50);
 

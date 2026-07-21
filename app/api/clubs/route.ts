@@ -26,10 +26,18 @@ export async function POST(req: NextRequest) {
   const memberId = await getMemberId(req);
   if (!memberId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, description } = await req.json();
+  const { name, description, visibility, join_type } = await req.json();
 
   if (!name || name.trim().length === 0) {
     return NextResponse.json({ error: "Nama klub wajib diisi" }, { status: 400 });
+  }
+
+  if (visibility && !["public", "private"].includes(visibility)) {
+    return NextResponse.json({ error: "Visibility tidak valid" }, { status: 400 });
+  }
+
+  if (join_type && !["auto", "approval"].includes(join_type)) {
+    return NextResponse.json({ error: "Join type tidak valid" }, { status: 400 });
   }
 
   const admin = createAdminClient();
@@ -40,6 +48,8 @@ export async function POST(req: NextRequest) {
       name: name.trim(),
       description: description?.trim() ?? "",
       created_by: memberId,
+      visibility: visibility ?? "public",
+      join_type: join_type ?? "auto",
     })
     .select()
     .single();

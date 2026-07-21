@@ -15,6 +15,8 @@ type Club = {
   invite_code: string;
   member_count: number;
   created_at: string;
+  visibility: "public" | "private";
+  join_type: "auto" | "approval";
 };
 
 type MainTab = "tantangan" | "klub" | "acara";
@@ -65,6 +67,8 @@ export default function KomunitasClient({
   const [createDesc, setCreateDesc] = useState("");
   const [creating, setCreating] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [createVisibility, setCreateVisibility] = useState<"public" | "private">("public");
+  const [createJoinType, setCreateJoinType] = useState<"auto" | "approval">("auto");
   const [joinCode, setJoinCode] = useState("");
   const [joiningClub, setJoiningClub] = useState(false);
   const [clubError, setClubError] = useState("");
@@ -302,6 +306,40 @@ export default function KomunitasClient({
                     rows={2}
                     maxLength={200}
                   />
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Visibilitas</label>
+                    <div className="flex gap-2 mt-1">
+                      {(["public", "private"] as const).map((v) => (
+                        <button key={v} type="button" onClick={() => setCreateVisibility(v)}
+                          className={`flex-1 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
+                            createVisibility === v ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"
+                          }`}
+                        >
+                          {v === "public" ? "Terbuka" : "Privat"}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-ink-muted mt-1">
+                      {createVisibility === "public" ? "Muncul di halaman Jelajahi" : "Hanya bisa lewat kode undangan"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Cara Gabung</label>
+                    <div className="flex gap-2 mt-1">
+                      {(["auto", "approval"] as const).map((t) => (
+                        <button key={t} type="button" onClick={() => setCreateJoinType(t)}
+                          className={`flex-1 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
+                            createJoinType === t ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"
+                          }`}
+                        >
+                          {t === "auto" ? "Langsung" : "Persetujuan"}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-ink-muted mt-1">
+                      {createJoinType === "auto" ? "Anggota baru langsung bergabung" : "Admin harus menyetujui anggota baru"}
+                    </p>
+                  </div>
                   {clubError && <p className="text-xs text-red-500">{clubError}</p>}
                   <div className="flex gap-2">
                     <button onClick={() => setShowCreate(false)} className="btn-secondary-sm flex-1">Batal</button>
@@ -314,7 +352,7 @@ export default function KomunitasClient({
                           const res = await fetch("/api/clubs", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ name: createName, description: createDesc }),
+                            body: JSON.stringify({ name: createName, description: createDesc, visibility: createVisibility, join_type: createJoinType }),
                           });
                           const json = await res.json();
                           if (!res.ok) { setClubError(json.error); return; }
@@ -477,36 +515,47 @@ export default function KomunitasClient({
                             {club.description && (
                               <p className="text-xs text-ink-muted mt-1 line-clamp-2">{club.description}</p>
                             )}
-                            <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="text-[10px] text-ink-muted bg-parchment px-1.5 py-0.5 rounded">
+                                {club.visibility === "public" ? "Terbuka" : "Privat"}
+                              </span>
+                              {club.join_type === "approval" && (
+                                <span className="text-[10px] text-amber bg-amber-soft/50 px-1.5 py-0.5 rounded">
+                                  Persetujuan
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between mt-2">
                               <span className="text-[11px] text-ink-muted flex items-center gap-1"><Users size={12} />{club.member_count}</span>
                               {joined ? (
                                 <Link href={`/komunitas/klub/${club.id}`} className="text-[11px] font-semibold text-amber hover:text-amber-hover transition-colors">
                                   Buka
                                 </Link>
                               ) : (
-                                club.invite_code && (
-                                  <button
-                                    onClick={async () => {
-                                      try {
-                                        const res = await fetch("/api/clubs/join", {
-                                          method: "POST",
-                                          headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({ inviteCode: club.invite_code }),
-                                        });
-                                        if (res.ok) {
-                                          setExploreJoined((prev) => [...prev, club.id]);
-                                          // also update my clubs
-                                          const r = await fetch("/api/clubs");
-                                          const j = await r.json();
-                                          setClubs(j.data ?? []);
-                                        }
-                                      } catch {}
-                                    }}
-                                    className="text-[11px] font-semibold text-white bg-amber hover:bg-amber-hover px-3 py-1.5 rounded-lg transition-colors"
-                                  >
-                                    Gabung
-                                  </button>
-                                )
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const res = await fetch("/api/clubs/join", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ inviteCode: club.invite_code }),
+                                      });
+                                      if (res.ok) {
+                                        setExploreJoined((prev) => [...prev, club.id]);
+                                        const r = await fetch("/api/clubs");
+                                        const j = await r.json();
+                                        setClubs(j.data ?? []);
+                                      }
+                                    } catch {}
+                                  }}
+                                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+                                    club.join_type === "approval"
+                                      ? "text-amber bg-amber-soft border border-amber/30 hover:bg-amber/20"
+                                      : "text-white bg-amber hover:bg-amber-hover"
+                                  }`}
+                                >
+                                  {club.join_type === "approval" ? "Minta Gabung" : "Gabung"}
+                                </button>
                               )}
                             </div>
                           </div>

@@ -9,6 +9,8 @@ export type Club = {
   invite_code: string;
   max_members: number | null;
   is_active: boolean;
+  visibility: "public" | "private";
+  join_type: "auto" | "approval";
   created_at: string;
 };
 
