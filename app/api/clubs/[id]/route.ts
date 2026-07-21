@@ -51,12 +51,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Hanya admin yang bisa mengedit klub" }, { status: 403 });
   }
 
-  const { name, description } = await req.json();
+  const { name, description, cover_url } = await req.json();
   const admin = createAdminClient();
 
   const updates: Record<string, string> = {};
   if (name?.trim()) updates.name = name.trim();
   if (description !== undefined) updates.description = description.trim();
+  if (cover_url !== undefined) updates.cover_url = cover_url;
 
   const { data, error } = await admin
     .from("clubs")

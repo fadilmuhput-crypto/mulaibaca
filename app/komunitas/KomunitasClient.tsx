@@ -356,14 +356,20 @@ export default function KomunitasClient({
           ) : (
             <div className="space-y-3">
               {clubs.map((club) => (
-                <div key={club.id} className="bg-surface rounded-2xl border border-border p-4">
-                  <Link href={`/komunitas/klub/${club.id}`} className="hover:text-amber transition-colors">
-                    <h3 className="font-semibold text-ink text-sm">{club.name}</h3>
-                  </Link>
-                  {club.description && (
-                    <p className="text-xs text-ink-muted mt-1 line-clamp-2">{club.description}</p>
+                <div key={club.id} className="bg-surface rounded-2xl border border-border overflow-hidden">
+                  {club.cover_url && (
+                    <div className="h-24 overflow-hidden">
+                      <img src={club.cover_url} alt="" className="w-full h-full object-cover" />
+                    </div>
                   )}
-                  <div className="flex items-center justify-between mt-3">
+                  <div className="p-4">
+                    <Link href={`/komunitas/klub/${club.id}`} className="hover:text-amber transition-colors">
+                      <h3 className="font-semibold text-ink text-sm">{club.name}</h3>
+                    </Link>
+                    {club.description && (
+                      <p className="text-xs text-ink-muted mt-1 line-clamp-2">{club.description}</p>
+                    )}
+                    <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center gap-3 text-[11px] text-ink-muted">
                       <span className="flex items-center gap-1"><Users size={12} />{club.member_count}</span>
                       <button
@@ -383,6 +389,7 @@ export default function KomunitasClient({
                     >
                       Detail
                     </Link>
+                  </div>
                   </div>
                 </div>
               ))}

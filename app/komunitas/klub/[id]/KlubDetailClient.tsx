@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, X } from "lucide-react";
+import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, X } from "lucide-react";
 import type { Club, ClubMember } from "@/lib/clubs";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
@@ -15,6 +15,7 @@ type Props = {
 
 export default function KlubDetailClient({ club, members, memberId }: Props) {
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -26,10 +27,33 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmTransfer, setConfirmTransfer] = useState<string | null>(null);
   const [transferring, setTransferring] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [coverUrl, setCoverUrl] = useState(club.cover_url);
 
   const isAdmin = members.some((m) => m.member_id === memberId && m.role === "admin");
   const isMember = members.some((m) => m.member_id === memberId);
   const otherMembers = members.filter((m) => m.member_id !== memberId);
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload/club-cover", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+      const newUrl = json.url;
+      setCoverUrl(newUrl);
+      await fetch(`/api/clubs/${club.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cover_url: newUrl }),
+      });
+    } catch {}
+    setUploading(false);
+  }
 
   async function copyCode() {
     try {
@@ -95,6 +119,40 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       <Link href="/komunitas" className="text-xs text-ink-muted hover:text-ink flex items-center gap-1 mb-4 transition-colors">
         <ChevronLeft size={14} /> Kembali
       </Link>
+
+      {/* Cover photo */}
+      <div className="relative w-full h-36 rounded-2xl overflow-hidden bg-parchment border border-border mb-4">
+        {coverUrl ? (
+          <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-ink-muted">
+            <Users size={40} strokeWidth={1} className="opacity-30" />
+          </div>
+        )}
+        {isAdmin && (
+          <>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleCoverUpload}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center hover:bg-parchment transition-colors shadow-sm"
+            >
+              <Camera size={14} className="text-ink-muted" />
+            </button>
+            {uploading && (
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                <span className="text-xs font-semibold text-white bg-black/50 px-3 py-1 rounded-full">Uploading…</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Header */}
       <div className="bg-surface rounded-2xl border border-border p-5 mb-4">
