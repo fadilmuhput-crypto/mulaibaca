@@ -63,3 +63,22 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 - Search page (`/cari`): when local results = 0, shows "Cari di OpenLibrary" button → displays OL results → "Mau Baca" button imports via `/api/shelf`
 - New `lib/recommendations.ts`: `getCollaborativeRecs()` — finds users with overlapping shelf books, recommends their other books (zero dependency on tags)
 - Jelajah page (`/jelajah`): new section "Pembaca Lain Juga Baca…" using collaborative filtering (alongside existing "Karena Kamu Baca…" tag-based recs)
+
+## Dedup buku
+- New `lib/dedup.ts`: `findDuplicateGroups()`, `resolveDuplicates()`, `mergeBook()` — merges shelf_items/reviews/reading_logs
+- New `/api/admin/dedup`: GET scan / POST resolve duplicates (admin-only via `is_cms_admin`)
+- New `/admin/dedup`: admin UI with scan + resolve buttons
+- Fixed auth check in dedup route: was checking `member_type` instead of `is_cms_admin`
+- Migration: `supabase/migration-clubs.sql`
+
+## Club Baca (community feature)
+- Migration: `supabase/migration-clubs.sql` — tables `clubs` + `club_members` with RLS policies
+- Club CRUD API: `GET/POST /api/clubs`, `GET /api/clubs/[id]`, `PUT/DELETE /api/clubs/[id]`
+- Club membership: `POST /api/clubs/join` (by invite code), `POST /api/clubs/[id]/leave`, `POST /api/clubs/[id]/transfer` (admin transfer)
+- All club API routes use `createAdminClient()` (bypass RLS); auth checked via `createRouteClient()` → `getUser()` → `getMemberId()`
+- `/komunitas` tab "Klub": list user's clubs, create form, join by code
+- `/komunitas/klub/[id]`: detail page with member list, copy invite code, edit/delete/transfer admin
+- New `components/ConfirmDialog.tsx`: reusable modal with escape-key dismiss, supports `destructive` (boolean) or `variant` ("danger"/"default"). Used by klub detail + feed delete
+- Club cover photo: `/api/upload/club-cover` (auto-creates `club-covers` bucket), admin upload via camera icon on detail page, cover shown in club cards
+- Club member stats dashboard: `/api/clubs/[id]/stats` — per-member streak, pages/week, minutes/week, books finished/month, sorted by pages desc
+- Club discovery: `/api/clubs/explore` — lists all active clubs with search, member count, and joined IDs; "Jelajahi" sub-tab in klub page with search input + direct join button
