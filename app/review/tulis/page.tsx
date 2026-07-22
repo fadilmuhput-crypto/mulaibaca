@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, Sparkles, Pencil } from "lucide-react";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -11,6 +11,7 @@ function TulisForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const shelfItemId = searchParams.get("shelf") ?? "";
+  const editMode = searchParams.get("edit") === "true";
 
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
@@ -20,6 +21,18 @@ function TulisForm() {
   const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Pre-fill from URL params if editing
+  useEffect(() => {
+    if (editMode) {
+      const r = parseInt(searchParams.get("rating") ?? "0");
+      if (r) setRating(r);
+      setQAbout(searchParams.get("qAbout") ?? "");
+      setQMemorable(searchParams.get("qMemorable") ?? "");
+      setQForWhom(searchParams.get("qForWhom") ?? "");
+      setIsPublic(searchParams.get("isPublic") !== "false");
+    }
+  }, [editMode, searchParams]);
 
   useEffect(() => {
     if (!shelfItemId) router.push("/review");
@@ -58,7 +71,15 @@ function TulisForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <>
+      <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
+        <Link href="/review" className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-secondary hover:text-ink rounded-xl">
+          ←
+        </Link>
+        <h1 className="text-h3">{editMode ? "Edit Review" : "Tulis Review"}</h1>
+      </header>
+      <main className="max-w-lg mx-auto px-4 py-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
       {/* Star rating */}
       <div className="bg-surface rounded-2xl border border-border p-5 text-center">
         <p className="text-sm font-medium text-ink mb-4">Berapa bintang untuk buku ini?</p>
@@ -167,26 +188,24 @@ function TulisForm() {
         disabled={loading || !rating}
         className="btn-primary-full-lg"
       >
-        {loading ? "Menyimpan…" : <span className="flex items-center gap-2"><Sparkles size={14} strokeWidth={2} />Publikasikan Review</span>}
+        {loading ? "Menyimpan…" : (
+          <span className="flex items-center gap-2">
+            {editMode ? <><Pencil size={14} strokeWidth={2} />Simpan Perubahan</> : <><Sparkles size={14} strokeWidth={2} />Publikasikan Review</>}
+          </span>
+        )}
       </button>
     </form>
+    </main>
+    </>
   );
 }
 
 export default function TulisReviewPage() {
   return (
     <div className="min-h-dvh pb-10">
-      <header className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
-        <Link href="/review" className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-secondary hover:text-ink rounded-xl">
-          ←
-        </Link>
-        <h1 className="text-h3">Tulis Review</h1>
-      </header>
-      <main className="max-w-lg mx-auto px-4 py-6">
-        <Suspense fallback={<div className="text-center py-8 text-ink-muted text-sm">Memuat…</div>}>
-          <TulisForm />
-        </Suspense>
-      </main>
+      <Suspense fallback={<div className="text-center py-8 text-ink-muted text-sm">Memuat…</div>}>
+        <TulisForm />
+      </Suspense>
     </div>
   );
 }

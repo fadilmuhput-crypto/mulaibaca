@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@/lib/session";
 import type { ProfilStats, ActingAsInfo, FamilyMember } from "./page";
 import AvatarIcon, { AVATAR_OPTIONS } from "@/components/AvatarIcon";
-import { Check, AtSign, Lock, ExternalLink, Users, Target, Trophy, Baby, Smile, Heart, User, LogIn, Palette, Bell, BellOff } from "lucide-react";
+import { Check, AtSign, Lock, ExternalLink, Users, Target, Trophy, Baby, Smile, Heart, User, LogIn, Palette, Bell, BellOff, Camera } from "lucide-react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -55,6 +55,8 @@ export default function ProfilClient({
   const [setupLoading, setSetupLoading] = useState(false);
   const [setupError, setSetupError] = useState("");
   const [setupSuccess, setSetupSuccess] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
   const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const checkSeq = useRef(0);
   const usernameAlreadySet = !!session.memberUsername;
@@ -163,13 +165,49 @@ export default function ProfilClient({
     } finally { setSetupLoading(false); }
   }
 
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload/avatar", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+      setAvatar(json.url);
+    } catch (err) {
+      // Silently fail - user can retry
+    }
+    setAvatarUploading(false);
+    if (avatarFileRef.current) avatarFileRef.current.value = "";
+  }
+
   return (
     <div className="space-y-4">
       {/* Edit profile card */}
       <div className="card-elevated p-6 space-y-5">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-amber-soft border-2 border-amber/30 flex items-center justify-center text-amber">
-            <AvatarIcon avatar={avatar} size={24} />
+          <div className="relative">
+            <div className="w-14 h-14 rounded-full bg-amber-soft border-2 border-amber/30 flex items-center justify-center text-amber overflow-hidden">
+              <AvatarIcon avatar={avatar} size={24} />
+            </div>
+            <button
+              type="button"
+              onClick={() => avatarFileRef.current?.click()}
+              disabled={avatarUploading}
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-surface brutal-border flex items-center justify-center hover:bg-parchment transition-colors"
+              title="Upload foto profil"
+            >
+              <Camera size={10} className="text-ink-muted" />
+            </button>
+            <input
+              ref={avatarFileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
           </div>
           <div>
             <p className="font-semibold text-ink">{session.memberName}</p>

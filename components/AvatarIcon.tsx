@@ -34,7 +34,12 @@ const EMOJI_MAP: Record<string, string> = {
   "🍃": "leaf", "🌿": "leaf",
 };
 
+function isImageUrl(avatar: string): boolean {
+  return avatar.startsWith("http://") || avatar.startsWith("https://");
+}
+
 function resolveKey(avatar: string): string {
+  if (isImageUrl(avatar)) return "image";
   if (EMOJI_MAP[avatar]) return EMOJI_MAP[avatar];
   const opt = AVATAR_OPTIONS.find((o) => o.key === avatar);
   return opt ? avatar : "book";
@@ -49,6 +54,18 @@ export default function AvatarIcon({
   size?: number;
   className?: string;
 }) {
+  // If it's an image URL, render the image
+  if (isImageUrl(avatar)) {
+    return (
+      <img
+        src={avatar}
+        alt=""
+        className={`rounded-full object-cover ${className}`}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
   const key = resolveKey(avatar);
   const opt = AVATAR_OPTIONS.find((o) => o.key === key) ?? AVATAR_OPTIONS[0];
   const Icon = opt.Icon;

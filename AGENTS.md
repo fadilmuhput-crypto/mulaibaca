@@ -96,3 +96,10 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 - Progress computed live from `reading_logs` between start_date and end_date
 - UI: "Tantangan" tab in klub detail page — admin create form, progress bar, complete/cancel buttons
 - Push notification on challenge creation + completion
+
+## P0/P1 UX Improvements
+- Loading skeletons: `components/Skeleton.tsx` + 6 `loading.tsx` files (dashboard, rak, log, review, progress, cari)
+- Global toast: `components/Toast.tsx` with `useToast()` hook, wired into layout
+- PWA: 192x192 icon (`logo-192.png`), `<meta name="theme-color">` in layout, manifest screenshots
+- Error boundaries: `error.tsx` for `/rak`, `/log`, `/review`, `/progress`, `/cari`
+- Search: 300ms debounce on URL update, "show more" pagination (30 items), OL loading state

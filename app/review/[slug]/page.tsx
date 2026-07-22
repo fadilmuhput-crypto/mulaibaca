@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase-route";
 import { getSession } from "@/lib/session";
 import AvatarIcon from "@/components/AvatarIcon";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Pencil } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import ReviewSettings from "@/components/ReviewSettings";
 import ShareButton from "@/components/ShareButton";
@@ -196,9 +196,15 @@ export default async function PublicReviewPage({
           )}
         </div>
 
-        {/* Settings */}
+        {/* Settings + Edit button */}
         {session && session.memberId === review.member_id && (
-          <div className="mt-6">
+          <div className="mt-6 space-y-3">
+            <Link
+              href={`/review/tulis?shelf=${review.shelf_item_id}&edit=true&rating=${review.rating}&qAbout=${encodeURIComponent(review.q_about ?? "")}&qMemorable=${encodeURIComponent(review.q_memorable ?? "")}&qForWhom=${encodeURIComponent(review.q_for_whom ?? "")}&isPublic=${review.is_public}`}
+              className="btn-secondary w-full flex items-center justify-center gap-2"
+            >
+              <Pencil size={14} strokeWidth={2} /> Edit Review
+            </Link>
             <ReviewSettings slug={review.slug} initialPublic={review.is_public} initialAnonymous={review.is_anonymous} />
           </div>
         )}
