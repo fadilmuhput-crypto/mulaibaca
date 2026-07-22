@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, Flame, BookOpen, Clock, Trophy } from "lucide-react";
+import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, Flame, BookOpen, Clock, Trophy, Target, Plus } from "lucide-react";
 import type { Club, ClubMember } from "@/lib/clubs";
 import type { MemberStats } from "@/lib/club-stats";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -38,7 +38,16 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   const [approving, setApproving] = useState<string | null>(null);
   const [activities, setActivities] = useState<any[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
-  const [detailTab, setDetailTab] = useState<"anggota" | "aktivitas">("anggota");
+  const [detailTab, setDetailTab] = useState<"anggota" | "tantangan" | "aktivitas">("anggota");
+  const [challenges, setChallenges] = useState<any[]>([]);
+  const [challengesLoading, setChallengesLoading] = useState(false);
+  const [creatingChallenge, setCreatingChallenge] = useState(false);
+  const [challengeTitle, setChallengeTitle] = useState("");
+  const [challengeTarget, setChallengeTarget] = useState("");
+  const [challengeStart, setChallengeStart] = useState("");
+  const [challengeEnd, setChallengeEnd] = useState("");
+  const [challengeSaving, setChallengeSaving] = useState(false);
+  const [challengeError, setChallengeError] = useState("");
 
   const isAdmin = members.some((m) => m.member_id === memberId && m.role === "admin");
   const isMember = members.some((m) => m.member_id === memberId);
@@ -57,6 +66,13 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
     if (detailTab === "aktivitas") {
       setActivitiesLoading(true);
       fetch(`/api/clubs/${club.id}/activities`).then((r) => r.ok && r.json()).then((d) => setActivities(d ?? [])).catch(() => {}).finally(() => setActivitiesLoading(false));
+    }
+  }, [detailTab, club.id]);
+
+  useEffect(() => {
+    if (detailTab === "tantangan") {
+      setChallengesLoading(true);
+      fetch(`/api/clubs/${club.id}/challenges`).then((r) => r.ok && r.json()).then((d) => setChallenges(d ?? [])).catch(() => {}).finally(() => setChallengesLoading(false));
     }
   }, [detailTab, club.id]);
 
@@ -138,6 +154,66 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
     } catch {}
     setLeaving(false);
     setConfirmLeave(false);
+  }
+
+  async function handleCreateChallenge() {
+    if (!challengeTitle.trim() || !challengeTarget || !challengeStart || !challengeEnd) return;
+    setChallengeSaving(true);
+    setChallengeError("");
+    try {
+      const res = await fetch(`/api/clubs/${club.id}/challenges`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: challengeTitle.trim(),
+          target: parseInt(challengeTarget),
+          start_date: challengeStart,
+          end_date: challengeEnd,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setChallengeError(json.error);
+        return;
+      }
+      setCreatingChallenge(false);
+      setChallengeTitle("");
+      setChallengeTarget("");
+      setChallengeStart("");
+      setChallengeEnd("");
+      // Refresh challenges
+      const list = await fetch(`/api/clubs/${club.id}/challenges`).then((r) => r.json());
+      setChallenges(list ?? []);
+    } catch {}
+    setChallengeSaving(false);
+  }
+
+  async function handleCompleteChallenge(challengeId: string) {
+    try {
+      const res = await fetch(`/api/clubs/${club.id}/challenges`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challengeId, action: "complete" }),
+      });
+      if (res.ok) {
+        const list = await fetch(`/api/clubs/${club.id}/challenges`).then((r) => r.json());
+        setChallenges(list ?? []);
+      }
+    } catch {}
+  }
+
+  async function handleCancelChallenge(challengeId: string) {
+    try {
+      const res = await fetch(`/api/clubs/${club.id}/challenges`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challengeId, action: "cancel" }),
+      });
+      if (res.ok) {
+        const list = await fetch(`/api/clubs/${club.id}/challenges`).then((r) => r.json());
+        setChallenges(list ?? []);
+      }
+    } catch {}
   }
 
   return (
@@ -363,17 +439,129 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
         </section>
       )}
 
-      {/* Members + Activity tabs */}
+      {/* Tabs */}
       <div className="flex bg-parchment rounded-md brutal-border brutal-shadow-xs p-1 mb-4">
         <button onClick={() => setDetailTab("anggota")}
           className={`flex-1 py-2.5 text-xs font-semibold rounded transition-all ${detailTab === "anggota" ? "bg-surface text-ink brutal-shadow-xs" : "text-ink-muted hover:text-ink"}`}>
           Anggota ({members.length})
+        </button>
+        <button onClick={() => setDetailTab("tantangan")}
+          className={`flex-1 py-2.5 text-xs font-semibold rounded transition-all ${detailTab === "tantangan" ? "bg-surface text-ink brutal-shadow-xs" : "text-ink-muted hover:text-ink"}`}>
+          Tantangan
         </button>
         <button onClick={() => setDetailTab("aktivitas")}
           className={`flex-1 py-2.5 text-xs font-semibold rounded transition-all ${detailTab === "aktivitas" ? "bg-surface text-ink brutal-shadow-xs" : "text-ink-muted hover:text-ink"}`}>
           Aktivitas
         </button>
       </div>
+
+      {detailTab === "tantangan" && (
+        <section>
+          {challengesLoading ? (
+            <p className="text-body-sm text-ink-muted text-center py-8">Memuat tantangan…</p>
+          ) : (
+            <>
+              {/* Admin: create button / form */}
+              {isAdmin && (
+                <div className="mb-4">
+                  {creatingChallenge ? (
+                    <div className="card-elevated p-4 space-y-3">
+                      <p className="text-body-sm font-semibold">Buat Tantangan Halaman</p>
+                      {challengeError && <p className="text-caption text-error">{challengeError}</p>}
+                      <div>
+                        <label className="input-label">Judul</label>
+                        <input type="text" value={challengeTitle} onChange={(e) => setChallengeTitle(e.target.value)} className="input mt-1" placeholder="Misal: Baca 1000 Halaman Bareng" maxLength={100} />
+                      </div>
+                      <div>
+                        <label className="input-label">Target Halaman</label>
+                        <input type="number" value={challengeTarget} onChange={(e) => setChallengeTarget(e.target.value)} className="input mt-1" placeholder="1000" min={1} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="input-label">Mulai</label>
+                          <input type="date" value={challengeStart} onChange={(e) => setChallengeStart(e.target.value)} className="input mt-1" />
+                        </div>
+                        <div>
+                          <label className="input-label">Selesai</label>
+                          <input type="date" value={challengeEnd} onChange={(e) => setChallengeEnd(e.target.value)} className="input mt-1" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => { setCreatingChallenge(false); setChallengeError(""); }} className="btn-secondary flex-1">Batal</button>
+                        <button onClick={handleCreateChallenge} disabled={challengeSaving || !challengeTitle.trim() || !challengeTarget || !challengeStart || !challengeEnd} className="btn-primary flex-1">
+                          {challengeSaving ? "…" : "Buat"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button onClick={() => setCreatingChallenge(true)} className="btn-primary text-xs w-full">
+                      <Plus size={14} /> Buat Tantangan
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Challenge list */}
+              {challenges.length === 0 ? (
+                <div className="card-elevated flex flex-col items-center justify-center py-16 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center">
+                    <Target size={24} strokeWidth={1.5} className="text-ink-muted" />
+                  </div>
+                  <p className="text-body-sm text-ink-muted">Belum ada tantangan</p>
+                  {isAdmin && <p className="text-caption text-ink-muted">Buat tantangan pertama untuk klub ini!</p>}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {challenges.map((c: any) => {
+                    const isActive = c.status === "active";
+                    const pct = c.target > 0 ? Math.min(100, Math.round(((c.pages_read ?? 0) / c.target) * 100)) : 0;
+                    const daysLeft = isActive ? Math.max(0, Math.ceil((new Date(c.end_date).getTime() - Date.now()) / 86400000)) : 0;
+
+                    return (
+                      <div key={c.id} className={`card-elevated p-4 ${isActive ? "ring-2 ring-amber/30" : ""}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-body-sm font-semibold text-ink">{c.title}</h3>
+                          <span className={`badge ${isActive ? "badge-amber" : "badge-muted"}`}>
+                            {c.status === "active" ? "Aktif" : c.status === "completed" ? "Selesai" : "Batal"}
+                          </span>
+                        </div>
+
+                        {isActive && (
+                          <div className="mb-3">
+                            <div className="flex justify-between text-caption mb-1">
+                              <span className="text-ink-muted">{(c.pages_read ?? 0).toLocaleString("id-ID")} / {c.target.toLocaleString("id-ID")} halaman</span>
+                              <span className="text-ink-muted">{daysLeft} hari lagi</span>
+                            </div>
+                            <div className="progress-bar">
+                              <div className="progress-fill bg-amber" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between">
+                          <p className="text-caption text-ink-muted">
+                            {c.start_date} — {c.end_date}
+                          </p>
+                          {isAdmin && isActive && (
+                            <div className="flex gap-1.5">
+                              <button onClick={() => handleCompleteChallenge(c.id)} className="btn-primary text-[10px] py-1 px-2 min-h-0" title="Tandai selesai">
+                                <Check size={10} /> Selesai
+                              </button>
+                              <button onClick={() => handleCancelChallenge(c.id)} className="btn-secondary text-[10px] py-1 px-2 min-h-0" title="Batalkan">
+                                Batal
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
 
       {detailTab === "anggota" && (
         <section>

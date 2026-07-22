@@ -82,3 +82,17 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 - Club cover photo: `/api/upload/club-cover` (auto-creates `club-covers` bucket), admin upload via camera icon on detail page, cover shown in club cards
 - Club member stats dashboard: `/api/clubs/[id]/stats` — per-member streak, pages/week, minutes/week, books finished/month, sorted by pages desc
 - Club discovery: `/api/clubs/explore` — lists all active clubs with search, member count, and joined IDs; "Jelajahi" sub-tab in klub page with search input + direct join button
+- Club visibility: `visibility` (public/private) + `join_type` (auto/approval) on create & edit
+- Club join approval: `join_requests` table, `/api/clubs/[id]/requests` (GET), `/api/clubs/[id]/approve` (POST), `/api/clubs/[id]/reject` (POST)
+- Club activity feed: `/api/clubs/[id]/activities` — logs from reading_logs, shelf_items, club_members
+- Push notification for join requests: admin notified when someone requests to join (approval clubs)
+- `lib/push.ts`: reusable `sendPushToMembers(memberIds, title, body)` — shared utility for all push notifications
+
+## Club Challenge (halaman-based)
+- Migration: `supabase/migration-club-challenges.sql` — table `club_challenges` with partial unique index (one active per club)
+- `lib/club-challenges.ts`: types + `getClubChallenges()`, `getClubChallengeProgress()`
+- API: `GET/POST /api/clubs/[id]/challenges` (list + create), `PATCH` (complete/cancel), `GET /api/clubs/[id]/challenges/progress`
+- Admin-only creation; all members automatically participate (no join needed)
+- Progress computed live from `reading_logs` between start_date and end_date
+- UI: "Tantangan" tab in klub detail page — admin create form, progress bar, complete/cancel buttons
+- Push notification on challenge creation + completion

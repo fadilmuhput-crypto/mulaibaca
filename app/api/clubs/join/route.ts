@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteClient, createAdminClient } from "@/lib/supabase-route";
+import { sendPushToMembers } from "@/lib/push";
 
 async function getMemberId(req: NextRequest) {
   const supabase = createRouteClient(req);
@@ -82,6 +83,22 @@ export async function POST(req: NextRequest) {
 
     if (reqErr) {
       return NextResponse.json({ error: "Gagal mengirim permintaan" }, { status: 500 });
+    }
+
+    // Notify club admins
+    const [{ data: requester }, { data: clubDetail }, { data: admins }] = await Promise.all([
+      admin.from("members").select("name").eq("id", memberId).single(),
+      admin.from("clubs").select("name").eq("id", club.id).single(),
+      admin.from("club_members").select("member_id").eq("club_id", club.id).eq("role", "admin"),
+    ]);
+
+    if (requester?.name && clubDetail?.name && admins?.length) {
+      const adminIds = admins.map((a) => a.member_id);
+      await sendPushToMembers(
+        adminIds,
+        `📋 Ada yang mau gabung!`,
+        `${requester.name} ingin bergabung ke ${clubDetail.name}. Buka aplikasi untuk menyetujui atau menolak.`
+      );
     }
 
     return NextResponse.json({ data: { club_id: club.id, status: "pending" } });
