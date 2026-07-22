@@ -256,21 +256,13 @@ export default function KomunitasClient({
       {mainTab === "klub" && (
         <div className="space-y-4">
           {/* Sub tabs */}
-          <div className="flex bg-parchment rounded-lg border border-border p-0.5">
-            <button
-              onClick={() => setKlubTab("my")}
-              className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${
-                klubTab === "my" ? "bg-surface text-ink shadow-sm border border-border" : "text-ink-muted hover:text-ink"
-              }`}
-            >
+          <div className="flex bg-parchment rounded-md brutal-border brutal-shadow-xs p-1">
+            <button onClick={() => setKlubTab("my")}
+              className={`flex-1 py-2.5 text-xs font-semibold rounded transition-all ${klubTab === "my" ? "bg-surface text-ink brutal-shadow-xs" : "text-ink-muted hover:text-ink"}`}>
               Klubku
             </button>
-            <button
-              onClick={() => setKlubTab("explore")}
-              className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${
-                klubTab === "explore" ? "bg-surface text-ink shadow-sm border border-border" : "text-ink-muted hover:text-ink"
-              }`}
-            >
+            <button onClick={() => setKlubTab("explore")}
+              className={`flex-1 py-2.5 text-xs font-semibold rounded transition-all ${klubTab === "explore" ? "bg-surface text-ink brutal-shadow-xs" : "text-ink-muted hover:text-ink"}`}>
               Jelajahi
             </button>
           </div>
@@ -287,64 +279,55 @@ export default function KomunitasClient({
                 </button>
               </div>
 
-              {/* Create club form */}
               {showCreate && (
-                <div className="bg-surface rounded-2xl border border-border p-4 space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Nama klub"
-                    value={createName}
-                    onChange={(e) => setCreateName(e.target.value)}
-                    className="input w-full"
-                    maxLength={50}
-                  />
-                  <textarea
-                    placeholder="Deskripsi (opsional)"
-                    value={createDesc}
-                    onChange={(e) => setCreateDesc(e.target.value)}
-                    className="input w-full resize-none"
-                    rows={2}
-                    maxLength={200}
-                  />
+                <div className="card-elevated p-5 space-y-4">
+                  <div>
+                    <label className="input-label">Nama Klub</label>
+                    <input type="text" value={createName} onChange={(e) => setCreateName(e.target.value)} className="input mt-1" placeholder="Contoh: Klub Baca Pagi" maxLength={50} />
+                  </div>
+                  <div>
+                    <label className="input-label">Deskripsi</label>
+                    <textarea value={createDesc} onChange={(e) => setCreateDesc(e.target.value)} className="input mt-1 resize-none" rows={2} placeholder="Opsional" maxLength={200} />
+                  </div>
                   <div>
                     <label className="input-label">Visibilitas</label>
                     <div className="flex gap-2 mt-1.5">
                       <button type="button" onClick={() => setCreateVisibility("public")}
-                        className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${createVisibility === "public" ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                        className={`flex-1 py-2.5 brutal-border rounded-md transition-all ${createVisibility === "public" ? "bg-amber-soft text-amber" : "bg-parchment text-ink-muted hover:bg-cream"}`}>
                         <p className="text-xs font-semibold">Terbuka</p>
                       </button>
                       <button type="button" onClick={() => setCreateVisibility("private")}
-                        className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${createVisibility === "private" ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                        className={`flex-1 py-2.5 brutal-border rounded-md transition-all ${createVisibility === "private" ? "bg-amber-soft text-amber" : "bg-parchment text-ink-muted hover:bg-cream"}`}>
                         <p className="text-xs font-semibold">Privat</p>
                       </button>
                     </div>
-                    <div className="mt-2 rounded-xl bg-parchment border border-border p-3 text-xs text-ink-secondary leading-relaxed">
+                    <p className="input-hint mt-2">
                       {createVisibility === "public"
-                        ? "Klub akan muncul di halaman Jelajahi. Siapa saja bisa menemukan dan melihat info klub ini."
-                        : "Klub tidak muncul di Jelajahi. Hanya orang yang punya kode undangan yang bisa bergabung."}
-                    </div>
+                        ? "Klub akan muncul di halaman Jelajahi. Siapa saja bisa menemukan klub ini."
+                        : "Klub tidak muncul di Jelajahi. Hanya orang dengan kode undangan."}
+                    </p>
                   </div>
                   <div>
                     <label className="input-label">Cara Gabung</label>
                     <div className="flex gap-2 mt-1.5">
                       <button type="button" onClick={() => setCreateJoinType("auto")}
-                        className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${createJoinType === "auto" ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                        className={`flex-1 py-2.5 brutal-border rounded-md transition-all ${createJoinType === "auto" ? "bg-amber-soft text-amber" : "bg-parchment text-ink-muted hover:bg-cream"}`}>
                         <p className="text-xs font-semibold">Langsung</p>
                       </button>
                       <button type="button" onClick={() => setCreateJoinType("approval")}
-                        className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${createJoinType === "approval" ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                        className={`flex-1 py-2.5 brutal-border rounded-md transition-all ${createJoinType === "approval" ? "bg-amber-soft text-amber" : "bg-parchment text-ink-muted hover:bg-cream"}`}>
                         <p className="text-xs font-semibold">Persetujuan</p>
                       </button>
                     </div>
-                    <div className="mt-2 rounded-xl bg-parchment border border-border p-3 text-xs text-ink-secondary leading-relaxed">
+                    <p className="input-hint mt-2">
                       {createJoinType === "auto"
-                        ? "Anggota baru langsung masuk ke klub tanpa perlu persetujuan admin."
-                        : "Anggota baru harus menunggu admin menyetujui permintaannya sebelum bisa masuk."}
-                    </div>
+                        ? "Anggota baru langsung masuk tanpa persetujuan."
+                        : "Admin harus menyetujui permintaan bergabung."}
+                    </p>
                   </div>
-                  {clubError && <p className="text-xs text-red-500">{clubError}</p>}
-                  <div className="flex gap-2">
-                    <button onClick={() => setShowCreate(false)} className="btn-secondary-sm flex-1">Batal</button>
+                  {clubError && <p className="text-error-msg">{clubError}</p>}
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={() => setShowCreate(false)} className="btn-secondary flex-1">Batal</button>
                     <button
                       onClick={async () => {
                         if (!createName.trim()) return;
@@ -366,7 +349,7 @@ export default function KomunitasClient({
                         finally { setCreating(false); }
                       }}
                       disabled={creating || !createName.trim()}
-                      className="btn-primary-sm flex-1"
+                      className="btn-primary flex-1"
                     >
                       {creating ? "…" : "Simpan"}
                     </button>
@@ -374,20 +357,16 @@ export default function KomunitasClient({
                 </div>
               )}
 
-              {/* Join club form */}
               {showJoin && (
-                <div className="bg-surface rounded-2xl border border-border p-4 space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Masukkan kode undangan"
-                    value={joinCode}
-                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                    className="input w-full uppercase"
-                    maxLength={6}
-                  />
-                  {clubError && <p className="text-xs text-red-500">{clubError}</p>}
+                <div className="card-elevated p-5 space-y-4">
+                  <div>
+                    <label className="input-label">Kode Undangan</label>
+                    <input type="text" value={joinCode} onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                      className="input mt-1 uppercase font-mono tracking-widest text-center" placeholder="XXXXXX" maxLength={6} />
+                  </div>
+                  {clubError && <p className="text-error-msg">{clubError}</p>}
                   <div className="flex gap-2">
-                    <button onClick={() => setShowJoin(false)} className="btn-secondary-sm flex-1">Batal</button>
+                    <button onClick={() => setShowJoin(false)} className="btn-secondary flex-1">Batal</button>
                     <button
                       onClick={async () => {
                         if (!joinCode.trim()) return;
@@ -410,7 +389,7 @@ export default function KomunitasClient({
                         finally { setJoiningClub(false); }
                       }}
                       disabled={joiningClub || !joinCode.trim()}
-                      className="btn-primary-sm flex-1"
+                      className="btn-primary flex-1"
                     >
                       {joiningClub ? "…" : "Gabung"}
                     </button>
@@ -420,19 +399,19 @@ export default function KomunitasClient({
 
               {/* My clubs list */}
               {clubsLoading ? (
-                <p className="text-sm text-ink-muted text-center py-8">Memuat klub…</p>
+                <p className="text-body-sm text-ink-muted text-center py-8">Memuat klub…</p>
               ) : clubs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-                  <div className="w-16 h-16 rounded-2xl bg-parchment border border-border flex items-center justify-center">
-                    <Users size={28} strokeWidth={1.5} className="text-ink-muted" />
+                <div className="card-elevated flex flex-col items-center justify-center py-16 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center">
+                    <Users size={24} strokeWidth={1.5} className="text-ink-muted" />
                   </div>
-                  <h2 className="text-h2">Belum ada klub</h2>
-                  <p className="text-sm text-ink-muted max-w-xs">Buat klub baca atau gabung dengan kode undangan</p>
+                  <h2 className="text-h3">Belum ada klub</h2>
+                  <p className="text-body-sm text-ink-muted max-w-xs">Buat klub baca atau gabung dengan kode undangan</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {clubs.map((club) => (
-                    <div key={club.id} className="bg-surface rounded-2xl border border-border overflow-hidden">
+                    <div key={club.id} className="card overflow-hidden">
                       {club.cover_url && (
                         <div className="h-24 overflow-hidden">
                           <img src={club.cover_url} alt="" className="w-full h-full object-cover" />
@@ -440,32 +419,21 @@ export default function KomunitasClient({
                       )}
                       <div className="p-4">
                         <Link href={`/komunitas/klub/${club.id}`} className="hover:text-amber transition-colors">
-                          <h3 className="font-semibold text-ink text-sm">{club.name}</h3>
+                          <h3 className="text-body-sm font-semibold text-ink">{club.name}</h3>
                         </Link>
                         {club.description && (
-                          <p className="text-xs text-ink-muted mt-1 line-clamp-2">{club.description}</p>
+                          <p className="text-caption mt-1 line-clamp-2">{club.description}</p>
                         )}
                         <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-3 text-[11px] text-ink-muted">
-                          <span className="flex items-center gap-1"><Users size={12} />{club.member_count}</span>
-                          <button
-                            onClick={async () => {
-                              try {
-                                await navigator.clipboard.writeText(club.invite_code);
-                              } catch {}
-                            }}
-                            className="flex items-center gap-1 hover:text-ink transition-colors"
-                          >
-                            <Copy size={12} /> {club.invite_code}
-                          </button>
+                          <div className="flex items-center gap-3 text-caption">
+                            <span className="flex items-center gap-1"><Users size={12} /> {club.member_count}</span>
+                            <button onClick={async () => { try { await navigator.clipboard.writeText(club.invite_code); } catch {} }}
+                              className="flex items-center gap-1 hover:text-ink transition-colors">
+                              <Copy size={12} /> {club.invite_code}
+                            </button>
+                          </div>
+                          <Link href={`/komunitas/klub/${club.id}`} className="section-link">Detail</Link>
                         </div>
-                        <Link
-                          href={`/komunitas/klub/${club.id}`}
-                          className="text-[11px] font-semibold text-amber hover:text-amber-hover transition-colors"
-                        >
-                          Detail
-                        </Link>
-                      </div>
                       </div>
                     </div>
                   ))}
@@ -479,23 +447,17 @@ export default function KomunitasClient({
             <div className="space-y-3">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                <input
-                  type="text"
-                  placeholder="Cari klub…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input w-full pl-9"
-                />
+                <input type="text" placeholder="Cari klub…" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="input input-icon-l" />
               </div>
               {exploreLoading ? (
-                <p className="text-sm text-ink-muted text-center py-8">Memuat klub…</p>
+                <p className="text-body-sm text-ink-muted text-center py-8">Memuat klub…</p>
               ) : exploreClubs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-                  <div className="w-16 h-16 rounded-2xl bg-parchment border border-border flex items-center justify-center">
-                    <Search size={28} strokeWidth={1.5} className="text-ink-muted" />
+                <div className="card-elevated flex flex-col items-center justify-center py-16 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center">
+                    <Search size={24} strokeWidth={1.5} className="text-ink-muted" />
                   </div>
-                  <h2 className="text-h2">Tidak ditemukan</h2>
-                  <p className="text-sm text-ink-muted max-w-xs">Coba kata kunci lain</p>
+                  <h2 className="text-h3">Tidak ditemukan</h2>
+                  <p className="text-body-sm text-ink-muted max-w-xs">Coba kata kunci lain</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -504,7 +466,7 @@ export default function KomunitasClient({
                     .map((club) => {
                       const joined = exploreJoined.includes(club.id);
                       return (
-                        <div key={club.id} className="bg-surface rounded-2xl border border-border overflow-hidden">
+                        <div key={club.id} className="card overflow-hidden">
                           {club.cover_url && (
                             <div className="h-24 overflow-hidden">
                               <img src={club.cover_url} alt="" className="w-full h-full object-cover" />
@@ -512,30 +474,21 @@ export default function KomunitasClient({
                           )}
                           <div className="p-4">
                             <Link href={`/komunitas/klub/${club.id}`} className="hover:text-amber transition-colors">
-                              <h3 className="font-semibold text-ink text-sm">{club.name}</h3>
+                              <h3 className="text-body-sm font-semibold text-ink">{club.name}</h3>
                             </Link>
                             {club.description && (
-                              <p className="text-xs text-ink-muted mt-1 line-clamp-2">{club.description}</p>
+                              <p className="text-caption mt-1 line-clamp-2">{club.description}</p>
                             )}
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <span className="text-[10px] text-ink-muted bg-parchment px-1.5 py-0.5 rounded">
-                                {club.visibility === "public" ? "Terbuka" : "Privat"}
-                              </span>
-                              {club.join_type === "approval" && (
-                                <span className="text-[10px] text-amber bg-amber-soft/50 px-1.5 py-0.5 rounded">
-                                  Persetujuan
-                                </span>
-                              )}
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="badge-muted">{club.visibility === "public" ? "Terbuka" : "Privat"}</span>
+                              {club.join_type === "approval" && <span className="badge-amber">Persetujuan</span>}
                             </div>
-                            <div className="flex items-center justify-between mt-2">
-                              <span className="text-[11px] text-ink-muted flex items-center gap-1"><Users size={12} />{club.member_count}</span>
+                            <div className="flex items-center justify-between mt-3">
+                              <span className="text-caption flex items-center gap-1"><Users size={12} /> {club.member_count}</span>
                               {joined ? (
-                                <Link href={`/komunitas/klub/${club.id}`} className="text-[11px] font-semibold text-amber hover:text-amber-hover transition-colors">
-                                  Buka
-                                </Link>
+                                <Link href={`/komunitas/klub/${club.id}`} className="section-link">Buka</Link>
                               ) : (
-                                <button
-                                  onClick={async () => {
+                                <button onClick={async () => {
                                     try {
                                       const res = await fetch("/api/clubs/join", {
                                         method: "POST",
@@ -550,12 +503,7 @@ export default function KomunitasClient({
                                       }
                                     } catch {}
                                   }}
-                                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors ${
-                                    club.join_type === "approval"
-                                      ? "text-amber bg-amber-soft border border-amber/30 hover:bg-amber/20"
-                                      : "text-white bg-amber hover:bg-amber-hover"
-                                  }`}
-                                >
+                                  className={club.join_type === "approval" ? "btn-secondary text-xs py-1.5 px-3 min-h-0" : "btn-primary text-xs py-1.5 px-3 min-h-0"}>
                                   {club.join_type === "approval" ? "Minta Gabung" : "Gabung"}
                                 </button>
                               )}
@@ -573,12 +521,12 @@ export default function KomunitasClient({
 
       {/* ── TAB 3: ACARA ── */}
       {mainTab === "acara" && (
-        <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-parchment border border-border flex items-center justify-center">
-            <Calendar size={28} strokeWidth={1.5} className="text-ink-muted" />
+        <div className="card-elevated flex flex-col items-center justify-center py-16 text-center space-y-3">
+          <div className="w-14 h-14 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center">
+            <Calendar size={24} strokeWidth={1.5} className="text-ink-muted" />
           </div>
-          <h2 className="text-h2">Acara</h2>
-          <p className="text-sm text-ink-muted max-w-xs">Fitur acara baca akan segera hadir. Pantau terus!</p>
+          <h2 className="text-h3">Acara</h2>
+          <p className="text-body-sm text-ink-muted max-w-xs">Fitur acara baca akan segera hadir. Pantau terus!</p>
         </div>
       )}
     </main>

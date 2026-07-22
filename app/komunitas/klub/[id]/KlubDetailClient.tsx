@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, Flame, BookOpen, Clock, Trophy, Activity } from "lucide-react";
+import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, Flame, BookOpen, Clock, Trophy } from "lucide-react";
 import type { Club, ClubMember } from "@/lib/clubs";
 import type { MemberStats } from "@/lib/club-stats";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -42,7 +42,6 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
 
   const isAdmin = members.some((m) => m.member_id === memberId && m.role === "admin");
   const isMember = members.some((m) => m.member_id === memberId);
-  const otherMembers = members.filter((m) => m.member_id !== memberId);
 
   useEffect(() => {
     fetch(`/api/clubs/${club.id}/stats`).then((r) => r.ok && r.json()).then((d) => setStats(d));
@@ -143,12 +142,12 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
 
   return (
     <main className="max-w-lg mx-auto px-4 py-6">
-      <Link href="/komunitas" className="text-xs text-ink-muted hover:text-ink flex items-center gap-1 mb-4 transition-colors">
+      <Link href="/komunitas" className="text-caption text-ink-muted hover:text-ink flex items-center gap-1 mb-4 transition-colors">
         <ChevronLeft size={14} /> Kembali
       </Link>
 
       {/* Cover photo */}
-      <div className="relative w-full h-36 rounded-2xl overflow-hidden bg-parchment border border-border mb-4">
+      <div className="relative w-full h-36 rounded-2xl overflow-hidden bg-parchment border-1.5 border-ink mb-4">
         {coverUrl ? (
           <img src={coverUrl} alt="" className="w-full h-full object-cover" />
         ) : (
@@ -158,19 +157,10 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
         )}
         {isAdmin && (
           <>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleCoverUpload}
-            />
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center hover:bg-parchment transition-colors shadow-sm"
-            >
-              <Camera size={14} className="text-ink-muted" />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverUpload} />
+            <button onClick={() => fileRef.current?.click()} disabled={uploading}
+              className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-surface brutal-border brutal-shadow-xs flex items-center justify-center hover:bg-parchment transition-colors">
+              <Camera size={16} className="text-ink-muted" />
             </button>
             {uploading && (
               <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -182,58 +172,52 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       </div>
 
       {/* Header */}
-      <div className="bg-surface rounded-2xl border border-border p-5 mb-4">
+      <div className="card-elevated p-5 mb-4">
         {editing ? (
-          <div className="space-y-3">
-            <input
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              className="input w-full font-semibold"
-              maxLength={50}
-            />
-            <textarea
-              value={editDesc}
-              onChange={(e) => setEditDesc(e.target.value)}
-              className="input w-full resize-none text-sm"
-              rows={2}
-              maxLength={200}
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="input-label">Nama Klub</label>
+              <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="input mt-1" maxLength={50} />
+            </div>
+            <div>
+              <label className="input-label">Deskripsi</label>
+              <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="input mt-1 resize-none" rows={2} maxLength={200} />
+            </div>
             <div>
               <label className="input-label">Visibilitas</label>
               <div className="flex gap-2 mt-1.5">
                 {(["public", "private"] as const).map((v) => (
                   <button key={v} type="button" onClick={() => setEditVisibility(v)}
-                    className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${editVisibility === v ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                    className={`flex-1 py-2.5 brutal-border rounded-md transition-all ${editVisibility === v ? "bg-amber-soft text-amber" : "bg-parchment text-ink-muted hover:bg-cream"}`}>
                     <p className="text-xs font-semibold">{v === "public" ? "Terbuka" : "Privat"}</p>
                   </button>
                 ))}
               </div>
-              <div className="mt-2 rounded-xl bg-parchment border border-border p-3 text-xs text-ink-secondary leading-relaxed">
+              <p className="input-hint mt-2">
                 {editVisibility === "public"
                   ? "Klub akan muncul di halaman Jelajahi. Siapa saja bisa menemukan dan melihat info klub ini."
                   : "Klub tidak muncul di Jelajahi. Hanya orang yang punya kode undangan yang bisa bergabung."}
-              </div>
+              </p>
             </div>
             <div>
               <label className="input-label">Cara Gabung</label>
               <div className="flex gap-2 mt-1.5">
                 {(["auto", "approval"] as const).map((t) => (
                   <button key={t} type="button" onClick={() => setEditJoinType(t)}
-                    className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${editJoinType === t ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                    className={`flex-1 py-2.5 brutal-border rounded-md transition-all ${editJoinType === t ? "bg-amber-soft text-amber" : "bg-parchment text-ink-muted hover:bg-cream"}`}>
                     <p className="text-xs font-semibold">{t === "auto" ? "Langsung" : "Persetujuan"}</p>
                   </button>
                 ))}
               </div>
-              <div className="mt-2 rounded-xl bg-parchment border border-border p-3 text-xs text-ink-secondary leading-relaxed">
+              <p className="input-hint mt-2">
                 {editJoinType === "auto"
                   ? "Anggota baru langsung masuk ke klub tanpa perlu persetujuan admin."
                   : "Anggota baru harus menunggu admin menyetujui permintaannya sebelum bisa masuk."}
-              </div>
+              </p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setEditing(false)} className="btn-secondary-sm flex-1">Batal</button>
-              <button onClick={handleSave} disabled={saving || !editName.trim()} className="btn-primary-sm flex-1">
+              <button onClick={() => setEditing(false)} className="btn-secondary flex-1">Batal</button>
+              <button onClick={handleSave} disabled={saving || !editName.trim()} className="btn-primary flex-1">
                 {saving ? "…" : "Simpan"}
               </button>
             </div>
@@ -242,23 +226,23 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
           <>
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
-                <h1 className="font-display text-xl font-bold text-ink mb-1">{club.name}</h1>
-                {club.description && <p className="text-sm text-ink-muted">{club.description}</p>}
+                <h1 className="text-h2 mb-1">{club.name}</h1>
+                {club.description && <p className="text-body-sm text-ink-secondary">{club.description}</p>}
               </div>
               {isAdmin && (
-                <button onClick={() => setEditing(true)} className="text-ink-muted hover:text-ink p-1 transition-colors flex-shrink-0">
+                <button onClick={() => setEditing(true)} className="btn-ghost-ink p-2 flex-shrink-0">
                   <Pencil size={14} />
                 </button>
               )}
             </div>
 
-            <div className="flex items-center gap-4 mt-4 text-[11px] text-ink-muted">
+            <div className="flex items-center gap-4 mt-4 text-caption text-ink-muted">
               <span className="flex items-center gap-1"><Users size={13} /> {club.member_count} anggota</span>
             </div>
 
             {isAdmin && (
-              <div className="mt-4 flex items-center gap-2">
-                <button onClick={copyCode} className="btn-secondary-sm flex items-center gap-1.5 text-xs">
+              <div className="mt-4">
+                <button onClick={copyCode} className="btn-secondary text-xs w-full">
                   {copied ? <Check size={12} /> : <Copy size={12} />}
                   {copied ? "Tersalin!" : `Salin Kode: ${club.invite_code}`}
                 </button>
@@ -271,41 +255,41 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       {/* Stats dashboard */}
       {stats && (
         <section className="mb-4">
-          <h2 className="text-xs font-black uppercase tracking-widest text-ink-muted mb-3 flex items-center gap-1.5">
-            <Trophy size={12} /> Statistik Anggota
+          <h2 className="section-title mb-3 flex items-center gap-1.5">
+            <Trophy size={14} className="text-amber" /> Statistik Anggota
           </h2>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {stats.map((s) => {
               const me = s.member_id === memberId;
               return (
-                <div key={s.member_id} className={`bg-surface rounded-xl border ${me ? "border-amber/30" : "border-border"} p-3`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
-                        <AvatarIcon avatar={s.avatar} size={14} />
-                      </div>
-                      <p className="text-sm font-semibold text-ink truncate">{s.name}{me && " (Kamu)"}</p>
+                <div key={s.member_id} className={`card-elevated p-4 ${me ? "ring-2 ring-amber/30" : ""}`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center text-amber flex-shrink-0">
+                      <AvatarIcon avatar={s.avatar} size={18} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-body-sm font-semibold text-ink truncate">{s.name}{me && " (Kamu)"}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
-                    <div className="bg-parchment rounded-lg p-2">
-                      <Flame size={14} className="mx-auto mb-0.5 text-orange-400" />
-                      <span className="font-bold text-ink">{s.current_streak}</span>
-                      <span className="text-ink-muted block">Streak</span>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-parchment rounded-md p-3 brutal-border brutal-shadow-xs">
+                      <Flame size={16} className="mx-auto mb-1 text-amber" />
+                      <span className="text-h3 block">{s.current_streak}</span>
+                      <span className="text-caption">Streak</span>
                     </div>
-                    <div className="bg-parchment rounded-lg p-2">
-                      <BookOpen size={14} className="mx-auto mb-0.5 text-blue-400" />
-                      <span className="font-bold text-ink">{s.pages_this_week}</span>
-                      <span className="text-ink-muted block">Hlm/mgg</span>
+                    <div className="bg-parchment rounded-md p-3 brutal-border brutal-shadow-xs">
+                      <BookOpen size={16} className="mx-auto mb-1 text-info" />
+                      <span className="text-h3 block">{s.pages_this_week}</span>
+                      <span className="text-caption">Hlm/mgg</span>
                     </div>
-                    <div className="bg-parchment rounded-lg p-2">
-                      <Clock size={14} className="mx-auto mb-0.5 text-green-400" />
-                      <span className="font-bold text-ink">{s.minutes_this_week}</span>
-                      <span className="text-ink-muted block">Mnt/mgg</span>
+                    <div className="bg-parchment rounded-md p-3 brutal-border brutal-shadow-xs">
+                      <Clock size={16} className="mx-auto mb-1 text-success" />
+                      <span className="text-h3 block">{s.minutes_this_week}</span>
+                      <span className="text-caption">Mnt/mgg</span>
                     </div>
                   </div>
                   {s.books_finished_this_month > 0 && (
-                    <p className="text-[11px] text-ink-muted text-center mt-1.5">
+                    <p className="text-caption text-center mt-2">
                       {s.books_finished_this_month} buku selesai bulan ini
                     </p>
                   )}
@@ -319,19 +303,19 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       {/* Pending requests */}
       {isAdmin && requests.length > 0 && (
         <section className="mb-4">
-          <h2 className="text-xs font-black uppercase tracking-widest text-amber mb-3 flex items-center gap-1.5">
-            <Users size={12} /> Permintaan Gabung ({requests.length})
+          <h2 className="section-title mb-3 flex items-center gap-1.5">
+            <Users size={14} className="text-amber" /> Permintaan Gabung ({requests.length})
           </h2>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {requests.map((r: any) => (
-              <div key={r.id} className="bg-surface rounded-xl border border-border p-3 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
-                  <AvatarIcon avatar={r.members?.avatar ?? "book"} size={16} />
+              <div key={r.id} className="card-elevated p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center text-amber flex-shrink-0">
+                  <AvatarIcon avatar={r.members?.avatar ?? "book"} size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-ink truncate">{r.members?.name}</p>
+                  <p className="text-body-sm font-semibold text-ink truncate">{r.members?.name}</p>
                 </div>
-                <div className="flex gap-1.5">
+                <div className="flex gap-2">
                   <button
                     onClick={async () => {
                       setApproving(r.id);
@@ -346,7 +330,7 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
                       setApproving(null);
                     }}
                     disabled={approving === r.id}
-                    className="text-[10px] font-semibold text-white bg-forest hover:bg-forest/80 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    className="btn-primary text-xs py-1.5 px-3 min-h-0"
                   >
                     {approving === r.id ? "…" : "Terima"}
                   </button>
@@ -361,7 +345,7 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
                         setRequests((prev) => prev.filter((x: any) => x.id !== r.id));
                       } catch {}
                     }}
-                    className="text-[10px] font-semibold text-red-400 border border-border px-2.5 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                    className="btn-secondary text-xs py-1.5 px-3 min-h-0"
                   >
                     Tolak
                   </button>
@@ -373,42 +357,38 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       )}
 
       {/* Members + Activity tabs */}
-      <div className="flex bg-parchment rounded-lg border border-border p-0.5 mb-3">
+      <div className="flex bg-parchment rounded-md brutal-border brutal-shadow-xs p-1 mb-4">
         <button onClick={() => setDetailTab("anggota")}
-          className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${detailTab === "anggota" ? "bg-surface text-ink shadow-sm border border-border" : "text-ink-muted hover:text-ink"}`}>
+          className={`flex-1 py-2.5 text-xs font-semibold rounded transition-all ${detailTab === "anggota" ? "bg-surface text-ink brutal-shadow-xs" : "text-ink-muted hover:text-ink"}`}>
           Anggota ({members.length})
         </button>
         <button onClick={() => setDetailTab("aktivitas")}
-          className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${detailTab === "aktivitas" ? "bg-surface text-ink shadow-sm border border-border" : "text-ink-muted hover:text-ink"}`}>
+          className={`flex-1 py-2.5 text-xs font-semibold rounded transition-all ${detailTab === "aktivitas" ? "bg-surface text-ink brutal-shadow-xs" : "text-ink-muted hover:text-ink"}`}>
           Aktivitas
         </button>
       </div>
 
       {detailTab === "anggota" && (
         <section>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {members.map((m) => (
-              <div key={m.id} className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3">
-                <div className="w-9 h-9 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
+              <div key={m.id} className="card-elevated p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center text-amber flex-shrink-0">
                   <AvatarIcon avatar={m.members?.avatar ?? "book"} size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-ink truncate flex items-center gap-1.5">
+                  <p className="text-body-sm font-semibold text-ink truncate flex items-center gap-1.5">
                     {m.members?.name ?? "Anggota"}
                     {m.role === "admin" && (
-                      <span className="text-[10px] font-bold text-amber uppercase tracking-wider">Admin</span>
+                      <span className="badge-amber">Admin</span>
                     )}
                   </p>
                   {m.members?.username && (
-                    <p className="text-[11px] text-ink-muted">@{m.members.username}</p>
+                    <p className="text-caption">@{m.members.username}</p>
                   )}
                 </div>
                 {isAdmin && m.member_id !== memberId && (
-                  <button
-                    onClick={() => setConfirmTransfer(m.member_id)}
-                    className="text-[10px] text-ink-muted hover:text-amber transition-colors flex-shrink-0"
-                    title="Transfer admin"
-                  >
+                  <button onClick={() => setConfirmTransfer(m.member_id)} className="btn-ghost-ink p-2" title="Transfer admin">
                     <ArrowRight size={14} />
                   </button>
                 )}
@@ -421,27 +401,27 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       {detailTab === "aktivitas" && (
         <section>
           {activitiesLoading ? (
-            <p className="text-sm text-ink-muted text-center py-8">Memuat aktivitas…</p>
+            <p className="text-body-sm text-ink-muted text-center py-8">Memuat aktivitas…</p>
           ) : activities.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-parchment border border-border flex items-center justify-center">
+            <div className="card-elevated flex flex-col items-center justify-center py-16 text-center space-y-3">
+              <div className="w-14 h-14 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center">
                 <BookOpen size={24} strokeWidth={1.5} className="text-ink-muted" />
               </div>
-              <p className="text-sm text-ink-muted">Belum ada aktivitas</p>
+              <p className="text-body-sm text-ink-muted">Belum ada aktivitas</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {activities.map((a, i) => (
-                <div key={i} className="flex items-start gap-3 bg-surface rounded-xl border border-border p-3">
-                  <div className="w-8 h-8 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
-                    <AvatarIcon avatar={a.member_avatar} size={16} />
+                <div key={i} className="card-elevated p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center text-amber flex-shrink-0">
+                    <AvatarIcon avatar={a.member_avatar} size={18} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-ink">
+                    <p className="text-body-sm">
                       <span className="font-semibold">{a.member_name}</span>{" "}
                       <span className="text-ink-secondary">{a.detail}</span>
                     </p>
-                    <p className="text-[10px] text-ink-muted mt-0.5">
+                    <p className="text-caption mt-1">
                       {new Date(a.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
@@ -453,46 +433,19 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       )}
 
       {/* Confirm dialogs */}
-      <ConfirmDialog
-        open={confirmDelete}
-        title="Hapus klub"
-        message={`Yakin hapus "${club.name}"? Semua data klub akan hilang.`}
-        confirmLabel="Ya, Hapus"
-        variant="danger"
-        onConfirm={handleDelete}
-        onCancel={() => setConfirmDelete(false)}
-        loading={deleting}
-      />
+      <ConfirmDialog open={confirmDelete} title="Hapus klub" message={`Yakin hapus "${club.name}"? Semua data klub akan hilang.`}
+        confirmLabel="Ya, Hapus" variant="danger" onConfirm={handleDelete} onCancel={() => setConfirmDelete(false)} loading={deleting} />
 
-      <ConfirmDialog
-        open={confirmLeave}
-        title="Keluar dari klub"
-        message={`Yakin mau keluar dari "${club.name}"?`}
-        confirmLabel="Ya, Keluar"
-        variant="danger"
-        onConfirm={handleLeave}
-        onCancel={() => setConfirmLeave(false)}
-        loading={leaving}
-      />
+      <ConfirmDialog open={confirmLeave} title="Keluar dari klub" message={`Yakin mau keluar dari "${club.name}"?`}
+        confirmLabel="Ya, Keluar" variant="danger" onConfirm={handleLeave} onCancel={() => setConfirmLeave(false)} loading={leaving} />
 
-      <ConfirmDialog
-        open={!!confirmTransfer}
-        title="Transfer Admin"
-        message="Yakin transfer admin ke anggota ini? Kamu akan menjadi anggota biasa."
-        confirmLabel="Ya, Transfer"
-        variant="default"
-        onConfirm={() => confirmTransfer && handleTransfer(confirmTransfer)}
-        onCancel={() => setConfirmTransfer(null)}
-        loading={transferring}
-      />
+      <ConfirmDialog open={!!confirmTransfer} title="Transfer Admin" message="Yakin transfer admin ke anggota ini? Kamu akan menjadi anggota biasa."
+        confirmLabel="Ya, Transfer" variant="default" onConfirm={() => confirmTransfer && handleTransfer(confirmTransfer)} onCancel={() => setConfirmTransfer(null)} loading={transferring} />
 
       {/* Admin actions */}
       {isAdmin && !editing && (
-        <div className="mt-8 space-y-3">
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="w-full flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-500 bg-surface border border-border rounded-xl p-3 transition-colors"
-          >
+        <div className="mt-8">
+          <button onClick={() => setConfirmDelete(true)} className="btn-danger w-full">
             <Trash2 size={14} />
             Hapus klub
           </button>
@@ -502,7 +455,7 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       {/* Leave button */}
       {isMember && !isAdmin && (
         <div className="mt-8 text-center">
-          <button onClick={() => setConfirmLeave(true)} className="text-xs text-red-400 hover:text-red-500 transition-colors">
+          <button onClick={() => setConfirmLeave(true)} className="text-caption text-error hover:text-error/80 transition-colors">
             Keluar dari klub
           </button>
         </div>
