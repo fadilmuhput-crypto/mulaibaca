@@ -6,6 +6,7 @@ import AnalyticsWithConsent from "@/components/AnalyticsWithConsent";
 import ReadingModeProvider from "@/components/ReadingModeProvider";
 import ReadingModeToggle from "@/components/ReadingModeToggle";
 import ThemeProvider from "@/components/ThemeProvider";
+import { ToastProvider } from "@/components/Toast";
 import PwaRegister from "@/components/PwaRegister";
 import SplashScreen from "@/components/SplashScreen";
 import "./globals.css";
@@ -83,19 +84,22 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${geist.variable} ${fraunces.variable}`}>
       <head>
+        <meta name="theme-color" content="#1E4530" />
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="min-h-screen antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteLd) }} />
         <ThemeProvider>
           <ReadingModeProvider>
-            <SplashScreen>
-              {children}
-              <ReadingModeToggle />
-              <CookieConsentBanner />
-              <AnalyticsWithConsent />
-              <PwaRegister />
-            </SplashScreen>
+            <ToastProvider>
+              <SplashScreen>
+                {children}
+                <ReadingModeToggle />
+                <CookieConsentBanner />
+                <AnalyticsWithConsent />
+                <PwaRegister />
+              </SplashScreen>
+            </ToastProvider>
           </ReadingModeProvider>
         </ThemeProvider>
       </body>
