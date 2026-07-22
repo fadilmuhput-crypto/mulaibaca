@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, Flame, BookOpen, Clock, Trophy } from "lucide-react";
+import { Users, Copy, ChevronLeft, Check, Pencil, Trash2, ArrowRight, Camera, Flame, BookOpen, Clock, Trophy, Activity } from "lucide-react";
 import type { Club, ClubMember } from "@/lib/clubs";
 import type { MemberStats } from "@/lib/club-stats";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -36,6 +36,9 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   const [stats, setStats] = useState<MemberStats[] | null>(null);
   const [requests, setRequests] = useState<any[]>([]);
   const [approving, setApproving] = useState<string | null>(null);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
+  const [detailTab, setDetailTab] = useState<"anggota" | "aktivitas">("anggota");
 
   const isAdmin = members.some((m) => m.member_id === memberId && m.role === "admin");
   const isMember = members.some((m) => m.member_id === memberId);
@@ -49,7 +52,14 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
     if (isAdmin) {
       fetch(`/api/clubs/${club.id}/requests`).then((r) => r.ok && r.json()).then((d) => setRequests(d ?? [])).catch(() => {});
     }
-      }, [club.id, isAdmin]);
+  }, [club.id, isAdmin]);
+
+  useEffect(() => {
+    if (detailTab === "aktivitas") {
+      setActivitiesLoading(true);
+      fetch(`/api/clubs/${club.id}/activities`).then((r) => r.ok && r.json()).then((d) => setActivities(d ?? [])).catch(() => {}).finally(() => setActivitiesLoading(false));
+    }
+  }, [detailTab, club.id]);
 
   async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -358,41 +368,85 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
         </section>
       )}
 
-      {/* Members */}
-      <section>
-        <h2 className="text-xs font-black uppercase tracking-widest text-ink-muted mb-3 flex items-center gap-1.5">
-          <Users size={12} /> Anggota
-        </h2>
-        <div className="space-y-2">
-          {members.map((m) => (
-            <div key={m.id} className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3">
-              <div className="w-9 h-9 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
-                <AvatarIcon avatar={m.members?.avatar ?? "book"} size={18} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-ink truncate flex items-center gap-1.5">
-                  {m.members?.name ?? "Anggota"}
-                  {m.role === "admin" && (
-                    <span className="text-[10px] font-bold text-amber uppercase tracking-wider">Admin</span>
+      {/* Members + Activity tabs */}
+      <div className="flex bg-parchment rounded-lg border border-border p-0.5 mb-3">
+        <button onClick={() => setDetailTab("anggota")}
+          className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${detailTab === "anggota" ? "bg-surface text-ink shadow-sm border border-border" : "text-ink-muted hover:text-ink"}`}>
+          Anggota ({members.length})
+        </button>
+        <button onClick={() => setDetailTab("aktivitas")}
+          className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${detailTab === "aktivitas" ? "bg-surface text-ink shadow-sm border border-border" : "text-ink-muted hover:text-ink"}`}>
+          Aktivitas
+        </button>
+      </div>
+
+      {detailTab === "anggota" && (
+        <section>
+          <div className="space-y-2">
+            {members.map((m) => (
+              <div key={m.id} className="flex items-center gap-3 bg-surface rounded-xl border border-border p-3">
+                <div className="w-9 h-9 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
+                  <AvatarIcon avatar={m.members?.avatar ?? "book"} size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-ink truncate flex items-center gap-1.5">
+                    {m.members?.name ?? "Anggota"}
+                    {m.role === "admin" && (
+                      <span className="text-[10px] font-bold text-amber uppercase tracking-wider">Admin</span>
+                    )}
+                  </p>
+                  {m.members?.username && (
+                    <p className="text-[11px] text-ink-muted">@{m.members.username}</p>
                   )}
-                </p>
-                {m.members?.username && (
-                  <p className="text-[11px] text-ink-muted">@{m.members.username}</p>
+                </div>
+                {isAdmin && m.member_id !== memberId && (
+                  <button
+                    onClick={() => setConfirmTransfer(m.member_id)}
+                    className="text-[10px] text-ink-muted hover:text-amber transition-colors flex-shrink-0"
+                    title="Transfer admin"
+                  >
+                    <ArrowRight size={14} />
+                  </button>
                 )}
               </div>
-              {isAdmin && m.member_id !== memberId && (
-                <button
-                  onClick={() => setConfirmTransfer(m.member_id)}
-                  className="text-[10px] text-ink-muted hover:text-amber transition-colors flex-shrink-0"
-                  title="Transfer admin"
-                >
-                  <ArrowRight size={14} />
-                </button>
-              )}
+            ))}
+          </div>
+        </section>
+      )}
+
+      {detailTab === "aktivitas" && (
+        <section>
+          {activitiesLoading ? (
+            <p className="text-sm text-ink-muted text-center py-8">Memuat aktivitas…</p>
+          ) : activities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
+              <div className="w-14 h-14 rounded-2xl bg-parchment border border-border flex items-center justify-center">
+                <BookOpen size={24} strokeWidth={1.5} className="text-ink-muted" />
+              </div>
+              <p className="text-sm text-ink-muted">Belum ada aktivitas</p>
             </div>
-          ))}
-        </div>
-      </section>
+          ) : (
+            <div className="space-y-2">
+              {activities.map((a, i) => (
+                <div key={i} className="flex items-start gap-3 bg-surface rounded-xl border border-border p-3">
+                  <div className="w-8 h-8 rounded-full bg-parchment border border-border flex items-center justify-center text-amber flex-shrink-0">
+                    <AvatarIcon avatar={a.member_avatar} size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-ink">
+                      <span className="font-semibold">{a.member_name}</span>{" "}
+                      <span className="text-ink-secondary">{a.detail}</span>
+                    </p>
+                    <p className="text-[10px] text-ink-muted mt-0.5">
+                      {new Date(a.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Confirm dialogs */}
       <ConfirmDialog
