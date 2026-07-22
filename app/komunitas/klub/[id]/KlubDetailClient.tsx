@@ -215,6 +215,13 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
                   : "Anggota baru harus menunggu admin menyetujui permintaannya sebelum bisa masuk."}
               </p>
             </div>
+            <div className="divider-soft" />
+            <div>
+              <p className="text-caption mb-2">Zona Bahaya</p>
+              <button onClick={() => setConfirmDelete(true)} className="btn-danger w-full text-xs">
+                <Trash2 size={14} /> Hapus Klub
+              </button>
+            </div>
             <div className="flex gap-2">
               <button onClick={() => setEditing(false)} className="btn-secondary flex-1">Batal</button>
               <button onClick={handleSave} disabled={saving || !editName.trim()} className="btn-primary flex-1">
@@ -441,16 +448,6 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
 
       <ConfirmDialog open={!!confirmTransfer} title="Transfer Admin" message="Yakin transfer admin ke anggota ini? Kamu akan menjadi anggota biasa."
         confirmLabel="Ya, Transfer" variant="default" onConfirm={() => confirmTransfer && handleTransfer(confirmTransfer)} onCancel={() => setConfirmTransfer(null)} loading={transferring} />
-
-      {/* Admin actions */}
-      {isAdmin && !editing && (
-        <div className="mt-8">
-          <button onClick={() => setConfirmDelete(true)} className="btn-danger w-full">
-            <Trash2 size={14} />
-            Hapus klub
-          </button>
-        </div>
-      )}
 
       {/* Leave button */}
       {isMember && !isAdmin && (
