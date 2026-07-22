@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import BookCover from "@/components/BookCover";
@@ -60,20 +60,33 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
   const searchParams = useSearchParams();
   const initialQ = searchParams.get("q") ?? "";
   const [query, setQuery] = useState(initialQ);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQ);
   const [activeParent, setActiveParent] = useState<string | null>(null);
   const [activeSub, setActiveSub] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
   const [olResults, setOlResults] = useState<OLResult[] | null>(null);
   const [olLoading, setOlLoading] = useState(false);
+  const [showCount, setShowCount] = useState(30);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
   }, []);
 
+  // Debounce query for URL update
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+      const url = query.trim() ? `/cari?q=${encodeURIComponent(query)}` : "/cari";
+      window.history.replaceState(null, "", url);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   useEffect(() => {
     setOlResults(null);
-  }, [query, activeSub, activeParent]);
+    setShowCount(30);
+  }, [debouncedQuery, activeSub, activeParent]);
 
   const filtered = useMemo(() => {
     let list = allBooks;
@@ -84,8 +97,8 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
       const parent = CATEGORY_TREE.find((c) => c.key === activeParent);
       if (parent) list = list.filter((b) => b.tags.some((t) => parent.matchTags.includes(t)));
     }
-    if (query.trim()) {
-      const q = query.toLowerCase();
+    if (debouncedQuery.trim()) {
+      const q = debouncedQuery.toLowerCase();
       list = list.filter(
         (b) =>
           b.title.toLowerCase().includes(q) ||
@@ -94,14 +107,16 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
       );
     }
     return list;
-  }, [allBooks, query, activeParent, activeSub]);
+  }, [allBooks, debouncedQuery, activeParent, activeSub]);
 
   const results = filtered.map(fromBook);
+  const visibleResults = results.slice(0, showCount);
+  const hasMore = results.length > showCount;
 
   async function searchOL() {
     setOlLoading(true);
     try {
-      const res = await fetch(`/api/books/search-ol?q=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/books/search-ol?q=${encodeURIComponent(debouncedQuery)}`);
       const json = await res.json();
       setOlResults(json.data ?? []);
     } catch {
@@ -157,11 +172,7 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
               type="text"
               placeholder="Cari judul, pengarang, atau genre…"
               value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                const url = e.target.value.trim() ? `/cari?q=${encodeURIComponent(e.target.value)}` : "/cari";
-                window.history.replaceState(null, "", url);
-              }}
+              onChange={(e) => setQuery(e.target.value)}
               className="input input-icon-lr w-full"
             />
             {query && (
@@ -217,7 +228,7 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
         {/* Results count */}
         <p className="text-xs text-ink-muted mb-4">
           {results.length} hasil
-          {query && <> untuk &quot;{query}&quot;</>}
+          {debouncedQuery && <> untuk &quot;{debouncedQuery}&quot;</>}
         </p>
 
         {/* Results */}
@@ -226,7 +237,7 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
             <p className="text-2xl mb-3">🔍</p>
             <p className="text-sm font-semibold text-ink mb-1">Tidak ditemukan</p>
             <p className="text-xs text-ink-muted mb-4">Coba kata kunci lain atau ubah filter kategori</p>
-            {query.trim().length >= 2 && !olResults && (
+            {debouncedQuery.trim().length >= 2 && !olResults && (
               <button
                 onClick={searchOL}
                 disabled={olLoading}
@@ -252,7 +263,7 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
             </div>
           )}
           <div className="space-y-3">
-            {results.map((card) => {
+            {visibleResults.map((card) => {
               const isAdding = adding?.startsWith(card.id);
               return (
                 <div key={card.id} className="bg-surface rounded-2xl border border-border p-3">
@@ -288,6 +299,14 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
               );
             })}
           </div>
+          {hasMore && (
+            <button
+              onClick={() => setShowCount((c) => c + 30)}
+              className="w-full mt-4 py-3 text-xs font-semibold text-ink-muted hover:text-ink border border-border rounded-xl transition-colors"
+            >
+              Tampilkan lagi ({results.length - showCount} lainnya)
+            </button>
+          )}
           </>
         )}
 
