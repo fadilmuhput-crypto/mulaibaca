@@ -56,6 +56,7 @@ export default function ProfilClient({
   const [setupError, setSetupError] = useState("");
   const [setupSuccess, setSetupSuccess] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [bio, setBio] = useState(session.memberBio ?? "");
   const avatarFileRef = useRef<HTMLInputElement>(null);
   const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const checkSeq = useRef(0);
@@ -64,6 +65,7 @@ export default function ProfilClient({
   const isDirty =
     name !== session.memberName ||
     avatar !== session.memberAvatar ||
+    bio !== (session.memberBio ?? "") ||
     familyName !== session.familyName ||
     weeklyGoal !== session.weeklyPagesGoal ||
     weeklyChallenge !== initialWeeklyChallenge ||
@@ -98,7 +100,7 @@ export default function ProfilClient({
     setSaving(true); setSaved(false); setError("");
     try {
       const body: Record<string, unknown> = {
-        name, avatar, birthDate, familyName,
+        name, avatar, bio, birthDate, familyName,
         weeklyPagesGoal: weeklyGoal, memberType,
         familyWeeklyChallenge: weeklyChallenge,
         reminderEnabled, reminderTime,
@@ -283,6 +285,19 @@ export default function ProfilClient({
           <label htmlFor="birth-date" className="input-label">Tanggal lahir</label>
           <input id="birth-date" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="input mt-1" max={new Date().toISOString().split("T")[0]} />
           {session.memberAge !== null && <p className="input-hint">{session.memberAge} tahun</p>}
+        </div>
+
+        <div>
+          <label htmlFor="bio" className="input-label">Bio</label>
+          <textarea
+            id="bio"
+            value={bio}
+            onChange={(e) => setBio(e.target.value.slice(0, 200))}
+            rows={2}
+            placeholder="Ceritakan sedikit tentang dirimu…"
+            className="input mt-1 resize-none"
+          />
+          <p className="input-hint">{bio.length}/200</p>
         </div>
 
         <div className="divider" />

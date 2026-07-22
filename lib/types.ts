@@ -22,6 +22,7 @@ export type Session = {
   memberId: string;
   memberName: string;
   memberAvatar: string;
+  memberBio: string;
   memberRole: "admin" | "member";
 };
 

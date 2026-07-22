@@ -64,7 +64,7 @@ export default async function PublicProfilePage({
 
   const { data: member } = await supabase
     .from("members")
-    .select("id, name, avatar")
+    .select("id, name, avatar, bio")
     .eq("username", username.toLowerCase())
     .maybeSingle();
 
@@ -193,6 +193,9 @@ export default async function PublicProfilePage({
           <div>
             <h1 className="font-display font-bold text-xl text-ink">{member.name as string}</h1>
             <p className="text-xs text-ink-muted mt-0.5">@{username}</p>
+            {member.bio && (
+              <p className="text-xs text-ink-secondary mt-1 max-w-[200px]">{member.bio as string}</p>
+            )}
           </div>
         </div>
 
@@ -283,10 +286,17 @@ export default async function PublicProfilePage({
         {/* Selesai dibaca */}
         {(doneShelf ?? []).length > 0 && (
           <section>
-            <h2 className="text-overline mb-3 flex items-center gap-1.5">
-              <BookCheck size={12} strokeWidth={2.5} className="text-forest" />
-              Sudah selesai ({booksFinished})
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-overline flex items-center gap-1.5">
+                <BookCheck size={12} strokeWidth={2.5} className="text-forest" />
+                Sudah selesai ({booksFinished})
+              </h2>
+              {booksFinished > 12 && (
+                <Link href={`/rak?tab=done&user=${username}`} className="text-[10px] font-semibold text-amber hover:text-amber-dark transition-colors">
+                  Lihat semua →
+                </Link>
+              )}
+            </div>
             <div className="grid grid-cols-4 gap-2">
               {(doneShelf ?? []).map((item) => {
                 const book = getBook(item);
@@ -304,10 +314,17 @@ export default async function PublicProfilePage({
         {/* Mau dibaca */}
         {(wantShelf ?? []).length > 0 && (
           <section>
-            <h2 className="text-overline mb-3 flex items-center gap-1.5">
-              <Bookmark size={12} strokeWidth={2.5} className="text-ink-muted" />
-              Ingin dibaca
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-overline flex items-center gap-1.5">
+                <Bookmark size={12} strokeWidth={2.5} className="text-ink-muted" />
+                Ingin dibaca
+              </h2>
+              {(wantShelf ?? []).length >= 9 && (
+                <Link href={`/rak?tab=want&user=${username}`} className="text-[10px] font-semibold text-amber hover:text-amber-dark transition-colors">
+                  Lihat semua →
+                </Link>
+              )}
+            </div>
             <div className="grid grid-cols-4 gap-2">
               {(wantShelf ?? []).map((item) => {
                 const book = getBook(item);

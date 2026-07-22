@@ -8,6 +8,7 @@ import type { Club, ClubMember } from "@/lib/clubs";
 import type { MemberStats } from "@/lib/club-stats";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import AvatarIcon from "@/components/AvatarIcon";
+import { useToast } from "@/components/Toast";
 
 type Props = {
   club: Club & { member_count: number };
@@ -17,6 +18,7 @@ type Props = {
 
 export default function KlubDetailClient({ club, members, memberId }: Props) {
   const router = useRouter();
+  const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -117,17 +119,27 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
       if (res.ok) {
         setEditing(false);
         router.refresh();
+      } else {
+        toast.show("Gagal menyimpan perubahan");
       }
-    } catch {}
+    } catch {
+      toast.show("Gagal menyimpan perubahan");
+    }
     setSaving(false);
   }
 
   async function handleDelete() {
     setDeleting(true);
     try {
-      await fetch(`/api/clubs/${club.id}`, { method: "DELETE" });
-      router.push("/komunitas");
-    } catch {}
+      const res = await fetch(`/api/clubs/${club.id}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/komunitas");
+      } else {
+        toast.show("Gagal menghapus klub");
+      }
+    } catch {
+      toast.show("Gagal menghapus klub");
+    }
     setDeleting(false);
     setConfirmDelete(false);
   }
@@ -135,13 +147,19 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   async function handleTransfer(toMemberId: string) {
     setTransferring(true);
     try {
-      await fetch(`/api/clubs/${club.id}/transfer`, {
+      const res = await fetch(`/api/clubs/${club.id}/transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ toMemberId }),
       });
-      router.refresh();
-    } catch {}
+      if (res.ok) {
+        router.refresh();
+      } else {
+        toast.show("Gagal transfer admin");
+      }
+    } catch {
+      toast.show("Gagal transfer admin");
+    }
     setTransferring(false);
     setConfirmTransfer(null);
   }
@@ -149,9 +167,15 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
   async function handleLeave() {
     setLeaving(true);
     try {
-      await fetch(`/api/clubs/${club.id}/leave`, { method: "POST" });
-      router.push("/komunitas");
-    } catch {}
+      const res = await fetch(`/api/clubs/${club.id}/leave`, { method: "POST" });
+      if (res.ok) {
+        router.push("/komunitas");
+      } else {
+        toast.show("Gagal keluar dari klub");
+      }
+    } catch {
+      toast.show("Gagal keluar dari klub");
+    }
     setLeaving(false);
     setConfirmLeave(false);
   }

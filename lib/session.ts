@@ -27,6 +27,7 @@ export type Session = {
   memberId: string;
   memberName: string;
   memberAvatar: string;
+  memberBio: string;
   memberRole: "admin" | "member";
   memberUsername: string | null;
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
@@ -97,6 +98,7 @@ export async function getSession(): Promise<Session | null> {
     memberId: activeId,
     memberName: member.name,
     memberAvatar: member.avatar,
+    memberBio: (member.bio as string) ?? "",
     memberRole: self.role as "admin" | "member", // always the real admin role
     memberUsername: (member.username as string | null) ?? null,
     memberType: (member.member_type as "ayah" | "ibu" | "anak" | "dewasa") ?? "dewasa",

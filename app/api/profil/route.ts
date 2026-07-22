@@ -45,12 +45,13 @@ export async function PATCH(req: NextRequest) {
   const auth = await getAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, avatar, birthDate, familyName, weeklyPagesGoal, username, memberType, familyWeeklyChallenge, reminderEnabled, reminderTime } = await req.json();
+  const { name, avatar, bio, birthDate, familyName, weeklyPagesGoal, username, memberType, familyWeeklyChallenge, reminderEnabled, reminderTime } = await req.json();
   const admin = createAdminClient();
 
   const updates: Record<string, string | number | boolean | null> = {};
   if (name?.trim()) updates.name = name.trim();
   if (avatar) updates.avatar = avatar;
+  if (bio !== undefined) updates.bio = bio.slice(0, 200);
   if (weeklyPagesGoal !== undefined) updates.weekly_pages_goal = Math.max(0, Math.floor(Number(weeklyPagesGoal)));
   if (memberType) updates.member_type = memberType;
   if (birthDate !== undefined) updates.birth_date = birthDate || null;

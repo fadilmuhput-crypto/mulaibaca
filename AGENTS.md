@@ -103,3 +103,8 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 - PWA: 192x192 icon (`logo-192.png`), `<meta name="theme-color">` in layout, manifest screenshots
 - Error boundaries: `error.tsx` for `/rak`, `/log`, `/review`, `/progress`, `/cari`
 - Search: 300ms debounce on URL update, "show more" pagination (30 items), OL loading state
+
+## P2 Feature Completeness
+- Edit review: `/review/tulis?edit=true&shelf=...&rating=...&qAbout=...` pre-fills form, PUT updates existing review
+- Profile picture upload: `/api/upload/avatar` (auto-creates `avatars` bucket), camera icon on edit profile
+- AvatarIcon: supports both icon keys and image URLs (renders `<img>` for URLs)
