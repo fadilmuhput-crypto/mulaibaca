@@ -200,31 +200,35 @@ export default function KlubDetailClient({ club, members, memberId }: Props) {
               maxLength={200}
             />
             <div>
-              <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Visibilitas</label>
-              <div className="flex gap-2 mt-1">
+              <label className="input-label">Visibilitas</label>
+              <div className="flex gap-2 mt-1.5">
                 {(["public", "private"] as const).map((v) => (
                   <button key={v} type="button" onClick={() => setEditVisibility(v)}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
-                      editVisibility === v ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"
-                    }`}
-                  >
-                    {v === "public" ? "Terbuka" : "Privat"}
+                    className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${editVisibility === v ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                    <p className="text-xs font-semibold">{v === "public" ? "Terbuka" : "Privat"}</p>
                   </button>
                 ))}
               </div>
+              <div className="mt-2 rounded-xl bg-parchment border border-border p-3 text-xs text-ink-secondary leading-relaxed">
+                {editVisibility === "public"
+                  ? "Klub akan muncul di halaman Jelajahi. Siapa saja bisa menemukan dan melihat info klub ini."
+                  : "Klub tidak muncul di Jelajahi. Hanya orang yang punya kode undangan yang bisa bergabung."}
+              </div>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Cara Gabung</label>
-              <div className="flex gap-2 mt-1">
+              <label className="input-label">Cara Gabung</label>
+              <div className="flex gap-2 mt-1.5">
                 {(["auto", "approval"] as const).map((t) => (
                   <button key={t} type="button" onClick={() => setEditJoinType(t)}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
-                      editJoinType === t ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"
-                    }`}
-                  >
-                    {t === "auto" ? "Langsung" : "Persetujuan"}
+                    className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${editJoinType === t ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                    <p className="text-xs font-semibold">{t === "auto" ? "Langsung" : "Persetujuan"}</p>
                   </button>
                 ))}
+              </div>
+              <div className="mt-2 rounded-xl bg-parchment border border-border p-3 text-xs text-ink-secondary leading-relaxed">
+                {editJoinType === "auto"
+                  ? "Anggota baru langsung masuk ke klub tanpa perlu persetujuan admin."
+                  : "Anggota baru harus menunggu admin menyetujui permintaannya sebelum bisa masuk."}
               </div>
             </div>
             <div className="flex gap-2">

@@ -307,38 +307,40 @@ export default function KomunitasClient({
                     maxLength={200}
                   />
                   <div>
-                    <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Visibilitas</label>
-                    <div className="flex gap-2 mt-1">
-                      {(["public", "private"] as const).map((v) => (
-                        <button key={v} type="button" onClick={() => setCreateVisibility(v)}
-                          className={`flex-1 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
-                            createVisibility === v ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"
-                          }`}
-                        >
-                          {v === "public" ? "Terbuka" : "Privat"}
-                        </button>
-                      ))}
+                    <label className="input-label">Visibilitas</label>
+                    <div className="flex gap-2 mt-1.5">
+                      <button type="button" onClick={() => setCreateVisibility("public")}
+                        className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${createVisibility === "public" ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                        <p className="text-xs font-semibold">Terbuka</p>
+                      </button>
+                      <button type="button" onClick={() => setCreateVisibility("private")}
+                        className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${createVisibility === "private" ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                        <p className="text-xs font-semibold">Privat</p>
+                      </button>
                     </div>
-                    <p className="text-[10px] text-ink-muted mt-1">
-                      {createVisibility === "public" ? "Muncul di halaman Jelajahi" : "Hanya bisa lewat kode undangan"}
-                    </p>
+                    <div className="mt-2 rounded-xl bg-parchment border border-border p-3 text-xs text-ink-secondary leading-relaxed">
+                      {createVisibility === "public"
+                        ? "Klub akan muncul di halaman Jelajahi. Siapa saja bisa menemukan dan melihat info klub ini."
+                        : "Klub tidak muncul di Jelajahi. Hanya orang yang punya kode undangan yang bisa bergabung."}
+                    </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Cara Gabung</label>
-                    <div className="flex gap-2 mt-1">
-                      {(["auto", "approval"] as const).map((t) => (
-                        <button key={t} type="button" onClick={() => setCreateJoinType(t)}
-                          className={`flex-1 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
-                            createJoinType === t ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"
-                          }`}
-                        >
-                          {t === "auto" ? "Langsung" : "Persetujuan"}
-                        </button>
-                      ))}
+                    <label className="input-label">Cara Gabung</label>
+                    <div className="flex gap-2 mt-1.5">
+                      <button type="button" onClick={() => setCreateJoinType("auto")}
+                        className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${createJoinType === "auto" ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                        <p className="text-xs font-semibold">Langsung</p>
+                      </button>
+                      <button type="button" onClick={() => setCreateJoinType("approval")}
+                        className={`flex-1 py-2.5 rounded-xl border-2 transition-all ${createJoinType === "approval" ? "border-amber bg-amber-soft text-amber" : "border-border bg-parchment text-ink-muted"}`}>
+                        <p className="text-xs font-semibold">Persetujuan</p>
+                      </button>
                     </div>
-                    <p className="text-[10px] text-ink-muted mt-1">
-                      {createJoinType === "auto" ? "Anggota baru langsung bergabung" : "Admin harus menyetujui anggota baru"}
-                    </p>
+                    <div className="mt-2 rounded-xl bg-parchment border border-border p-3 text-xs text-ink-secondary leading-relaxed">
+                      {createJoinType === "auto"
+                        ? "Anggota baru langsung masuk ke klub tanpa perlu persetujuan admin."
+                        : "Anggota baru harus menunggu admin menyetujui permintaannya sebelum bisa masuk."}
+                    </div>
                   </div>
                   {clubError && <p className="text-xs text-red-500">{clubError}</p>}
                   <div className="flex gap-2">
