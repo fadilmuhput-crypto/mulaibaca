@@ -8,6 +8,39 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Before building any feature, consult `VISION.md` — especially the **Product Decision Checklist** (5 yes/no questions) and **Product Principles** (Simplicity First, Habit Over Achievement, Community Makes Reading Better, Build With Users, Progress Not Perfection, Grow the Reading Ecosystem). Every feature must align with the North Star Metric: **jumlah orang yang berhasil mempertahankan kebiasaan membaca**.
 
+# UI/UX Research & Design Skill
+
+Reference: `/Users/fadil/Documents/opencode/mulaibaca/uiux-research-design.skill`
+
+**When to trigger:** Any time a new feature, page, or flow is being designed or evaluated. This applies before AND after building.
+
+**4 stages — match to what's needed:**
+
+| Stage | What it answers | When to use |
+|---|---|---|
+| **Research** | Who are we designing for, what do they need? | New feature with unclear user need |
+| **Define** | What's the specific problem to solve? | Research exists but problem is fuzzy |
+| **Design** | What should it look like and flow like? | Problem is clear, time to shape screens |
+| **Evaluate** | Does this design actually work? | Before/after shipping, audit existing flows |
+
+**For every new feature, apply this checklist:**
+1. Does it align with VISION.md principles? (Product Decision Checklist)
+2. Who is the user and what's their current workaround? (Research/Define)
+3. What are ALL the states — default, loading, empty, error? (Design)
+4. Does it pass Nielsen's 10 heuristics? (Evaluate)
+5. Does it meet WCAG 2.2 AA? — tap targets 44px+, contrast 4.5:1, keyboard accessible, focus visible (Evaluate)
+6. Does it follow platform conventions users already know? (Design — see industry-standards.md)
+
+**Key reference files (read as needed):**
+- `references/evaluation-toolkit.md` — heuristic evaluation template, accessibility check criteria, usability test plan format
+- `references/design-toolkit.md` — IA, user flows, wireframe annotation, handoff spec format
+- `references/research-toolkit.md` — interview guide, persona template, JTBD format, competitive teardown
+- `references/industry-standards.md` — Material 3, HIG, Fluent 2 conventions; tap targets, nav patterns, design tokens
+
+**Output format:** Match to context — inline for quick decisions, saved file for team sharing, wireframe rendering when visual helps.
+
+**Never skip:** Empty states, error states, edge cases. These are where products get designed poorly.
+
 # VAPID Keys (Push Notifications)
 
 ## Setup
@@ -114,3 +147,25 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 - Profile shelves: "Lihat semua" links on done (12+) and want (9+) shelves
 - Silent catches: fixed critical ones in KlubDetailClient with toast notifications
 - Migration: `supabase/migration-bio.sql`
+
+## UX Audit + P0 Fixes (July 2026)
+- Full heuristic evaluation across 76 routes, 38 components using uiux-research-design skill
+- Applied Nielsen's 10 heuristics + WCAG 2.2 AA checks
+
+### P0 Fixes Applied
+- **A1+A2:** ConfirmDialog + FeedbackModal — added `role="dialog"`, `aria-modal="true"`, focus trap, `aria-labelledby`
+- **A3:** Toast dismiss button — 44px touch target + `aria-label`
+- **A4:** Toast container — `role="status"` + `aria-live="polite"`
+- **A5:** LogClient image delete — visible on touch (`sm:opacity-0 sm:group-hover:opacity-100`)
+- **B1:** `globals.css` — added missing `.btn-secondary-sm` class (44px min-height)
+- **B2:** New `/api/setup-profile` endpoint — Google OAuth profile completion (was sending wrong payload to `/api/daftar`)
+- **B3:** `daftar`/`masuk` — fixed progress bar step timing (removed premature `setStep(0)`)
+- **B4:** BookTimer — persist to `localStorage` (survives tab switch, phone calls, refresh)
+- **B5:** QuickLogButtons — error toast on API failure via `useToast`
+- **B6:** ShelfClient — `markReading`/`markDone` error handling + toasts
+- **B7:** Dashboard — added "Komunitas" card section with club count/CTA
+
+### UX Skill Integration
+- UI/UX Research & Design skill loaded from `/Users/fadil/Documents/opencode/mulaibaca/uiux-research-design.skill`
+- Reference files: evaluation-toolkit, design-toolkit, research-toolkit, industry-standards
+- Applied to all future feature development per AGENTS.md guidelines
