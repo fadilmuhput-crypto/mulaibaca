@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import BookCover from "@/components/BookCover";
 import { BookOpen, Bookmark, Trophy, Sparkles, Check, PenLine, ArrowUpDown } from "lucide-react";
+import { useToast } from "@/components/Toast";
 
 type Book = {
   title: string;
@@ -62,6 +63,7 @@ export default function ShelfClient({
   const [startingId, setStartingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("newest");
+  const { show: showToast } = useToast();
 
   const sortOptions = tab === "reading"
     ? [{ value: "newest", label: "Terbaru" }, { value: "a-z", label: "A-Z" }, { value: "z-a", label: "Z-A" }, { value: "progress", label: "Progres" }]
@@ -113,15 +115,21 @@ export default function ShelfClient({
 
   async function markReading(id: string) {
     setStartingId(id);
-    const res = await fetch(`/api/shelf/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "reading" }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setShelf((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
-      setTab("reading");
+    try {
+      const res = await fetch(`/api/shelf/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "reading" }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setShelf((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
+        setTab("reading");
+      } else {
+        showToast("Gagal mengubah status. Coba lagi.", "error");
+      }
+    } catch {
+      showToast("Gagal terhubung. Periksa koneksi internet.", "error");
     }
     setStartingId(null);
   }
@@ -129,28 +137,41 @@ export default function ShelfClient({
   async function markDone(id: string) {
     const item = shelf.find((i) => i.id === id);
     const book = item?.books;
-    const res = await fetch(`/api/shelf/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "done" }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setShelf((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
-      setJustFinished({ id, title: book?.title ?? "Buku" });
-      setTab("done");
+    try {
+      const res = await fetch(`/api/shelf/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "done" }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setShelf((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
+        setJustFinished({ id, title: book?.title ?? "Buku" });
+        setTab("done");
 
-      // Auto-log remaining pages so streak is captured
-      const totalPages = book?.total_pages ?? 0;
-      const currentPage = item?.current_page ?? 0;
-      const remaining = totalPages > currentPage ? totalPages - currentPage : 0;
-      if (remaining > 0) {
-        fetch("/api/log", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ shelfItemId: id, pagesRead: remaining, endPage: totalPages }),
-        });
+        // Auto-log remaining pages so streak is captured
+        const totalPages = book?.total_pages ?? 0;
+        const currentPage = item?.current_page ?? 0;
+        const remaining = totalPages > currentPage ? totalPages - currentPage : 0;
+        if (remaining > 0) {
+          try {
+            const logRes = await fetch("/api/log", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ shelfItemId: id, pagesRead: remaining, endPage: totalPages }),
+            });
+            if (!logRes.ok) {
+              showToast("Buku ditandai selesai, tapi gagal mencatat sisa halaman.", "error");
+            }
+          } catch {
+            showToast("Buku ditandai selesai, tapi gagal mencatat sisa halaman.", "error");
+          }
+        }
+      } else {
+        showToast("Gagal mengubah status. Coba lagi.", "error");
       }
+    } catch {
+      showToast("Gagal terhubung. Periksa koneksi internet.", "error");
     }
   }
 

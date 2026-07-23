@@ -30,7 +30,6 @@ export default function DaftarPage() {
       document.body.focus?.();
     }
     setLoading(true);
-    setStep(0);
     try {
       trackEvent("signup_started");
       setStep(1);

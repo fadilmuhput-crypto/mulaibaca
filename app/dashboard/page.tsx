@@ -8,7 +8,7 @@ import BookCover from "@/components/BookCover";
 import FeedClient from "@/app/feed/FeedClient";
 import ChallengeEntryCard from "@/components/ChallengeEntryCard";
 import { rowToFeedItem, type FeedItem } from "@/lib/feed";
-import { Flame, Target, Check } from "lucide-react";
+import { Flame, Target, Check, Users } from "lucide-react";
 import GoalTrigger from "@/components/GoalTrigger";
 import QuickLogButtons from "@/components/QuickLogButtons";
 export const dynamic = "force-dynamic";
@@ -64,6 +64,7 @@ export default async function DashboardPage() {
 
   // Feed data — query activity_feed
   let feedItems: FeedItem[] = [];
+  let clubCount = 0;
   try {
     const admin = createAdminClient();
     const { data: follows } = await admin
@@ -81,6 +82,13 @@ export default async function DashboardPage() {
         .limit(20);
       feedItems = (rows ?? []).map((r: unknown) => rowToFeedItem(r as Parameters<typeof rowToFeedItem>[0]));
     }
+
+    // Club count for community entry
+    const { count } = await admin
+      .from("club_members")
+      .select("id", { count: "exact", head: true })
+      .eq("member_id", session.memberId);
+    clubCount = count ?? 0;
   } catch { /* graceful degradation */ }
 
   return (
@@ -241,6 +249,25 @@ export default async function DashboardPage() {
             </div>
           </section>
         )}
+
+        {/* ── KOMUNITAS ── */}
+        <Link
+          href={clubCount > 0 ? "/komunitas" : "/komunitas?tab=Jelajahi"}
+          className="flex items-center gap-3 bg-surface rounded-2xl border border-border p-3.5 hover:border-amber/40 transition-colors"
+        >
+          <div className="w-10 h-10 rounded-xl bg-forest/10 flex items-center justify-center flex-shrink-0">
+            <Users size={18} strokeWidth={1.75} className="text-forest" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-ink">Komunitas</p>
+            <p className="text-xs text-ink-muted mt-0.5">
+              {clubCount > 0
+                ? `${clubCount} klub yang kamu ikuti`
+                : "Temukan klub baca dan bergabung"}
+            </p>
+          </div>
+          <span className="text-xs font-bold text-ink-muted">→</span>
+        </Link>
 
         {/* ── TIMELINE ── (main content) */}
         <section>

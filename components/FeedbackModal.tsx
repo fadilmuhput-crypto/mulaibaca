@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { X, MessageSquarePlus, Check, Lightbulb, Bug, BookOpen, Mail } from "lucide-react";
 
 const CATEGORIES = [
@@ -16,6 +16,38 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
+
+  const focusTrap = useCallback((e: KeyboardEvent) => {
+    if (e.key !== "Tab" || !dialogRef.current) return;
+    const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }, []);
+
+  useEffect(() => {
+    previousFocus.current = document.activeElement as HTMLElement;
+    dialogRef.current?.focus();
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKey);
+    document.addEventListener("keydown", focusTrap);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("keydown", focusTrap);
+      previousFocus.current?.focus();
+    };
+  }, [onClose, focusTrap]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,12 +78,17 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
       <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
 
       <div
-        className="relative w-full max-w-lg bg-surface rounded-t-3xl sm:rounded-2xl p-6 space-y-4"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-title"
+        tabIndex={-1}
+        className="relative w-full max-w-lg bg-surface rounded-t-3xl sm:rounded-2xl p-6 space-y-4 outline-none"
         style={{ border: "1.5px solid var(--color-ink)", boxShadow: "var(--shadow-brutal)" }}
       >
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-h3 flex items-center gap-2">
+            <h2 id="feedback-title" className="text-h3 flex items-center gap-2">
               <MessageSquarePlus size={18} strokeWidth={1.75} className="text-amber" />
               Beri Masukan
             </h2>

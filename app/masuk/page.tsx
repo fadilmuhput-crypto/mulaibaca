@@ -30,10 +30,9 @@ function MasukForm() {
       document.body.focus?.();
     }
     setLoading(true);
-    setStep(0);
     try {
       const supabase = createClient();
-      setStep(0);
+      setStep(1);
       const { error: authErr } = await supabase.auth.signInWithPassword({ email, password });
       if (authErr) throw new Error(authErr.message);
       setStep(1);

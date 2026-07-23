@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, useRef } from "react";
 import { X } from "lucide-react";
 
 type ToastType = "error" | "success" | "info";
@@ -23,16 +23,16 @@ export function useToast() {
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [nextId, setNextId] = useState(0);
+  const nextId = useRef(0);
 
-  const show = useCallback((message: string, type: ToastType = "error") => {
-    const id = nextId;
-    setNextId((n) => n + 1);
+  const show = useCallback((message: string, type: ToastType = "info") => {
+    const id = nextId.current;
+    nextId.current += 1;
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
-  }, [nextId]);
+  }, []);
 
   const dismiss = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -42,7 +42,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ show }}>
       {children}
       {/* Toast container */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none w-full max-w-lg px-4">
+      <div
+        className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none w-full max-w-lg px-4"
+        role="status"
+        aria-live="polite"
+      >
         {toasts.map((t) => (
           <div
             key={t.id}
@@ -53,7 +57,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             }`}
           >
             <p className="text-body-sm font-medium">{t.message}</p>
-            <button onClick={() => dismiss(t.id)} className="flex-shrink-0 opacity-70 hover:opacity-100">
+            <button
+              onClick={() => dismiss(t.id)}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0 opacity-70 hover:opacity-100 rounded-lg transition-opacity"
+              aria-label="Tutup"
+            >
               <X size={14} />
             </button>
           </div>

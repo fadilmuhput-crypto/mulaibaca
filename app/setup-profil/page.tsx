@@ -21,12 +21,9 @@ export default function SetupProfilPage() {
     setError("");
     setLoading(true);
     try {
-      const endpoint = mode === "new" ? "/api/daftar" : "/api/bergabung";
-      const body = mode === "new"
-        ? { familyName, memberName, memberAvatar: avatar }
-        : { inviteCode, memberName, memberAvatar: avatar };
+      const body = { mode, memberName, avatar, familyName: mode === "new" ? familyName : undefined, inviteCode: mode === "join" ? inviteCode : undefined };
 
-      const res = await fetch(endpoint, {
+      const res = await fetch("/api/setup-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -147,7 +144,7 @@ export default function SetupProfilPage() {
 
             <button
               type="submit"
-              disabled={loading || !memberName.trim()}
+              disabled={loading || !memberName.trim() || (mode === "new" && !familyName.trim()) || (mode === "join" && !inviteCode.trim())}
               className="btn-primary-full-lg"
             >
               {loading ? "Menyimpan…" : "Selesai →"}

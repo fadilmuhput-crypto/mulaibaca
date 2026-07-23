@@ -108,3 +108,9 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 - Edit review: `/review/tulis?edit=true&shelf=...&rating=...&qAbout=...` pre-fills form, PUT updates existing review
 - Profile picture upload: `/api/upload/avatar` (auto-creates `avatars` bucket), camera icon on edit profile
 - AvatarIcon: supports both icon keys and image URLs (renders `<img>` for URLs)
+
+## P3 Polish
+- Profile bio: `bio` column in members (200 char max), edit in profile, display on `/u/[username]`
+- Profile shelves: "Lihat semua" links on done (12+) and want (9+) shelves
+- Silent catches: fixed critical ones in KlubDetailClient with toast notifications
+- Migration: `supabase/migration-bio.sql`

@@ -107,6 +107,7 @@ export default function LogClient({
   const [doneShelfId, setDoneShelfId] = useState<string | null>(null);
   const [lastLogId, setLastLogId] = useState<string | null>(null);
   const [completedChallenges, setCompletedChallenges] = useState<{ title: string; badge_name: string; badge_icon: string }[]>([]);
+  const [weeklyGoalJustMet, setWeeklyGoalJustMet] = useState(false);
   const toPageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -122,6 +123,16 @@ export default function LogClient({
   const dailyPct = dailyGoal > 0 ? Math.min((todayPages / dailyGoal) * 100, 100) : 0;
   const dailyMet = dailyGoal > 0 && todayPages >= dailyGoal;
   const streakAtRisk = streak.current_streak > 0 && todayLogs.length === 0;
+  const weeklyPct = weeklyPagesGoal > 0 ? Math.min(((todayPages + lastPages) / weeklyPagesGoal) * 100, 100) : 0;
+  const weeklyDone = weeklyPagesGoal > 0 && todayPages + lastPages >= weeklyPagesGoal;
+
+  function closeCelebration() {
+    setCelebrated(false);
+    setDoneShelfId(null);
+    setCompletedChallenges([]);
+    setWeeklyGoalJustMet(false);
+    if (shelf.length === 1) setSelected(shelf[0]);
+  }
 
   const fromNum = parseInt(fromPage) || 0;
   const toNum = parseInt(toPage) || 0;
@@ -246,11 +257,11 @@ export default function LogClient({
       if (isBookDone) {
         setDoneShelfId(selected!.id);
       }
+      if (weeklyPagesGoal > 0 && todayPages + pagesRead >= weeklyPagesGoal && todayPages < weeklyPagesGoal) {
+        setWeeklyGoalJustMet(true);
+      }
       if (shelf.length > 1) setSelected(null);
       router.refresh();
-      if (!isBookDone) {
-        setTimeout(() => router.push("/dashboard"), 4000);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
@@ -325,8 +336,11 @@ export default function LogClient({
 
       {/* ── CELEBRATION POPUP (includes book done state) ── */}
       {celebrated && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => { setCelebrated(false); setDoneShelfId(null); setCompletedChallenges([]); }}>
-          <div className="bg-forest rounded-2xl brutal-border brutal-shadow-sm p-6 text-center max-w-sm w-full mx-4 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeCelebration}>
+          <div className="bg-forest rounded-2xl brutal-border brutal-shadow-sm p-6 text-center max-w-sm w-full mx-4 animate-in fade-in zoom-in-95 duration-200 relative" onClick={(e) => e.stopPropagation()}>
+            <button onClick={closeCelebration} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all" aria-label="Tutup">
+              <X size={16} strokeWidth={2} className="text-white/70" />
+            </button>
             {doneShelfId ? (
               <>
                 <div className="text-4xl mb-3 animate-bounce">🎉</div>
@@ -337,16 +351,28 @@ export default function LogClient({
                   +{lastPages} halaman terakhir
                 </p>
                 {streak.current_streak > 1 ? (
-                  <p className="text-white/60 text-xs mb-5">
+                  <p className="text-white/60 text-xs mb-3">
                     🔥 Streak {streak.current_streak} hari berturut-turut
                   </p>
                 ) : (
-                  <p className="text-white/40 text-[11px] mb-5">Berhasil dicatat</p>
+                  <p className="text-white/40 text-[11px] mb-3">Berhasil dicatat</p>
+                )}
+                {weeklyPagesGoal > 0 && (
+                  <div className="bg-white/10 rounded-xl px-4 py-2.5 mb-3">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-white/70">Target mingguan</span>
+                      <span className="text-white font-semibold">{todayPages + lastPages}/{weeklyPagesGoal} hal</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full rounded-full bg-white transition-all" style={{ width: `${weeklyPct}%` }} />
+                    </div>
+                    {weeklyDone && <p className="text-white/90 text-[11px] mt-1.5 font-medium">🎯 Target mingguan tercapai!</p>}
+                  </div>
                 )}
                 {completedChallenges.length > 0 && completedChallenges.map((c) => (
                   <p key={c.title} className="text-white/70 text-xs mt-1">{c.badge_icon} {c.badge_name}</p>
                 ))}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 mt-4">
                   <Link
                     href={`/review/tulis?shelf=${doneShelfId}`}
                     className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98] text-center"
@@ -354,7 +380,7 @@ export default function LogClient({
                     Tulis Review →
                   </Link>
                   <button
-                    onClick={() => { setCelebrated(false); setDoneShelfId(null); if (shelf.length === 1) setSelected(shelf[0]); }}
+                    onClick={closeCelebration}
                     className="w-full bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
                   >
                     Catat Lagi
@@ -370,19 +396,33 @@ export default function LogClient({
                   +{lastPages} halaman!
                 </div>
                 {streak.current_streak > 1 ? (
-                  <p className="text-white/70 text-sm mb-5">🔥 Streak {streak.current_streak} hari! Terus pertahankan!</p>
+                  <p className="text-white/70 text-sm mb-3">🔥 Streak {streak.current_streak} hari! Terus pertahankan!</p>
                 ) : (
-                  <p className="text-white/70 text-sm mb-5">Bacaan hari ini tercatat. Keep going!</p>
+                  <p className="text-white/70 text-sm mb-3">Bacaan hari ini tercatat. Keep going!</p>
+                )}
+                {weeklyPagesGoal > 0 && (
+                  <div className="bg-white/10 rounded-xl px-4 py-2.5 mb-3">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-white/70">Target mingguan</span>
+                      <span className="text-white font-semibold">{todayPages + lastPages}/{weeklyPagesGoal} hal</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full rounded-full bg-white transition-all" style={{ width: `${weeklyPct}%` }} />
+                    </div>
+                    {weeklyDone && <p className="text-white/90 text-[11px] mt-1.5 font-medium">🎯 Target mingguan tercapai!</p>}
+                  </div>
                 )}
                 {completedChallenges.length > 0 && completedChallenges.map((c) => (
                   <p key={c.title} className="text-white/70 text-xs mb-2">{c.badge_icon} {c.badge_name}</p>
                 ))}
-                <button
-                  onClick={() => { setCelebrated(false); if (shelf.length === 1) setSelected(shelf[0]); }}
-                  className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98]"
-                >
-                  Catat Lagi
-                </button>
+                <div className="flex flex-col gap-2 mt-4">
+                  <button
+                    onClick={closeCelebration}
+                    className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98]"
+                  >
+                    Catat Lagi
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -610,7 +650,7 @@ export default function LogClient({
                       <button
                         type="button"
                         onClick={() => removeImage(url)}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                         aria-label="Hapus gambar"
                       >
                         <X size={10} strokeWidth={3} />

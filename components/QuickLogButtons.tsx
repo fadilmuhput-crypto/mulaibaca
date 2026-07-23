@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Check } from "lucide-react";
+import { useToast } from "@/components/Toast";
 
 const PRESETS = [10, 20, 30];
 
@@ -12,8 +14,22 @@ export default function QuickLogButtons({
   shelfItemId: string;
 }) {
   const router = useRouter();
+  const { show: showToast } = useToast();
   const [toast, setToast] = useState<{ pages: number; bookDone: boolean; completedBadges: { badge_icon: string; badge_name: string }[] } | null>(null);
   const [loading, setLoading] = useState<number | null>(null);
+  const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearDismissTimer = useCallback(() => {
+    if (dismissTimer.current) {
+      clearTimeout(dismissTimer.current);
+      dismissTimer.current = null;
+    }
+  }, []);
+
+  const startDismissTimer = useCallback((ms: number) => {
+    clearDismissTimer();
+    dismissTimer.current = setTimeout(() => { setToast(null); dismissTimer.current = null; }, ms);
+  }, [clearDismissTimer]);
 
   const handleQuickLog = useCallback(async (pages: number) => {
     setLoading(pages);
@@ -23,15 +39,20 @@ export default function QuickLogButtons({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ shelfItemId, pagesRead: pages }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        showToast("Gagal mencatat. Coba lagi.", "error");
+        return;
+      }
       const data = await res.json();
       setToast({ pages, bookDone: data.bookDone ?? false, completedBadges: data.completedChallenges ?? [] });
       router.refresh();
-      setTimeout(() => setToast(null), 2500);
+      startDismissTimer(2500);
+    } catch {
+      showToast("Gagal mencatat. Periksa koneksi internet.", "error");
     } finally {
       setLoading(null);
     }
-  }, [shelfItemId, router]);
+  }, [shelfItemId, router, startDismissTimer, showToast]);
 
   return (
     <>
@@ -49,7 +70,11 @@ export default function QuickLogButtons({
       </div>
 
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-200 pointer-events-none flex flex-col items-center gap-1.5">
+        <div
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-200 pointer-events-auto flex flex-col items-center gap-1.5"
+          onMouseEnter={clearDismissTimer}
+          onMouseLeave={() => startDismissTimer(3000)}
+        >
           <div className="bg-forest text-white rounded-xl px-5 py-3 shadow-lg flex items-center gap-2.5">
             <Check size={16} strokeWidth={2.5} className="text-white/80" />
             <span className="text-sm font-semibold whitespace-nowrap">
@@ -58,6 +83,15 @@ export default function QuickLogButtons({
                 : `+${toast.pages} halaman`}
             </span>
           </div>
+          {toast.bookDone && (
+            <Link
+              href={`/review/tulis?shelf=${shelfItemId}`}
+              onClick={() => { clearDismissTimer(); setToast(null); }}
+              className="bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/30 transition-all"
+            >
+              Tulis Review →
+            </Link>
+          )}
           {toast.completedBadges.map((b) => (
             <div key={b.badge_name} className="bg-forest/90 text-white rounded-xl px-4 py-2 shadow-lg flex items-center gap-1.5">
               <span>{b.badge_icon}</span>

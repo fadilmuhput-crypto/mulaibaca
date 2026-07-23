@@ -3,14 +3,39 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Play, Pause, Square } from "lucide-react";
 
+const TIMER_KEY = "mulaibaca:book-timer";
+
+function loadTimerState() {
+  try {
+    const raw = localStorage.getItem(TIMER_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw) as { elapsed: number; savedAt: number };
+    const elapsedSinceSave = Math.floor((Date.now() - saved.savedAt) / 1000);
+    return { elapsed: saved.elapsed + elapsedSinceSave };
+  } catch {
+    return null;
+  }
+}
+
+function saveTimerState(elapsed: number) {
+  try {
+    localStorage.setItem(TIMER_KEY, JSON.stringify({ elapsed, savedAt: Date.now() }));
+  } catch { /* ignore */ }
+}
+
+function clearTimerState() {
+  try { localStorage.removeItem(TIMER_KEY); } catch { /* ignore */ }
+}
+
 export default function BookTimer({
   onDuration,
 }: {
   onDuration: (minutes: number) => void;
 }) {
+  const saved = useRef(loadTimerState());
   const [running, setRunning] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const [elapsed, setElapsed] = useState(0); // seconds
+  const [paused, setPaused] = useState(!!saved.current);
+  const [elapsed, setElapsed] = useState(saved.current?.elapsed ?? 0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startRef = useRef<number>(0);
 
@@ -29,8 +54,11 @@ export default function BookTimer({
     startRef.current = Date.now() - elapsed * 1000;
     setPaused(false);
     setRunning(true);
+    clearTimerState();
     intervalRef.current = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
+      const now = Math.floor((Date.now() - startRef.current) / 1000);
+      setElapsed(now);
+      saveTimerState(now);
     }, 1000);
   }
 
@@ -40,6 +68,7 @@ export default function BookTimer({
     } else {
       clear();
       setPaused(true);
+      saveTimerState(elapsed);
     }
   }
 
@@ -47,9 +76,11 @@ export default function BookTimer({
     clear();
     setRunning(false);
     setPaused(false);
+    clearTimerState();
     const minutes = Math.round(elapsed / 60);
     if (minutes > 0) onDuration(minutes);
     setElapsed(0);
+    saved.current = null;
   }
 
   const mins = Math.floor(elapsed / 60);
