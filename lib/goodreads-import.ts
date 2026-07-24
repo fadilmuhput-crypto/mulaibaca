@@ -255,6 +255,9 @@ export async function importGoodreadsUrls(urls: string[]): Promise<ImportResult>
   const existingTaKeys = new Set(
     (existingTaRows ?? []).map((r) => `${r.title?.toLowerCase().trim()}|${r.author?.toLowerCase().trim()}`)
   );
+  const existingTitleKeys = new Set(
+    (existingTaRows ?? []).map((r) => r.title?.toLowerCase().trim())
+  );
 
   const result: ImportResult = { imported: 0, skipped: 0, errors: [], books: [] };
 
@@ -340,6 +343,15 @@ export async function importGoodreadsUrls(urls: string[]): Promise<ImportResult>
       continue;
     }
 
+    const unknownAuthor = /^(pengarang tidak diketahui|unknown|anonim|anonymous|n\/a|-)$/i;
+    const titleKey = bookData.title.toLowerCase().trim();
+    if (existingTitleKeys.has(titleKey) && unknownAuthor.test(bookData.author.trim())) {
+      result.skipped++;
+      result.books.push({ title: bookData.title, author: bookData.author, status: "skipped", error: "Judul sudah ada (pengarang tidak dikenal)" });
+      await sleep(500);
+      continue;
+    }
+
     const { error: insertErr } = await supabase.from("books").insert({
       title: bookData.title,
       author: bookData.author,
@@ -364,6 +376,7 @@ export async function importGoodreadsUrls(urls: string[]): Promise<ImportResult>
       if (bookData.isbn) existingIsbns.add(bookData.isbn);
       if (bookData.open_library_id) existingOlIds.add(bookData.open_library_id);
       existingTaKeys.add(taKey);
+      existingTitleKeys.add(titleKey);
     }
 
     await sleep(500);

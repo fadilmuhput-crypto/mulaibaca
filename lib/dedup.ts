@@ -46,6 +46,30 @@ export async function findDuplicateGroups(): Promise<Group[]> {
     groups.push({ key: `TA:${key}`, books: entries, keeper, duplicates });
   }
 
+  // 3. Same title, one has unknown author — match title-only for unknowns
+  const unknownAuthorPattern = /^(pengarang tidak diketahui|unknown|anonim|anonymous|n\/a|-)$/i;
+  const titleMap = new Map<string, Book[]>();
+  for (const b of books as Book[]) {
+    const t = b.title.toLowerCase().trim();
+    if (!titleMap.has(t)) titleMap.set(t, []);
+    titleMap.get(t)!.push(b);
+  }
+  for (const [title, entries] of titleMap) {
+    if (entries.length < 2) continue;
+    const unknowns = entries.filter((b) => unknownAuthorPattern.test((b.author ?? "").trim()));
+    if (unknowns.length === 0) continue;
+    const knowns = entries.filter((b) => !unknownAuthorPattern.test((b.author ?? "").trim()));
+    if (knowns.length === 0) continue;
+    // Each unknown is a duplicate of the best known
+    const keeper = pickBest(knowns);
+    const duplicates = unknowns.filter((b) => b.id !== keeper.id);
+    if (duplicates.length === 0) continue;
+    // Avoid double-counting with groups already found
+    const existingIds = new Set(groups.flatMap((g) => g.books.map((b) => b.id)));
+    if (duplicates.every((d) => existingIds.has(d.id))) continue;
+    groups.push({ key: `TITLE:${title}`, books: [...knowns, ...unknowns], keeper, duplicates });
+  }
+
   return groups;
 }
 
