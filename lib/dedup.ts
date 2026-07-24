@@ -32,10 +32,9 @@ export async function findDuplicateGroups(): Promise<Group[]> {
     groups.push({ key: `OL:${key}`, books: entries, keeper, duplicates });
   }
 
-  // 2. Same title+author (case-insensitive, no OL ID)
+  // 2. Same title+author (case-insensitive, all books including those with OL ID)
   const taMap = new Map<string, Book[]>();
   for (const b of books as Book[]) {
-    if (b.open_library_id) continue;
     const k = `${b.title.toLowerCase().trim()}|${(b.author ?? "").toLowerCase().trim()}`;
     if (!taMap.has(k)) taMap.set(k, []);
     taMap.get(k)!.push(b);

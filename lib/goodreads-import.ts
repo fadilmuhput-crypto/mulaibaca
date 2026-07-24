@@ -249,6 +249,13 @@ export async function importGoodreadsUrls(urls: string[]): Promise<ImportResult>
     .not("open_library_id", "is", null);
   const existingOlIds = new Set((existingOlRows ?? []).map((r) => r.open_library_id));
 
+  const { data: existingTaRows } = await supabase
+    .from("books")
+    .select("title,author");
+  const existingTaKeys = new Set(
+    (existingTaRows ?? []).map((r) => `${r.title?.toLowerCase().trim()}|${r.author?.toLowerCase().trim()}`)
+  );
+
   const result: ImportResult = { imported: 0, skipped: 0, errors: [], books: [] };
 
   for (const rawUrl of urls) {
@@ -325,6 +332,14 @@ export async function importGoodreadsUrls(urls: string[]): Promise<ImportResult>
       continue;
     }
 
+    const taKey = `${bookData.title.toLowerCase().trim()}|${bookData.author.toLowerCase().trim()}`;
+    if (existingTaKeys.has(taKey)) {
+      result.skipped++;
+      result.books.push({ title: bookData.title, author: bookData.author, status: "skipped", error: "Judul+pengarang sudah ada" });
+      await sleep(500);
+      continue;
+    }
+
     const { error: insertErr } = await supabase.from("books").insert({
       title: bookData.title,
       author: bookData.author,
@@ -348,6 +363,7 @@ export async function importGoodreadsUrls(urls: string[]): Promise<ImportResult>
       result.books.push({ title: bookData.title, author: bookData.author, status: "imported" });
       if (bookData.isbn) existingIsbns.add(bookData.isbn);
       if (bookData.open_library_id) existingOlIds.add(bookData.open_library_id);
+      existingTaKeys.add(taKey);
     }
 
     await sleep(500);
