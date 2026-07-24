@@ -2,8 +2,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-route";
 import NavBar from "@/components/NavBar";
 import ShelfClient from "./ShelfClient";
+import CoShelvedSection from "@/components/CoShelvedSection";
+import { getCollaborativeRecs } from "@/lib/recommendations";
+import type { CoShelvedBook } from "@/lib/recommendations";
 
 export default async function RakPage({
   searchParams,
@@ -30,6 +34,21 @@ export default async function RakPage({
       .eq("member_id", session.memberId),
   ]);
 
+  // Collaborative recs from shelf books
+  const myBookIds = (shelf ?? []).map((s: { book_id: string }) => s.book_id).filter(Boolean);
+  const collabIds = await getCollaborativeRecs(session.memberId, myBookIds, 8);
+
+  let collabBooks: CoShelvedBook[] = [];
+  if (collabIds.length > 0) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("books")
+      .select("id, title, author, cover_url, open_library_id, slug")
+      .in("id", collabIds)
+      .eq("is_active", true);
+    collabBooks = data ?? [];
+  }
+
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
       <NavBar session={session} />
@@ -41,6 +60,7 @@ export default async function RakPage({
           </Link>
         </div>
         <ShelfClient initialShelf={shelf ?? []} reviews={reviews ?? []} initialTab={initialTab} />
+        <CoShelvedSection books={collabBooks} />
       </main>
     </div>
   );

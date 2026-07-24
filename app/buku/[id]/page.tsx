@@ -7,6 +7,8 @@ import { createAdminClient } from "@/lib/supabase-route";
 import { getSession } from "@/lib/session";
 import LikeButton from "@/components/LikeButton";
 import ShareButton from "@/components/ShareButton";
+import CoShelvedSection from "@/components/CoShelvedSection";
+import { getCoShelvedBooks } from "@/lib/recommendations";
 
 type OLWork = {
   title?: string;
@@ -309,8 +311,9 @@ export default async function BookDetailPage({
   if (!book) notFound();
 
   const session = await getSession();
-  const [reviews] = await Promise.all([
+  const [reviews, coShelvedBooks] = await Promise.all([
     fetchBookReviews(book.id, book.open_library_id, book.title),
+    getCoShelvedBooks(book.id, [book.id], 8),
   ]);
 
   // Fetch likes for all reviews (2 queries total, no N+1)
@@ -502,6 +505,8 @@ export default async function BookDetailPage({
             </div>
           )}
         </section>
+
+        <CoShelvedSection books={coShelvedBooks} />
       </main>
 
       {/* Sticky bottom bar — Add to Shelf */}
