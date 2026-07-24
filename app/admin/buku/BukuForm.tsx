@@ -201,6 +201,8 @@ export default function BukuForm({
         isbn: prev.isbn || d.isbn,
         description: prev.description || d.description,
         total_pages: prev.total_pages || (d.total_pages ? String(d.total_pages) : ""),
+        publisher: prev.publisher || d.publisher || "",
+        published_year: prev.published_year || (d.published_year ? String(d.published_year) : ""),
       }));
       setGrUrl("");
     } catch {

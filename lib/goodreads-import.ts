@@ -35,6 +35,10 @@ type GoodreadsData = {
   title: string | null;
   author: string | null;
   coverUrl: string | null;
+  description: string | null;
+  publisher: string | null;
+  publishedYear: number | null;
+  pages: number | null;
 };
 
 type BookData = {
@@ -62,7 +66,7 @@ export async function extractISBNFromGoodreads(url: string): Promise<GoodreadsDa
     });
 
     if (!res.ok) {
-      return { isbn: null, title: null, author: null, coverUrl: null };
+      return { isbn: null, title: null, author: null, coverUrl: null, description: null, publisher: null, publishedYear: null, pages: null };
     }
 
     const html = await res.text();
@@ -71,6 +75,10 @@ export async function extractISBNFromGoodreads(url: string): Promise<GoodreadsDa
     let title: string | null = null;
     let author: string | null = null;
     let coverUrl: string | null = null;
+    let description: string | null = null;
+    let publisher: string | null = null;
+    let publishedYear: number | null = null;
+    let pages: number | null = null;
 
     const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
     if (jsonLdMatch) {
@@ -78,9 +86,36 @@ export async function extractISBNFromGoodreads(url: string): Promise<GoodreadsDa
         const ld = JSON.parse(jsonLdMatch[1]);
         isbn = cleanISBN(ld.isbn);
         title = ld.name ?? null;
-        author = typeof ld.author === "string" ? ld.author : (ld.author?.name ?? null);
+
+        // Handle author as array or object
+        if (Array.isArray(ld.author)) {
+          author = ld.author[0]?.name ?? null;
+        } else if (typeof ld.author === "string") {
+          author = ld.author;
+        } else {
+          author = ld.author?.name ?? null;
+        }
+
+        pages = ld.numberOfPages ?? null;
+
+        if (typeof ld.description === "string") {
+          description = ld.description;
+        } else if (ld.description?.value) {
+          description = ld.description.value;
+        }
+
+        if (typeof ld.publisher === "string") {
+          publisher = ld.publisher;
+        } else if (ld.publisher?.name) {
+          publisher = ld.publisher.name;
+        }
+
+        if (ld.datePublished) {
+          const yearMatch = String(ld.datePublished).match(/(\d{4})/);
+          if (yearMatch) publishedYear = parseInt(yearMatch[1]);
+        }
       } catch {
-        // JSON parse error, continue with other methods
+        // JSON parse error
       }
     }
 
@@ -89,6 +124,16 @@ export async function extractISBNFromGoodreads(url: string): Promise<GoodreadsDa
       if (ogTitle) title = ogTitle[1];
     }
 
+    // Author fallback: try title tag "Title by Author | Goodreads"
+    if (!author) {
+      const titleTag = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+      if (titleTag) {
+        const byMatch = titleTag[1].match(/\bby\s+(.+?)(?:\s*\|\s*Goodreads|$)/i);
+        if (byMatch) author = byMatch[1].trim();
+      }
+    }
+
+    // Author fallback: meta name="author"
     if (!author) {
       const authorMeta = html.match(/<meta[^>]*name="author"[^>]*content="([^"]*)"/i);
       if (authorMeta) author = authorMeta[1];
@@ -104,9 +149,52 @@ export async function extractISBNFromGoodreads(url: string): Promise<GoodreadsDa
       if (isbnMatch) isbn = cleanISBN(isbnMatch[1]);
     }
 
-    return { isbn, title, author, coverUrl };
+    // Description fallbacks
+    if (!description) {
+      const descMatch = html.match(/<span[^>]*data-testid="description"[^>]*>([\s\S]*?)<\/span>/i);
+      if (descMatch) description = descMatch[1].replace(/<[^>]+>/g, "").trim();
+    }
+    if (!description) {
+      const aboutMatch = html.match(/class="[^"]*BookPageMetadataSection__description[^"]*"[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>/i);
+      if (aboutMatch) description = aboutMatch[1].replace(/<[^>]+>/g, "").trim();
+    }
+    if (!description) {
+      const ogDesc = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]*)"/i);
+      if (ogDesc) description = ogDesc[1];
+    }
+
+    // Pages fallback
+    if (!pages) {
+      const pagesMatch = html.match(/(\d+)\s*(?:pages|halaman)/i);
+      if (pagesMatch) pages = parseInt(pagesMatch[1]);
+    }
+
+    // Publisher fallback
+    if (!publisher) {
+      const pubMatch = html.match(/Publisher[^<]*<\/span>\s*<span[^>]*>([^<]+)<\/span>/i);
+      if (pubMatch) publisher = pubMatch[1].trim();
+    }
+    if (!publisher) {
+      const pubMatch2 = html.match(/Published[^:]*:\s*([A-Za-z][^<\n,]+)/i);
+      if (pubMatch2) publisher = pubMatch2[1].trim();
+    }
+
+    // Year fallback
+    if (!publishedYear) {
+      const yearMatch = html.match(/First published[^<]*?(\d{4})/i);
+      if (yearMatch) publishedYear = parseInt(yearMatch[1]);
+    }
+    if (!publishedYear) {
+      const yearMatch = html.match(/Published[^<]*?(\w+ \d{1,2},? (\d{4})|\d{4})/i);
+      if (yearMatch) {
+        const y = parseInt(yearMatch[2] ?? yearMatch[1]);
+        if (y > 1000 && y < 2100) publishedYear = y;
+      }
+    }
+
+    return { isbn, title, author, coverUrl, description: description?.substring(0, 2000) || null, publisher, publishedYear, pages };
   } catch {
-    return { isbn: null, title: null, author: null, coverUrl: null };
+    return { isbn: null, title: null, author: null, coverUrl: null, description: null, publisher: null, publishedYear: null, pages: null };
   }
 }
 
@@ -313,9 +401,9 @@ export async function importGoodreadsUrls(urls: string[]): Promise<ImportResult>
           cover_url: grData.coverUrl,
           isbn: grData.isbn,
           open_library_id: null,
-          total_pages: null,
-          published_year: null,
-          description: null,
+          total_pages: grData.pages,
+          published_year: grData.publishedYear,
+          description: grData.description,
           language: "id",
         };
       }
