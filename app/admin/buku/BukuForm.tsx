@@ -140,13 +140,13 @@ export default function BukuForm({
       }
       setForm((prev) => {
         const next = { ...prev };
-        if (data.description && typeof data.description === "string") {
+        if (data.description && typeof data.description === "string" && !prev.description) {
           next.description = data.description;
         }
-        if (data.categories && Array.isArray(data.categories)) {
+        if (data.categories && Array.isArray(data.categories) && prev.categories.length === 0) {
           next.categories = data.categories;
         }
-        if (data.tags && Array.isArray(data.tags)) {
+        if (data.tags && Array.isArray(data.tags) && prev.tags.length === 0) {
           next.tags = data.tags;
         }
         return next;
@@ -195,12 +195,12 @@ export default function BukuForm({
       const d = json.data;
       setForm((prev) => ({
         ...prev,
-        title: d.title ?? prev.title,
-        author: d.author ?? prev.author,
-        cover_url: d.cover_url ?? prev.cover_url,
-        isbn: d.isbn ?? prev.isbn,
-        description: d.description ?? prev.description,
-        total_pages: d.total_pages ? String(d.total_pages) : prev.total_pages,
+        title: prev.title || d.title,
+        author: prev.author || d.author,
+        cover_url: prev.cover_url || d.cover_url,
+        isbn: prev.isbn || d.isbn,
+        description: prev.description || d.description,
+        total_pages: prev.total_pages || (d.total_pages ? String(d.total_pages) : ""),
       }));
       setGrUrl("");
     } catch {
