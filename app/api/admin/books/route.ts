@@ -36,6 +36,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Judul dan pengarang wajib diisi" }, { status: 400 });
   }
 
+  if (!total_pages || Math.floor(Number(total_pages)) < 1) {
+    return NextResponse.json({ error: "Total halaman wajib diisi" }, { status: 400 });
+  }
+
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("books")

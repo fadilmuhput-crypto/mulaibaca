@@ -188,6 +188,10 @@ export default function BukuForm({
       setError("Judul dan pengarang wajib diisi");
       return;
     }
+    if (!form.total_pages || Number(form.total_pages) < 1) {
+      setError("Total halaman wajib diisi");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -310,8 +314,8 @@ export default function BukuForm({
           <input type="number" min={1000} max={2099} value={form.published_year} onChange={(e) => set("published_year", e.target.value)} className="input" placeholder="cth: 2024" />
         </div>
         <div>
-          <label className="input-label">Total Halaman</label>
-          <input type="number" min={1} value={form.total_pages} onChange={(e) => set("total_pages", e.target.value)} placeholder="cth: 320" className="input" />
+          <label className="input-label">Total Halaman *</label>
+          <input type="number" min={1} value={form.total_pages} onChange={(e) => set("total_pages", e.target.value)} placeholder="cth: 320" className="input" required />
         </div>
         <div>
           <label className="input-label">Open Library ID</label>
