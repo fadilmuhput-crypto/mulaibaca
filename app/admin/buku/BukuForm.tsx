@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import BookCover from "@/components/BookCover";
-import { Search, X, Camera, Sparkles } from "lucide-react";
+import { Search, X, Camera, Sparkles, Link2 } from "lucide-react";
 import type { AdminBook } from "./page";
 import { CATEGORY_TREE, findSubCategory } from "@/lib/category-tree";
 
@@ -70,6 +70,10 @@ export default function BukuForm({
   const [olResults, setOlResults] = useState<OLResult[]>([]);
   const [olLoading, setOlLoading] = useState(false);
   const [olOpen, setOlOpen] = useState(false);
+
+  const [grUrl, setGrUrl] = useState("");
+  const [grLoading, setGrLoading] = useState(false);
+  const [grError, setGrError] = useState("");
 
   const [aiEnriching, setAiEnriching] = useState(false);
   const [aiEnrichError, setAiEnrichError] = useState("");
@@ -170,6 +174,42 @@ export default function BukuForm({
     setOlQuery("");
   }
 
+  async function fetchGoodreads() {
+    if (!grUrl.trim() || !grUrl.includes("goodreads.com")) {
+      setGrError("Masukkan URL Goodreads yang valid");
+      return;
+    }
+    setGrLoading(true);
+    setGrError("");
+    try {
+      const res = await fetch("/api/books/fetch-goodreads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: grUrl }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setGrError(json.error ?? "Gagal mengambil data");
+        return;
+      }
+      const d = json.data;
+      setForm((prev) => ({
+        ...prev,
+        title: d.title ?? prev.title,
+        author: d.author ?? prev.author,
+        cover_url: d.cover_url ?? prev.cover_url,
+        isbn: d.isbn ?? prev.isbn,
+        description: d.description ?? prev.description,
+        total_pages: d.total_pages ? String(d.total_pages) : prev.total_pages,
+      }));
+      setGrUrl("");
+    } catch {
+      setGrError("Gagal terhubung ke server");
+    } finally {
+      setGrLoading(false);
+    }
+  }
+
   function addTag() {
     const t = tagInput.trim().toLowerCase();
     if (t && !form.tags.includes(t)) {
@@ -261,6 +301,33 @@ export default function BukuForm({
           </div>
         )}
         {olLoading && <p className="text-xs text-ink-muted mt-2">Mencari…</p>}
+      </div>
+
+      {/* Goodreads Import */}
+      <div className="bg-blue-50/50 rounded-2xl border border-blue-200 p-4">
+        <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-3">
+          Import dari Goodreads
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="url"
+            placeholder="https://www.goodreads.com/book/show/..."
+            value={grUrl}
+            onChange={(e) => setGrUrl(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), fetchGoodreads())}
+            className="input flex-1"
+          />
+          <button
+            type="button"
+            onClick={fetchGoodreads}
+            disabled={grLoading || !grUrl.trim()}
+            className="btn-secondary px-4"
+          >
+            <Link2 size={16} strokeWidth={2} />
+          </button>
+        </div>
+        {grError && <p className="text-xs text-error mt-2">{grError}</p>}
+        {grLoading && <p className="text-xs text-ink-muted mt-2">Mengambil data dari Goodreads…</p>}
       </div>
 
       {/* AI Enrich (edit mode only) */}
