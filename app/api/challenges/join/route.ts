@@ -13,33 +13,47 @@ export async function POST(req: NextRequest) {
 
     const { data: existing } = await admin
       .from("challenge_participants")
-      .select("id, completed_at")
+      .select("id, completed_at, started_at")
       .eq("challenge_id", challengeId)
       .eq("member_id", memberId)
       .maybeSingle();
 
     if (existing) {
-      if (existing.completed_at) {
-        const { data: challenge } = await admin
-          .from("challenges")
-          .select("duration_type")
-          .eq("id", challengeId)
-          .single();
+      const { data: challenge } = await admin
+        .from("challenges")
+        .select("duration_type")
+        .eq("id", challengeId)
+        .single();
 
-        if (challenge && challenge.duration_type !== "unlimited") {
+      const isRecurring = challenge && challenge.duration_type !== "unlimited";
+
+      if (existing.completed_at) {
+        if (isRecurring) {
           const completedDate = new Date(existing.completed_at);
           const bounds = getPeriodBounds(challenge.duration_type);
           if (completedDate < bounds.start) {
             await admin
               .from("challenge_participants")
-              .update({ completed_at: null, progress: 0, started_at: new Date().toISOString() })
+              .update({ completed_at: null, progress: 0, started_at: new Date().toISOString().split("T")[0] })
               .eq("id", existing.id);
             return NextResponse.json({ data: { id: existing.id, reset: true } });
           }
         }
-
         return NextResponse.json({ error: "Already completed this challenge" }, { status: 409 });
       }
+
+      if (isRecurring) {
+        const participantDate = new Date(existing.started_at);
+        const bounds = getPeriodBounds(challenge.duration_type);
+        if (participantDate < bounds.start) {
+          await admin
+            .from("challenge_participants")
+            .update({ progress: 0, started_at: new Date().toISOString().split("T")[0] })
+            .eq("id", existing.id);
+          return NextResponse.json({ data: { id: existing.id, reset: true } });
+        }
+      }
+
       return NextResponse.json({ error: "Already joined this challenge" }, { status: 409 });
     }
 

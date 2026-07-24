@@ -91,8 +91,24 @@ export default function TantanganDetailClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ challengeId: challenge.id, memberId }),
       });
-      if (res.ok) setIsActive(true);
-    } catch {}
+      if (res.ok) {
+        setIsActive(true);
+      } else {
+        const data = await res.json().catch(() => null);
+        const msg = data?.error ?? "Gagal bergabung";
+        if (res.status === 409) {
+          alert(msg === "Already joined this challenge"
+            ? "Kamu sudah mengikuti tantangan ini"
+            : msg === "Already completed this challenge"
+              ? "Kamu sudah menyelesaikan tantangan ini"
+              : msg);
+        } else {
+          alert(msg);
+        }
+      }
+    } catch {
+      alert("Gagal bergabung. Coba lagi.");
+    }
     setJoining(false);
   }
 

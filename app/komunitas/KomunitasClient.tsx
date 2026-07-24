@@ -116,8 +116,20 @@ export default function KomunitasClient({
           setAvailable((prev) => prev.filter((c) => c.id !== challengeId));
           setActive((prev) => [...prev, { ...moved, status: "active" }]);
         }
+      } else {
+        const data = await res.json().catch(() => null);
+        const msg = data?.error ?? "Gagal bergabung";
+        if (res.status === 409) {
+          alert(msg === "Already joined this challenge"
+            ? "Kamu sudah mengikuti tantangan ini"
+            : msg === "Already completed this challenge"
+              ? "Kamu sudah menyelesaikan tantangan ini"
+              : msg);
+        }
       }
-    } catch {}
+    } catch {
+      alert("Gagal bergabung. Coba lagi.");
+    }
     setJoining(null);
   }
 
