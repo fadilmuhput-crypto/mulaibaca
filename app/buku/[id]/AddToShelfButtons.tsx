@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Bookmark, Check, PenLine, RotateCcw, Star } from "lucide-react";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type BookPayload = {
   title: string;
@@ -27,6 +28,7 @@ export default function AddToShelfButtons({ book }: { book: BookPayload }) {
   const [added, setAdded] = useState(false);
   const [check, setCheck] = useState<ShelfCheck | null>(null);
   const [checkLoading, setCheckLoading] = useState(true);
+  const [confirmReread, setConfirmReread] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -97,6 +99,15 @@ export default function AddToShelfButtons({ book }: { book: BookPayload }) {
 
   return (
     <div className="space-y-2">
+      <ConfirmDialog
+        open={confirmReread}
+        title="Baca Lagi?"
+        message={'Status akan diubah ke "Sedang Baca" dan progress reading akan direset.'}
+        confirmLabel="Ya, Baca Lagi"
+        cancelLabel="Batal"
+        onConfirm={() => { setConfirmReread(false); patchStatus("reading"); }}
+        onCancel={() => setConfirmReread(false)}
+      />
       {error && (
         <div className="bg-error-soft border border-error/20 rounded-xl px-4 py-3 text-sm text-error">
           {error}
@@ -173,7 +184,7 @@ export default function AddToShelfButtons({ book }: { book: BookPayload }) {
             <Star size={16} strokeWidth={2} />Tulis Review
           </Link>
           <button
-            onClick={() => patchStatus("reading")}
+            onClick={() => setConfirmReread(true)}
             disabled={!!adding}
             className="btn-secondary w-full min-h-[44px] flex items-center justify-center gap-2"
           >
@@ -193,7 +204,7 @@ export default function AddToShelfButtons({ book }: { book: BookPayload }) {
             <Star size={16} strokeWidth={2} />Lihat Review Saya
           </Link>
           <button
-            onClick={() => patchStatus("reading")}
+            onClick={() => setConfirmReread(true)}
             disabled={!!adding}
             className="btn-secondary w-full min-h-[44px] flex items-center justify-center gap-2"
           >

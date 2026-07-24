@@ -421,6 +421,12 @@ export default async function BookDetailPage({
             <h1 className="font-display font-bold text-xl text-ink leading-tight">{book.title}</h1>
             {book.author && <p className="text-ink-secondary text-sm mt-1">{book.author}</p>}
             <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-xs text-ink-muted">
+              {avgRating > 0 && (
+                <span className="flex items-center gap-1 text-amber font-semibold">
+                  ★ {Math.round(avgRating * 10) / 10}
+                  <span className="font-normal text-ink-muted">({reviews.length} review)</span>
+                </span>
+              )}
               {book.total_pages && (
                 <span className="flex items-center gap-1">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
@@ -465,7 +471,10 @@ export default async function BookDetailPage({
         {/* Reviews section */}
         <div className="divider my-6" />
         <section>
-          <h2 className="text-h3 mb-4">Review dari Pembaca</h2>
+          <h2 className="text-h3 mb-4">
+            Review dari Pembaca
+            {reviews.length > 0 && <span className="text-ink-muted font-normal text-sm ml-2">({reviews.length})</span>}
+          </h2>
           {reviews.length > 0 ? (
             <div className="space-y-3">
               {reviews.map((review) => {
@@ -478,10 +487,15 @@ export default async function BookDetailPage({
                     <Link href={`/review/${review.slug}`} className="block">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <p className="font-medium text-sm text-ink">{review.members?.name}</p>
-                        <div className="flex gap-0.5 flex-shrink-0">
-                          {STARS.map((s) => (
-                            <span key={s} className={`text-sm ${s <= review.rating ? "text-amber" : "text-border"}`}>★</span>
-                          ))}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-ink-muted">
+                            {new Date(review.published_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                          <div className="flex gap-0.5 flex-shrink-0">
+                            {STARS.map((s) => (
+                              <span key={s} className={`text-sm ${s <= review.rating ? "text-amber" : "text-border"}`}>★</span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                       {review.q_about && (

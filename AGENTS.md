@@ -169,3 +169,14 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 - UI/UX Research & Design skill loaded from `/Users/fadil/Documents/opencode/mulaibaca/uiux-research-design.skill`
 - Reference files: evaluation-toolkit, design-toolkit, research-toolkit, industry-standards
 - Applied to all future feature development per AGENTS.md guidelines
+
+## Goodreads Scraping Fix (July 2026)
+- Problem: Goodreads scraper was only extracting title, ISBN, pages; missing author, cover, description, publisher, year
+- Root cause: JSON-LD `author` is an array (`[{name: "C.S. Lewis"}, {name: "Pauline Baynes"}]`), but code accessed `ld.author?.name` (failed on array)
+- Fix applied to both `/api/books/fetch-goodreads/route.ts` and `lib/goodreads-import.ts`:
+  - Author: handle JSON-LD array, fallback to title tag (`"by Author | Goodreads"`), fallback to meta tag
+  - Description: try `data-testid="description"`, try `BookPageMetadataSection__description`, fallback to `og:description`
+  - Publisher: try HTML metadata `Publisher</span><span>`, fallback to `Published: Publisher` pattern
+  - Year: try `First published` text, try `Published: Month Day, Year` pattern
+  - Pages: try `(\d+) pages` pattern
+- `BukuForm.tsx`: copies publisher + published_year from Goodreads fetch response
