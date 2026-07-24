@@ -20,6 +20,20 @@ type OLBook = {
   number_of_pages_median?: number;
 };
 
+type GBBook = {
+  gb_id: string;
+  title: string;
+  author: string | null;
+  isbn: string | null;
+  cover_url: string | null;
+  total_pages: number | null;
+  publisher: string | null;
+  published_year: number | null;
+  description: string | null;
+  categories: string[];
+  language: string | null;
+};
+
 type BookCard = {
   id: string;
   title: string;
@@ -94,6 +108,25 @@ function fromOL(b: OLBook): BookCard {
   };
 }
 
+function fromGB(b: GBBook): BookCard {
+  return {
+    id: `gb_${b.gb_id}`,
+    title: b.title,
+    author: b.author ?? "—",
+    cover_url: b.cover_url,
+    open_library_id: null,
+    total_pages: b.total_pages,
+    description: b.description ?? "",
+    tags: b.categories ?? [],
+    isLokal: false,
+    publisher: b.publisher ?? null,
+    published_year: b.published_year ?? null,
+    rating_avg: null,
+    rating_count: 0,
+    shelf_count: 0,
+  };
+}
+
 // Books augmented with combined categories + tags for category matching
 function augmentBooks(books: Book[]): Book[] {
   return books.map((b) => ({
@@ -151,6 +184,8 @@ export default function JelajahClient({
   const [olResults, setOlResults] = useState<BookCard[] | null>(null);
   const [olLoading, setOlLoading] = useState(false);
   const [olError, setOlError] = useState("");
+  const [gbResults, setGbResults] = useState<BookCard[] | null>(null);
+  const [gbLoading, setGbLoading] = useState(false);
   const [adding, setAdding] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchIdRef = useRef(0);
@@ -263,13 +298,15 @@ export default function JelajahClient({
       .map(fromBook);
   }
 
-  const isSearching = curatedResults !== null || olLoading;
+  const isSearching = curatedResults !== null || olLoading || gbLoading;
 
   useEffect(() => {
     if (!query.trim()) {
       setCuratedResults(null);
       setOlResults(null);
       setOlLoading(false);
+      setGbResults(null);
+      setGbLoading(false);
       setOlError("");
       return;
     }
@@ -284,6 +321,8 @@ export default function JelajahClient({
     const searchId = ++searchIdRef.current;
     setOlLoading(true);
     setOlError("");
+    setGbResults(null);
+    setGbLoading(false);
     try {
       const url = `https://openlibrary.org/search.json?fields=key,title,author_name,cover_i,isbn,number_of_pages_median&limit=12&q=${encodeURIComponent(q)}`;
       const res = await fetch(url);
@@ -292,7 +331,12 @@ export default function JelajahClient({
       const olCards = (data.docs ?? []).map(fromOL);
       const curated = filterCurated(q);
       const seen = new Set(curated.map((b) => b.title.toLowerCase()));
-      setOlResults(olCards.filter((b: BookCard) => !seen.has(b.title.toLowerCase())));
+      const filteredOl = olCards.filter((b: BookCard) => !seen.has(b.title.toLowerCase()));
+      setOlResults(filteredOl);
+
+      if (filteredOl.length < 5 && searchId === searchIdRef.current) {
+        fetchGB(q, searchId);
+      }
     } catch {
       if (searchId !== searchIdRef.current) return;
       setOlError("Gagal memuat dari OpenLibrary.");
@@ -302,11 +346,36 @@ export default function JelajahClient({
     }
   }
 
+  async function fetchGB(q: string, searchId: number) {
+    setGbLoading(true);
+    try {
+      const res = await fetch(`/api/books/search-gb?q=${encodeURIComponent(q)}&lang=id`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (searchId !== searchIdRef.current) return;
+      const gbCards: BookCard[] = ((data.data ?? []) as GBBook[]).map(fromGB);
+      const curated = filterCurated(q);
+      const ol = olResults ?? [];
+      const seen = new Set([
+        ...curated.map((b) => b.title.toLowerCase()),
+        ...ol.map((b) => b.title.toLowerCase()),
+      ]);
+      setGbResults(gbCards.filter((b) => !seen.has(b.title.toLowerCase())));
+    } catch {
+      // silent fail for Google Books fallback
+    } finally {
+      if (searchId !== searchIdRef.current) return;
+      setGbLoading(false);
+    }
+  }
+
   function clearSearch() {
     setQuery("");
     setCuratedResults(null);
     setOlResults(null);
     setOlLoading(false);
+    setGbResults(null);
+    setGbLoading(false);
     setOlError("");
     setShowDropdown(false);
     inputRef.current?.blur();
@@ -347,8 +416,8 @@ export default function JelajahClient({
     }
   }
 
-  const mergedResults = [...(curatedResults ?? []), ...(olResults ?? [])];
-  const noResultsAtAll = isSearching && mergedResults.length === 0 && !olLoading;
+  const mergedResults = [...(curatedResults ?? []), ...(olResults ?? []), ...(gbResults ?? [])];
+  const noResultsAtAll = isSearching && mergedResults.length === 0 && !olLoading && !gbLoading;
 
   return (
     <div className="min-h-screen">
@@ -484,8 +553,17 @@ export default function JelajahClient({
                   <div className="h-full bg-amber rounded-full" style={{ width: "45%" }} />
                 </div>
                 {(curatedResults ?? []).length === 0 && (
-                  <p className="text-center text-xs text-ink-muted pt-1">Mencari…</p>
+                  <p className="text-center text-xs text-ink-muted pt-1">Mencari di OpenLibrary…</p>
                 )}
+              </div>
+            )}
+
+            {gbLoading && (
+              <div className="space-y-2">
+                <div className="w-full h-1 bg-border/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber rounded-full" style={{ width: "75%" }} />
+                </div>
+                <p className="text-center text-xs text-ink-muted pt-1">Mencari di Google Books…</p>
               </div>
             )}
 
@@ -502,7 +580,7 @@ export default function JelajahClient({
               </div>
             )}
 
-            {!olLoading && mergedResults.length > 0 && (
+            {!olLoading && !gbLoading && mergedResults.length > 0 && (
               <div className="rounded-xl bg-parchment border border-border p-4 flex items-center justify-between gap-3">
                 <p className="text-xs text-ink-secondary">Tidak menemukan yang cocok?</p>
                 <Link href={`/jelajah/manual?title=${encodeURIComponent(query)}`} className="btn-ghost-ink text-xs">
