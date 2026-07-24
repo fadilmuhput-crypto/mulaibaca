@@ -59,6 +59,10 @@ function ManualForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
+    if (!pages || parseInt(pages) < 1) {
+      setError("Jumlah halaman wajib diisi");
+      return;
+    }
     if (uploading) { setError("Tunggu foto selesai diupload"); return; }
     setLoading(true);
     setError("");
@@ -181,7 +185,9 @@ function ManualForm() {
 
       {/* Pages */}
       <div>
-        <label className="input-label" htmlFor="pages">Jumlah Halaman</label>
+        <label className="input-label" htmlFor="pages">
+          Jumlah Halaman <span className="text-error">*</span>
+        </label>
         <input
           id="pages"
           type="number"
@@ -190,6 +196,7 @@ function ManualForm() {
           placeholder="Contoh: 320"
           className="input mt-1"
           min={1}
+          required
         />
         <p className="input-hint">Untuk tracking progress membaca</p>
       </div>
@@ -233,7 +240,7 @@ function ManualForm() {
 
       <button
         type="submit"
-        disabled={loading || uploading || !title.trim()}
+        disabled={loading || uploading || !title.trim() || !pages || parseInt(pages) < 1}
         className="btn-primary-full-lg"
       >
         {loading ? "Menyimpan…" : "Simpan ke Rak"}
