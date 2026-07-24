@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookCopy, Users, Star, Layout, FileText, HelpCircle, MessageSquare, BarChart3, MessageCircle, GitCompare } from "lucide-react";
+import { BookCopy, Users, Star, Layout, FileText, HelpCircle, MessageSquare, BarChart3, MessageCircle, GitCompare, Upload } from "lucide-react";
 
 const MENUS = [
   { href: "/admin/buku",     icon: BookCopy,     label: "Buku",          desc: "Kelola katalog buku curated",       color: "text-forest" },
@@ -12,6 +12,7 @@ const MENUS = [
   { href: "/admin/metrics",  icon: BarChart3,    label: "Metrics",       desc: "Dashboard statistik & analitik",     color: "text-forest" },
   { href: "/admin/threads",  icon: MessageCircle, label: "Threads",      desc: "CRM & AI threads",                   color: "text-ink-secondary" },
   { href: "/admin/dedup",    icon: GitCompare,    label: "Dedup",        desc: "Gabung & bersihkan duplikat buku",   color: "text-red-500" },
+  { href: "/admin/import",   icon: Upload,        label: "Import",       desc: "Import buku dari Goodreads",         color: "text-blue-500" },
 ];
 
 export default function AdminDashboard() {
