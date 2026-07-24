@@ -21,6 +21,7 @@ export type AdminBook = {
   is_active: boolean;
   sort_order: number;
   created_at: string;
+  source?: string;
 };
 
 export type LibraryBook = AdminBook & {
@@ -30,20 +31,13 @@ export type LibraryBook = AdminBook & {
 export default async function AdminBukuPage() {
   const admin = createAdminClient();
 
-  const [{ data: allBooks }, { data: withUsage }] = await Promise.all([
-    admin
-      .from("books")
-      .select("*")
-      .order("sort_order", { ascending: true })
-      .order("title", { ascending: true }),
-    admin
-      .from("books")
-      .select("*, shelf_items(count)")
-      .order("created_at", { ascending: false }),
-  ]);
+  const { data: allBooks } = await admin
+    .from("books")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("title", { ascending: true });
 
   const buku = (allBooks ?? []) as AdminBook[];
-  const perpustakaan = (withUsage ?? []) as LibraryBook[];
 
   return (
     <div>
@@ -59,7 +53,6 @@ export default async function AdminBukuPage() {
 
       <BukuAdminClient
         initialBooks={buku}
-        initialLibrary={perpustakaan}
       />
     </div>
   );

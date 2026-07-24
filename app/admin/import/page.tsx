@@ -8,6 +8,7 @@ type ImportBook = {
   author: string;
   status: "imported" | "skipped" | "error";
   error?: string;
+  enrichment_status?: string;
 };
 
 type ImportResult = {
@@ -59,9 +60,9 @@ export default function ImportPage() {
   const downloadReport = useCallback(() => {
     if (!result) return;
     const lines = [
-      "Status,Title,Author,Error",
+      "Status,Title,Author,Source,Enrichment,Error",
       ...result.books.map((b) =>
-        `"${b.status}","${b.title}","${b.author}","${b.error ?? ""}"`
+        `"${b.status}","${b.title}","${b.author}","import","${b.enrichment_status ?? ""}","${b.error ?? ""}"`
       ),
     ];
     const blob = new Blob([lines.join("\n")], { type: "text/csv" });
@@ -155,6 +156,8 @@ export default function ImportPage() {
                       <th className="text-left px-4 py-2 text-xs font-semibold text-ink-muted">Status</th>
                       <th className="text-left px-4 py-2 text-xs font-semibold text-ink-muted">Judul</th>
                       <th className="text-left px-4 py-2 text-xs font-semibold text-ink-muted">Penulis</th>
+                      <th className="text-left px-4 py-2 text-xs font-semibold text-ink-muted">Sumber</th>
+                      <th className="text-left px-4 py-2 text-xs font-semibold text-ink-muted">Enrichment</th>
                       <th className="text-left px-4 py-2 text-xs font-semibold text-ink-muted">Keterangan</th>
                     </tr>
                   </thead>
@@ -168,6 +171,22 @@ export default function ImportPage() {
                         </td>
                         <td className="px-4 py-2 text-ink font-medium truncate max-w-[200px]">{b.title}</td>
                         <td className="px-4 py-2 text-ink-muted truncate max-w-[150px]">{b.author}</td>
+                        <td className="px-4 py-2">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">
+                            Import
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">
+                          {b.status === "imported" && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                              b.enrichment_status === "pending"
+                                ? "bg-amber-soft text-amber border border-amber/20"
+                                : "bg-error-soft text-error border border-error/20"
+                            }`}>
+                              {b.enrichment_status === "pending" ? "Pending" : "Failed"}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-4 py-2 text-xs text-ink-muted">{b.error ?? "—"}</td>
                       </tr>
                     ))}

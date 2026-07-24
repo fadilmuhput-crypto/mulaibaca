@@ -90,6 +90,7 @@ export async function importBooksFromOL(queries?: { q: string; limit: number }[]
           enrichment_status: "pending",
           language: "id",
           is_active: true,
+          source: "cron",
         };
 
         const { error: insertErr } = await supabase.from("books").insert(book);

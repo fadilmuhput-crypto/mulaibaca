@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       bookId = existing.id;
     } else {
       const { data: newBook, error: bookErr } = await supabase
-        .from("books").insert({ ...book, enrichment_status: "pending" }).select("id").single();
+        .from("books").insert({ ...book, enrichment_status: "pending", source: "user_manual" }).select("id").single();
       if (bookErr || !newBook) return NextResponse.json({ error: "Gagal menyimpan buku" }, { status: 500 });
       bookId = newBook.id;
       fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/books/enrich`, {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       bookId = existingByTitle.id;
     } else {
       const { data: newBook, error: bookErr } = await supabase
-        .from("books").insert({ ...book, enrichment_status: "pending" }).select("id").single();
+        .from("books").insert({ ...book, enrichment_status: "pending", source: "user_manual" }).select("id").single();
       if (bookErr || !newBook) return NextResponse.json({ error: "Gagal menyimpan buku" }, { status: 500 });
       bookId = newBook.id;
     }

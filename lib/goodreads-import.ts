@@ -337,6 +337,7 @@ export async function importGoodreadsUrls(urls: string[]): Promise<ImportResult>
       language: bookData.language ?? "id",
       enrichment_status: bookData.open_library_id ? "pending" : "failed",
       is_active: true,
+      source: "import",
     });
 
     if (insertErr) {

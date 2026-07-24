@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("books")
-    .select("*")
+    .select("*, source")
     .order("sort_order", { ascending: true })
     .order("title", { ascending: true });
 
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       language: language || "id",
       is_active: is_active !== false,
       sort_order: 0,
+      source: "admin_manual",
     })
     .select()
     .single();
