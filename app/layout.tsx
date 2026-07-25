@@ -8,7 +8,6 @@ import ReadingModeToggle from "@/components/ReadingModeToggle";
 import ThemeProvider from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/Toast";
 import PwaRegister from "@/components/PwaRegister";
-import SplashScreen from "@/components/SplashScreen";
 import "./globals.css";
 
 const geist = Geist({
@@ -89,16 +88,35 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteLd) }} />
+        <div
+          id="splash"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#1E4530",
+            transition: "opacity 0.4s ease",
+          }}
+        >
+          <div style={{ width: 96, height: 96, borderRadius: 28, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", marginBottom: 20, overflow: "hidden" }}>
+            <img src="/logo.png" alt="" width={80} height={80} style={{ objectFit: "cover" }} />
+          </div>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.75rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", margin: 0 }}>Mulaibaca</h1>
+          <p style={{ color: "#C26E2A", fontSize: "0.875rem", fontWeight: 500, marginTop: 6, letterSpacing: "0.05em" }}>baca, catat, review</p>
+        </div>
+        <script dangerouslySetInnerHTML={{ __html: "(function(){setTimeout(function(){var s=document.getElementById('splash');if(s){s.style.opacity='0';setTimeout(function(){s.remove()},500)}},1500)})()" }} />
         <ThemeProvider>
           <ReadingModeProvider>
             <ToastProvider>
-              <SplashScreen>
-                {children}
-                <ReadingModeToggle />
-                <CookieConsentBanner />
-                <AnalyticsWithConsent />
-                <PwaRegister />
-              </SplashScreen>
+              {children}
+              <ReadingModeToggle />
+              <CookieConsentBanner />
+              <AnalyticsWithConsent />
+              <PwaRegister />
             </ToastProvider>
           </ReadingModeProvider>
         </ThemeProvider>

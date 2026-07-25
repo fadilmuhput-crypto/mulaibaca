@@ -1,5 +1,5 @@
-const CACHE = "mulaibaca-v1";
-const ASSET_CACHE = "mulaibaca-assets-v1";
+const CACHE = "mulaibaca-v2";
+const ASSET_CACHE = "mulaibaca-assets-v2";
 
 // Assets to precache (auto-generated at build)
 const PRECACHE = [];
