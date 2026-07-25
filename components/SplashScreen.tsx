@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const FOREST = "#1E4530";
 const AMBER = "#C26E2A";
@@ -8,42 +8,14 @@ const WHITE = "#FFFFFF";
 
 export default function SplashScreen({ children }: { children: React.ReactNode }) {
   const [phase, setPhase] = useState<"visible" | "fading" | "hidden">("visible");
-  const hidden = useRef(false);
 
   useEffect(() => {
-    if (hidden.current) return;
-    hidden.current = true;
-
-    const minDisplay = 1000;
-    const start = Date.now();
-    const maxWait = 3000;
-
-    function dismiss() {
-      const elapsed = Date.now() - start;
-      const remaining = Math.max(0, minDisplay - elapsed);
-      setTimeout(() => {
-        setPhase("fading");
-        setTimeout(() => setPhase("hidden"), 400);
-      }, remaining);
-    }
-
-    // Fallback: always dismiss after maxWait even if load event never fires
-    const fallbackTimer = setTimeout(dismiss, maxWait);
-
-    if (document.readyState === "complete") {
-      clearTimeout(fallbackTimer);
-      dismiss();
-    } else {
-      function onLoad() {
-        clearTimeout(fallbackTimer);
-        dismiss();
-      }
-      window.addEventListener("load", onLoad, { once: true });
-      return () => {
-        clearTimeout(fallbackTimer);
-        window.removeEventListener("load", onLoad);
-      };
-    }
+    const fadeTimer = setTimeout(() => setPhase("fading"), 1200);
+    const hideTimer = setTimeout(() => setPhase("hidden"), 1700);
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
   }, []);
 
   if (phase === "hidden") return <>{children}</>;
