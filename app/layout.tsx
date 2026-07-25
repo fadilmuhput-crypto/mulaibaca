@@ -108,7 +108,7 @@ export default function RootLayout({
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.75rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", margin: 0 }}>Mulaibaca</h1>
           <p style={{ color: "#C26E2A", fontSize: "0.875rem", fontWeight: 500, marginTop: 6, letterSpacing: "0.05em" }}>baca, catat, review</p>
         </div>
-        <script dangerouslySetInnerHTML={{ __html: "(function(){setTimeout(function(){var s=document.getElementById('splash');if(s){s.style.opacity='0';setTimeout(function(){s.remove()},500)}},1500)})()" }} />
+        <script dangerouslySetInnerHTML={{ __html: "(function(){setTimeout(function(){var s=document.getElementById('splash');if(s){s.style.pointerEvents='none';s.remove()}},1400)})()" }} />
         <ThemeProvider>
           <ReadingModeProvider>
             <ToastProvider>
