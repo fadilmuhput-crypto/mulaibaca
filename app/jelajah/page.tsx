@@ -152,12 +152,31 @@ export default async function JelajahPage() {
   });
   const bookMap = new Map(enrichedBooks.map((b) => [b.id, b]));
 
+  // Quality score: kelengkapan info + popularitas
+  function bookQualityScore(b: Book): number {
+    let completeness = 0;
+    if (b.author) completeness += 2;
+    if (b.description) completeness += 2;
+    if (b.cover_url) completeness += 2;
+    if (b.total_pages) completeness += 1;
+    if (b.publisher) completeness += 1;
+    if (b.published_year) completeness += 1;
+    if (b.language) completeness += 1;
+    if (b.categories && b.categories.length > 0) completeness += 2;
+    if (b.tags && b.tags.length > 0) completeness += 1;
+    const popularity = Math.min(b.shelf_count ?? 0, 50);
+    return completeness * 100 + popularity;
+  }
+
   // Pasangkan buku ke masing-masing section
   const sections: JelajahSection[] = (sectionRows ?? []).map((s) => {
-    const books = (linkRows ?? [])
+    let books = (linkRows ?? [])
       .filter((l: { section_id: string }) => l.section_id === s.id)
       .map((l: { book_id: string }) => bookMap.get(l.book_id))
       .filter(Boolean) as Book[];
+    if (s.type === "grid_v") {
+      books = [...books].sort((a, b) => bookQualityScore(b) - bookQualityScore(a));
+    }
     return { ...s, books } as JelajahSection;
   });
 
