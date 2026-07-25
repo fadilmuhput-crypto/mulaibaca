@@ -64,11 +64,18 @@ export default async function PublicProfilePage({
 
   const { data: member } = await supabase
     .from("members")
-    .select("id, name, avatar, bio")
+    .select("id, name, avatar")
     .eq("username", username.toLowerCase())
     .maybeSingle();
 
   if (!member) notFound();
+
+  // Fetch bio separately — column may not exist on older DBs
+  const { data: bioRow } = await supabase
+    .from("members")
+    .select("bio")
+    .eq("id", member.id)
+    .maybeSingle();
 
   const memberId = member.id as string;
 
@@ -193,8 +200,8 @@ export default async function PublicProfilePage({
           <div>
             <h1 className="font-display font-bold text-xl text-ink">{member.name as string}</h1>
             <p className="text-xs text-ink-muted mt-0.5">@{username}</p>
-            {member.bio && (
-              <p className="text-xs text-ink-secondary mt-1 max-w-[200px]">{member.bio as string}</p>
+            {bioRow?.bio && (
+              <p className="text-xs text-ink-secondary mt-1 max-w-[200px]">{bioRow.bio as string}</p>
             )}
           </div>
         </div>
