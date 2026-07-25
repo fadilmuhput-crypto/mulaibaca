@@ -7,6 +7,8 @@ import type { Book } from "@/lib/books";
 import type { JelajahSection } from "@/lib/jelajah-sections";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export type FamilyBook = {
   memberName: string;
   title: string;
