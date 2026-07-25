@@ -22,7 +22,13 @@ export default function SplashScreen({ children }: { children: React.ReactNode }
 
   return (
     <>
+      <style>{`
+        @keyframes splash-dismiss {
+          to { visibility: hidden !important; pointer-events: none !important; }
+        }
+      `}</style>
       <div
+        id="splash-overlay"
         style={{
           position: "fixed",
           inset: 0,
@@ -34,6 +40,7 @@ export default function SplashScreen({ children }: { children: React.ReactNode }
           background: FOREST,
           transition: "opacity 0.4s ease",
           opacity: phase === "fading" ? 0 : 1,
+          animation: "splash-dismiss 0s 3s forwards",
         }}
       >
         <div
