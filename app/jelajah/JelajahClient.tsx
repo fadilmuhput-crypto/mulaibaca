@@ -250,16 +250,36 @@ export default function JelajahClient({
   // Augment so anak books always have "anak" tag for category matching
   const augmented = augmentBooks(allBooks);
 
+  // Quality score: kelengkapan info + popularitas
+  function bookQualityScore(b: Book): number {
+    let completeness = 0;
+    if (b.author) completeness += 2;
+    if (b.description) completeness += 2;
+    if (b.cover_url) completeness += 2;
+    if (b.total_pages) completeness += 1;
+    if (b.publisher) completeness += 1;
+    if (b.published_year) completeness += 1;
+    if (b.language) completeness += 1;
+    if (b.categories && b.categories.length > 0) completeness += 2;
+    if (b.tags && b.tags.length > 0) completeness += 1;
+    const popularity = Math.min(b.shelf_count ?? 0, 50);
+    return completeness * 100 + popularity;
+  }
+
   const displayBooks: Book[] = (() => {
+    let filtered: Book[];
     if (activeSub) {
       const sub = findSubCategory(activeSub);
-      if (sub) return augmented.filter((b) => b.tags.some((t) => sub.matchTags.includes(t)));
-    }
-    if (activeParent) {
+      if (sub) filtered = augmented.filter((b) => b.tags.some((t) => sub.matchTags.includes(t)));
+      else filtered = augmented;
+    } else if (activeParent) {
       const parent = CATEGORY_TREE.find((c) => c.key === activeParent);
-      if (parent) return augmented.filter((b) => b.tags.some((t) => parent.matchTags.includes(t)));
+      if (parent) filtered = augmented.filter((b) => b.tags.some((t) => parent.matchTags.includes(t)));
+      else filtered = augmented;
+    } else {
+      filtered = augmented;
     }
-    return augmented;
+    return [...filtered].sort((a, b) => bookQualityScore(b) - bookQualityScore(a));
   })();
 
   const activeParentNode = CATEGORY_TREE.find((c) => c.key === activeParent);
