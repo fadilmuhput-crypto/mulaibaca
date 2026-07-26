@@ -12,12 +12,12 @@ import type { FamilyBook } from "./page";
 import type { JelajahSection, BannerConfig } from "@/lib/jelajah-sections";
 
 type OLBook = {
-  key: string;
+  ol_id: string;
   title: string;
-  author_name?: string[];
-  cover_i?: number;
-  isbn?: string[];
-  number_of_pages_median?: number;
+  author: string;
+  cover_url: string | null;
+  total_pages: number | null;
+  already_exists: boolean;
 };
 
 type GBBook = {
@@ -87,16 +87,13 @@ function fromBook(b: Book): BookCard {
 }
 
 function fromOL(b: OLBook): BookCard {
-  const olId = b.key.replace("/works/", "");
   return {
-    id: olId,
+    id: b.ol_id,
     title: b.title,
-    author: b.author_name?.[0] ?? "—",
-    cover_url: b.cover_i
-      ? `https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`
-      : null,
-    open_library_id: olId,
-    total_pages: b.number_of_pages_median ?? null,
+    author: b.author ?? "—",
+    cover_url: b.cover_url,
+    open_library_id: b.ol_id,
+    total_pages: b.total_pages,
     description: "",
     tags: [],
     isLokal: false,
@@ -159,6 +156,7 @@ export default function JelajahClient({
   sections,
   trendingBooks,
   personalBooks,
+  collaborativeBooks,
   memberType,
   memberAge,
   memberName,
@@ -168,6 +166,7 @@ export default function JelajahClient({
   sections: JelajahSection[];
   trendingBooks: Book[];
   personalBooks: Book[];
+  collaborativeBooks: Book[];
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
   memberAge: number | null;
   memberName: string;
@@ -342,11 +341,11 @@ export default function JelajahClient({
     setGbResults(null);
     setGbLoading(false);
     try {
-      const url = `https://openlibrary.org/search.json?fields=key,title,author_name,cover_i,isbn,number_of_pages_median&limit=12&q=${encodeURIComponent(q)}`;
-      const res = await fetch(url);
-      const data = await res.json();
+      const res = await fetch(`/api/books/search-ol?q=${encodeURIComponent(q)}`);
+      if (!res.ok) throw new Error("Gagal mencari");
+      const json = await res.json();
       if (searchId !== searchIdRef.current) return;
-      const olCards = (data.docs ?? []).map(fromOL);
+      const olCards = (json.data ?? []).map(fromOL);
       const curated = filterCurated(q);
       const seen = new Set(curated.map((b) => b.title.toLowerCase()));
       const filteredOl = olCards.filter((b: BookCard) => !seen.has(b.title.toLowerCase()));
@@ -743,6 +742,29 @@ export default function JelajahClient({
                 <SectionLabel>Karena Kamu Baca…</SectionLabel>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
                   {personalBooks.map((b) => {
+                    const c = fromBook(b);
+                    return (
+                      <div key={b.id} className="flex-shrink-0 w-28">
+                        <Link href={bookUrl(c)}>
+                          <BookCover src={b.cover_url} title={b.title} className="w-full h-[100px] rounded-xl mb-1.5" />
+                        </Link>
+                        <Link href={bookUrl(c)} className="hover:text-amber transition-colors">
+                          <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
+                        </Link>
+                        <p className="text-[10px] text-ink-muted truncate">{b.author}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ── Collaborative — pembaca dengan selera sama juga baca ── */}
+            {collaborativeBooks.length > 1 && !activeParent && (
+              <section>
+                <SectionLabel>Pembaca Sepertimu Juga Baca…</SectionLabel>
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
+                  {collaborativeBooks.map((b) => {
                     const c = fromBook(b);
                     return (
                       <div key={b.id} className="flex-shrink-0 w-28">

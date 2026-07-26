@@ -336,39 +336,47 @@ export default function CariClient({ allBooks }: { allBooks: Book[] }) {
                         {r.first_publish_year && `Terbit ${r.first_publish_year}`}
                       </p>
                       <div className="mt-2 flex gap-2">
-                        <button
-                          onClick={async () => {
-                            setAdding(r.ol_id + "want");
-                            try {
-                              const res = await fetch("/api/shelf", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  book: {
-                                    title: r.title,
-                                    author: r.author,
-                                    cover_url: r.cover_url,
-                                    isbn: r.isbn,
-                                    open_library_id: r.ol_id,
-                                    total_pages: r.total_pages,
-                                  },
-                                  status: "want",
-                                }),
-                              });
-                              if (!res.ok) throw new Error();
-                              router.push("/rak");
-                            } catch {
-                              setAdding(null);
-                            }
-                          }}
-                          disabled={!!isAdding || r.already_exists}
-                          className={`btn-primary-sm flex items-center gap-1.5 ${
-                            r.already_exists ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
-                        >
-                          <Bookmark size={12} strokeWidth={2} />
-                          {r.already_exists ? "Sudah ada" : isAdding ? "…" : "Mau Baca"}
-                        </button>
+                        {r.already_exists ? (
+                          <Link
+                            href={`/buku/${r.ol_id}`}
+                            className="btn-ghost-ink text-xs flex items-center gap-1.5"
+                          >
+                            <BookOpen size={12} strokeWidth={2} />
+                            Lihat di katalog
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={async () => {
+                              setAdding(r.ol_id + "want");
+                              try {
+                                const res = await fetch("/api/shelf", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    book: {
+                                      title: r.title,
+                                      author: r.author,
+                                      cover_url: r.cover_url,
+                                      isbn: r.isbn,
+                                      open_library_id: r.ol_id,
+                                      total_pages: r.total_pages,
+                                    },
+                                    status: "want",
+                                  }),
+                                });
+                                if (!res.ok) throw new Error();
+                                router.push("/rak");
+                              } catch {
+                                setAdding(null);
+                              }
+                            }}
+                            disabled={!!isAdding}
+                            className="btn-primary-sm flex items-center gap-1.5"
+                          >
+                            <Bookmark size={12} strokeWidth={2} />
+                            {isAdding ? "…" : "Mau Baca"}
+                          </button>
+                        )}
                         <Link
                           href={`https://openlibrary.org${r.ol_id.startsWith("OL") ? `/works/${r.ol_id}` : ""}`}
                           target="_blank"
