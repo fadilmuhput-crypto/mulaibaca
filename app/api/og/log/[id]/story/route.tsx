@@ -39,15 +39,10 @@ export async function GET(
   };
   const book = shelfRow.books;
 
-  const [{ data: member }, { data: streak }] = await Promise.all([
-    admin.from("members").select("id, name, avatar").eq("id", shelfRow.member_id).single(),
-    admin.from("streaks").select("current_streak").eq("member_id", shelfRow.member_id).maybeSingle(),
-  ]);
+  const { data: member } = await admin.from("members").select("id, name, avatar").eq("id", shelfRow.member_id).single();
 
   const memberName = member?.name ?? "Pembaca";
-  const currentStreak = streak?.current_streak ?? 0;
   const pagesRead = log.pages_read;
-  const duration = log.duration_minutes;
   const noteText = log.note
     ? log.note.slice(0, 150) + (log.note.length > 150 ? "..." : "")
     : null;
@@ -67,11 +62,7 @@ export async function GET(
 
   const bgBase = isTransparent ? "transparent" : isLight ? BG_LIGHT : BG_DARK;
 
-  const statColors = {
-    pages: isTransparent ? "#FFFFFF" : isLight ? "#C26E2A" : isDarkBg ? "#C26E2A" : "#FFFFFF",
-    minutes: isTransparent ? "#FFFFFF" : isLight ? "#1A6B3C" : isDarkBg ? "#BFE040" : "#FFFFFF",
-    streak: isTransparent ? "#FFFFFF" : isLight ? "#DC2626" : isDarkBg ? "#FF6B6B" : "#FFFFFF",
-  };
+  const statColor = isTransparent ? "#FFFFFF" : isLight ? "#C26E2A" : isDarkBg ? "#C26E2A" : "#FFFFFF";
 
   const accentPill = isDarkBg
     ? "rgba(255,255,255,0.07)"
@@ -118,30 +109,16 @@ export async function GET(
         <span style={{ fontSize: "48px", fontWeight: 800, color: textColor, textAlign: "center", lineHeight: 1.3, marginTop: "32px", maxWidth: "720px" }}>{book.title}</span>
         {book.author && <span style={{ fontSize: "24px", color: authorColor, marginTop: "8px", fontWeight: 500 }}>{book.author}</span>}
 
-        {/* Stats row */}
-        <div style={{ display: "flex", gap: "16px", marginTop: "32px" }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: accentPill, borderRadius: "20px", padding: "24px 42px", minWidth: "140px" }}>
-            <span style={{ fontSize: "52px", fontWeight: 800, color: statColors.pages }}>{pagesRead}</span>
-            <span style={{ fontSize: "14px", color: textMuted2, fontWeight: 700, letterSpacing: "2px" }}>HALAMAN</span>
-            {progress !== null && (
-              <div style={{ display: "flex", width: "100%", minWidth: "90px", height: "4px", background: isDarkBg ? "rgba(255,255,255,0.1)" : isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.15)", borderRadius: "2px", marginTop: "10px", overflow: "hidden" }}>
-                <div style={{ display: "flex", width: `${progress}%`, height: "100%", background: "#C26E2A", borderRadius: "2px" }} />
-              </div>
-            )}
+        {/* Progress */}
+        {progress !== null && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: accentPill, borderRadius: "24px", padding: "28px 56px", marginTop: "32px" }}>
+            <span style={{ fontSize: "64px", fontWeight: 800, color: statColor }}>{progress}%</span>
+            <span style={{ fontSize: "14px", color: textMuted2, fontWeight: 700, letterSpacing: "3px", marginTop: "4px" }}>TERBACA</span>
+            <div style={{ display: "flex", width: "240px", height: "5px", background: isDarkBg ? "rgba(255,255,255,0.1)" : isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.15)", borderRadius: "3px", marginTop: "14px", overflow: "hidden" }}>
+              <div style={{ display: "flex", width: `${progress}%`, height: "100%", background: isDarkBg ? "#C26E2A" : "#C26E2A", borderRadius: "3px" }} />
+            </div>
           </div>
-          {duration && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: accentPill, borderRadius: "20px", padding: "24px 42px", minWidth: "140px" }}>
-              <span style={{ fontSize: "52px", fontWeight: 800, color: statColors.minutes }}>{duration}</span>
-              <span style={{ fontSize: "14px", color: textMuted2, fontWeight: 700, letterSpacing: "2px" }}>MENIT</span>
-            </div>
-          )}
-          {currentStreak > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: accentPill, borderRadius: "20px", padding: "24px 42px", minWidth: "140px" }}>
-              <span style={{ fontSize: "52px", fontWeight: 800, color: statColors.streak }}>{currentStreak}</span>
-              <span style={{ fontSize: "14px", color: textMuted2, fontWeight: 700, letterSpacing: "2px" }}>STREAK</span>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Note */}
         {noteText && (
