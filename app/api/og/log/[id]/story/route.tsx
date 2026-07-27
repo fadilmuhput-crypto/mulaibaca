@@ -22,7 +22,7 @@ export async function GET(
     .from("reading_logs")
     .select(`
       id, pages_read, from_page, to_page, duration_minutes, note, log_date, created_at,
-      member_id,
+      member_id, shelf_item_id,
       shelf_items!inner(
         member_id,
         books!inner(id, title, author, cover_url, total_pages)
@@ -48,8 +48,15 @@ export async function GET(
     ? log.note.slice(0, 150) + (log.note.length > 150 ? "..." : "")
     : null;
 
+  const { data: allLogs } = await admin
+    .from("reading_logs")
+    .select("to_page")
+    .eq("shelf_item_id", log.shelf_item_id);
+
+  const maxToPage = allLogs?.reduce((max, l) => Math.max(max, l.to_page ?? 0), 0) ?? log.to_page ?? 0;
+
   const progress = book.total_pages && book.total_pages > 0
-    ? Math.min(Math.round((pagesRead / book.total_pages) * 100), 100)
+    ? Math.min(Math.round((maxToPage / book.total_pages) * 100), 100)
     : null;
 
   const coverUrl = book.cover_url?.startsWith("http") ? book.cover_url : null;
