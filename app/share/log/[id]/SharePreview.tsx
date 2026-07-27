@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import Link from "next/link";
 import { ChevronLeft, Download, Share2, Check, Loader2, BookOpen, Clock, Flame, Moon, Sun, Image as ImageIcon, ChevronLeft as ChevronLeftIcon, ChevronRight } from "lucide-react";
@@ -26,13 +26,22 @@ export default function SharePreview({ logId, feedItemId, book, pagesRead, durat
   const [copied, setCopied] = useState(false);
   const [storyLoaded, setStoryLoaded] = useState(false);
   const [landscapeLoaded, setLandscapeLoaded] = useState(false);
+  const [cumulativeProgress, setCumulativeProgress] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!book.total_pages || book.total_pages <= 0) return;
+    fetch(`/api/log/progress/${logId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.progress != null) setCumulativeProgress(d.progress); })
+      .catch(() => {});
+  }, [logId, book.total_pages]);
 
   const current = BG_STYLES[index];
   const storyUrl = `/api/og/log/${logId}/story?bg=${current.key}`;
 
-  const progress = book.total_pages && book.total_pages > 0
+  const progress = cumulativeProgress ?? (book.total_pages && book.total_pages > 0
     ? Math.min(Math.round((pagesRead / book.total_pages) * 100), 100)
-    : null;
+    : null);
 
   ReactDOM.preload(`/api/og/log/${logId}`, { as: "image" });
   ReactDOM.preload(`/api/og/log/${logId}/story?bg=dark`, { as: "image" });
