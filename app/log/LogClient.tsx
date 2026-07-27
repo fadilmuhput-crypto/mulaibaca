@@ -794,12 +794,7 @@ export default function LogClient({
                       )}
                       <button
                         onClick={() => {
-                          const ogUrl = `${location.origin}/api/og/log/${log.id}`;
-                          if (navigator.share) {
-                            navigator.share({ title: "mulaibaca", text: `Aku baca ${book?.title ?? ""} di mulaibaca 📚`, url: ogUrl }).catch(() => {});
-                          } else {
-                            window.open(ogUrl, "_blank");
-                          }
+                          router.push(`/share/log/${log.id}`);
                         }}
                         className="text-[10px] text-ink-muted/50 hover:text-amber transition-colors flex items-center gap-0.5"
                       >

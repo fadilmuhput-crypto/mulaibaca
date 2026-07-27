@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, BookOpen, Star, CheckCircle, Share2, Heart, MessageCircle, Send, Trash2, Award, BookmarkPlus, ArrowRightLeft, UserPlus, Sparkles } from "lucide-react";
 import type { FeedItem } from "@/lib/feed";
 import type { FeedComment } from "@/app/api/feed/[id]/comments/route";
@@ -101,6 +102,7 @@ function timeAgo(date: string) {
 }
 
 export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; currentMemberId: string | null }) {
+  const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
@@ -133,6 +135,10 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
   }
 
   async function handleShare() {
+    if (item.type === "log" && item.detail.log_id) {
+      router.push(`/share/log/${item.detail.log_id}`);
+      return;
+    }
     const url = `https://www.mulaibaca.id/feed/${item.id}`;
     const text = shareTextFallback();
     if (navigator.share) {

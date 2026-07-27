@@ -107,6 +107,7 @@ function useCommentsState(feedId: string) {
 }
 
 function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: FeedItem; currentMemberId?: string; onDelete?: (id: string) => void; initialLike?: LikeState | null }) {
+  const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
@@ -288,7 +289,7 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
           <span>{comments.length > 0 ? comments.length : ""}</span>
         </button>
         <button
-          onClick={(e) => { e.preventDefault(); shareItem(item); }}
+          onClick={(e) => { e.preventDefault(); shareItem(item, router); }}
           className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-amber transition-colors ml-2 min-h-[44px] px-2"
         >
           <Share2 size={13} /> Bagikan
@@ -441,7 +442,11 @@ function shareText(item: FeedItem): string {
   }
 }
 
-async function shareItem(item: FeedItem) {
+async function shareItem(item: FeedItem, router: ReturnType<typeof useRouter>) {
+  if (item.type === "log" && item.detail.log_id) {
+    router.push(`/share/log/${item.detail.log_id}`);
+    return;
+  }
   const url = `https://www.mulaibaca.id/feed/${item.id}`;
   const text = shareText(item);
   if (navigator.share) {
