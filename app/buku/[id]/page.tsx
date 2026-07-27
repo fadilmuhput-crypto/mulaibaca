@@ -8,7 +8,7 @@ import { getSession } from "@/lib/session";
 import LikeButton from "@/components/LikeButton";
 import ShareButton from "@/components/ShareButton";
 import CoShelvedSection from "@/components/CoShelvedSection";
-import { getCoShelvedBooks } from "@/lib/recommendations";
+import { getCoShelvedBooks, getFallbackRecs } from "@/lib/recommendations";
 
 type OLWork = {
   title?: string;
@@ -316,6 +316,11 @@ export default async function BookDetailPage({
     getCoShelvedBooks(book.id, [book.id], 8),
   ]);
 
+  // Fallback recs: when co-shelved is empty, try tags then author
+  const recommendationBooks = coShelvedBooks.length > 0
+    ? coShelvedBooks
+    : await getFallbackRecs(book.id, book.categories ?? [], book.tags ?? [], book.author, 8);
+
   // Fetch likes for all reviews (2 queries total, no N+1)
   const supabase2 = createAdminClient();
   const reviewIds = reviews.map((r) => r.id);
@@ -520,7 +525,7 @@ export default async function BookDetailPage({
           )}
         </section>
 
-        <CoShelvedSection books={coShelvedBooks} />
+        <CoShelvedSection books={recommendationBooks} isFallback={coShelvedBooks.length === 0 && recommendationBooks.length > 0} />
       </main>
 
       {/* Sticky bottom bar — Add to Shelf */}

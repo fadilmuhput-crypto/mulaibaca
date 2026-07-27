@@ -247,9 +247,9 @@ export default function ShelfClient({
               <Link href={`/review/tulis?shelf=${justFinished.id}`} className="bg-white text-forest text-xs font-semibold px-4 py-2 rounded-lg hover:bg-parchment transition-colors">
                 Tulis Review →
               </Link>
-              <button onClick={() => setJustFinished(null)} className="text-xs text-white/60 hover:text-white min-h-[36px] px-3">
-                Nanti
-              </button>
+              <Link href="/dashboard" className="text-xs text-white/60 hover:text-white min-h-[36px] px-3 flex items-center">
+                Dashboard
+              </Link>
             </div>
           </div>
         </div>

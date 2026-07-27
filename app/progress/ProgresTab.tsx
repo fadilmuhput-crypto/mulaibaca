@@ -68,23 +68,46 @@ export default function ProgresTab({
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const PAD_LEFT = 28;
-  const PAD_RIGHT = 8;
-  const PAD_TOP = 16;
-  const PAD_BOTTOM = 4;
-  const CHART_H = 160;
-  const chartW = Math.max(width - PAD_LEFT - PAD_RIGHT, 0);
-  const stepX = chartData.length > 1 ? chartW / (chartData.length - 1) : 0;
+  // GitHub-style contribution grid (5 weeks × 7 days)
+  const gridData = useMemo(() => {
+    const now = new Date();
+    const readingByDate = new Map(dailyReadings.map((r) => [r.date, r.pages]));
+    const weeks: { date: string; pages: number; label: string; isToday: boolean }[][] = [];
+    // Start from 34 days ago, aligned to Sunday start of week
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - 34);
+    // Align to Sunday
+    startDate.setDate(startDate.getDate() - startDate.getDay());
+    for (let w = 0; w < 5; w++) {
+      const week: { date: string; pages: number; label: string; isToday: boolean }[] = [];
+      for (let d = 0; d < 7; d++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + w * 7 + d);
+        const dateStr = date.toISOString().split("T")[0];
+        const isToday = dateStr === now.toISOString().split("T")[0];
+        const isFuture = date > now;
+        week.push({
+          date: dateStr,
+          pages: isFuture ? 0 : (readingByDate.get(dateStr) ?? 0),
+          label: date.getDate().toString(),
+          isToday,
+        });
+      }
+      weeks.push(week);
+    }
+    return weeks;
+  }, [dailyReadings]);
 
-  const points = chartData.map((d, i) => ({
-    x: PAD_LEFT + i * stepX,
-    y: PAD_TOP + (1 - (maxPages > 0 ? d.pages / maxPages : 0)) * (CHART_H - PAD_TOP - PAD_BOTTOM),
-    ...d,
-  }));
+  function getGridColor(pages: number, isToday: boolean): string {
+    if (isToday) return "ring-2 ring-amber ring-offset-1 ring-offset-surface";
+    if (pages === 0) return "bg-border/30";
+    if (pages <= 10) return "bg-amber/20";
+    if (pages <= 30) return "bg-amber/40";
+    if (pages <= 50) return "bg-amber/60";
+    return "bg-amber";
+  }
 
-  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
-
-  const selectedPoint = selectedIdx !== null ? points[selectedIdx] : null;
+  const [selectedCell, setSelectedCell] = useState<{ date: string; pages: number; x: number; y: number } | null>(null);
 
   function formatDate(iso: string) {
     const d = new Date(iso + "T00:00:00");
@@ -132,55 +155,57 @@ export default function ProgresTab({
           </span>
         </div>
 
-        <div ref={chartRef} className="relative w-full">
-          <svg
-            width="100%"
-            height={CHART_H}
-            viewBox={`0 0 ${width || 300} ${CHART_H}`}
-            className="overflow-visible"
-          >
-            {linePath && (
-              <path d={linePath} fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            )}
-
-            {points.map((p, i) => (
-              <circle
-                key={p.date}
-                cx={p.x}
-                cy={p.y}
-                r={selectedIdx === i ? 5 : 3}
-                fill="none"
-                stroke={p.pages > 0 ? "#D97706" : "#35302A"}
-                strokeWidth={selectedIdx === i ? 2.5 : 1.5}
-                className={`transition-all cursor-pointer ${p.pages > 0 ? "chart-dot-filled" : "chart-dot-empty"}`}
-                onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
-              />
+        {/* Contribution grid */}
+        <div className="relative" ref={chartRef}>
+          <div className="grid grid-cols-5 gap-1">
+            {gridData.map((week, wi) => (
+              <div key={wi} className="grid grid-rows-7 gap-1">
+                {week.map((cell) => (
+                  <button
+                    key={cell.date}
+                    onClick={() => {
+                      if (cell.pages > 0) {
+                        setSelectedCell(selectedCell?.date === cell.date ? null : {
+                          date: cell.date,
+                          pages: cell.pages,
+                          x: 0,
+                          y: 0,
+                        });
+                      }
+                    }}
+                    className={`w-full aspect-square rounded-sm transition-all ${getGridColor(cell.pages, cell.isToday)} ${
+                      cell.pages > 0 ? "cursor-pointer hover:scale-110" : "cursor-default"
+                    }`}
+                    title={`${cell.label} — ${cell.pages} halaman`}
+                  />
+                ))}
+              </div>
             ))}
-          </svg>
-
-          {selectedPoint && (
-            <div
-              className="absolute z-10 bg-ink-card text-white text-xs font-semibold rounded-lg px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none"
-              style={{
-                left: Math.min(selectedPoint.x, (width || 300) - 120),
-                top: Math.max(selectedPoint.y - 36, 4),
-                transform: "translateX(-50%)",
-              }}
-            >
-              {formatDate(selectedPoint.date)} · {selectedPoint.pages} halaman
+          </div>
+          {/* Day labels */}
+          <div className="absolute -left-0 top-0 h-full flex flex-col justify-between pointer-events-none py-0.5">
+            {["Min", "", "Sel", "", "Kam", "", "Sab"].map((label, i) => (
+              <span key={i} className="text-[8px] text-ink-muted leading-none">{label}</span>
+            ))}
+          </div>
+          {selectedCell && (
+            <div className="mt-2 text-center">
+              <span className="text-xs text-ink-secondary">
+                {new Date(selectedCell.date + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short" })} — {selectedCell.pages} halaman
+              </span>
             </div>
           )}
         </div>
 
-        <div className="flex justify-between text-[9px] text-ink-muted">
-          {chartData.filter((_, i) => i % 5 === 0 || i === chartData.length - 1).map((d) => {
-            const date = new Date(d.date + "T00:00:00");
-            return (
-              <span key={d.date}>
-                {date.getDate()}/{date.getMonth() + 1}
-              </span>
-            );
-          })}
+        {/* Legend */}
+        <div className="flex items-center justify-end gap-1.5">
+          <span className="text-[9px] text-ink-muted">Sedikit</span>
+          <div className="w-3 h-3 rounded-sm bg-border/30" />
+          <div className="w-3 h-3 rounded-sm bg-amber/20" />
+          <div className="w-3 h-3 rounded-sm bg-amber/40" />
+          <div className="w-3 h-3 rounded-sm bg-amber/60" />
+          <div className="w-3 h-3 rounded-sm bg-amber" />
+          <span className="text-[9px] text-ink-muted">Banyak</span>
         </div>
       </div>
 

@@ -14,12 +14,12 @@ function bookUrl(b: CoShelvedBook): string {
   return `/buku/${toSlug(b.title)}`;
 }
 
-export default function CoShelvedSection({ books }: { books: CoShelvedBook[] }) {
+export default function CoShelvedSection({ books, isFallback = false }: { books: CoShelvedBook[]; isFallback?: boolean }) {
   if (books.length === 0) return null;
 
   return (
     <section className="mt-8">
-      <h2 className="text-h3 mb-3">Pembaca Lain Juga Baca…</h2>
+      <h2 className="text-h3 mb-3">{isFallback ? "Buku Serupa" : "Pembaca Lain Juga Baca…"}</h2>
       <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
         {books.map((b) => (
           <div key={b.id} className="flex-shrink-0 w-28">

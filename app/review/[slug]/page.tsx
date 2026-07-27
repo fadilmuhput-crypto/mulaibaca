@@ -215,8 +215,8 @@ export default async function PublicReviewPage({
       {session ? (
         <div className="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-ink z-10 px-4 py-3">
           <div className="max-w-lg mx-auto flex items-center gap-3">
-            <Link href="/dashboard" className="flex-1 btn-primary-lg text-center text-sm">
-              ← Dashboard
+            <Link href="/review/tulis" className="flex-1 btn-primary-lg text-center text-sm">
+              Tulis Review
             </Link>
             <Link href="/rak" className="flex-1 btn-ghost-ink text-center text-sm">
               Rak Buku

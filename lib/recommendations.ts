@@ -115,3 +115,79 @@ export async function getCoShelvedBooks(
     .map((id) => bookMap.get(id))
     .filter((b): b is CoShelvedBook => !!b);
 }
+
+export async function getFallbackRecs(
+  bookId: string,
+  categories: string[],
+  tags: string[],
+  author: string | null,
+  limit = 8
+): Promise<CoShelvedBook[]> {
+  const supabase = createAdminClient();
+  const excludeSet = new Set([bookId]);
+  const results: CoShelvedBook[] = [];
+
+  // Strategy 1: same tags/categories
+  const matchTags = [...new Set([...categories, ...tags])].filter(Boolean);
+  if (matchTags.length > 0) {
+    const { data: tagBooks } = await supabase
+      .from("books")
+      .select("id, title, author, cover_url, open_library_id, slug, tags, categories")
+      .eq("is_active", true)
+      .neq("id", bookId)
+      .limit(20);
+
+    if (tagBooks) {
+      const scored = tagBooks
+        .filter((b) => !excludeSet.has(b.id))
+        .map((b) => {
+          const bookTags = [...new Set([...(b.categories ?? []), ...(b.tags ?? [])])];
+          const overlap = matchTags.filter((t) => bookTags.includes(t)).length;
+          return { book: b, score: overlap };
+        })
+        .filter((x) => x.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+      for (const { book } of scored) {
+        if (results.length >= limit) break;
+        excludeSet.add(book.id);
+        results.push({
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          cover_url: book.cover_url,
+          open_library_id: book.open_library_id,
+          slug: book.slug,
+        });
+      }
+    }
+  }
+
+  // Strategy 2: same author (fill remaining slots)
+  if (author && results.length < limit) {
+    const { data: authorBooks } = await supabase
+      .from("books")
+      .select("id, title, author, cover_url, open_library_id, slug")
+      .eq("is_active", true)
+      .eq("author", author)
+      .neq("id", bookId)
+      .limit(limit - results.length);
+
+    if (authorBooks) {
+      for (const book of authorBooks) {
+        if (results.length >= limit || excludeSet.has(book.id)) continue;
+        excludeSet.add(book.id);
+        results.push({
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          cover_url: book.cover_url,
+          open_library_id: book.open_library_id,
+          slug: book.slug,
+        });
+      }
+    }
+  }
+
+  return results.slice(0, limit);
+}

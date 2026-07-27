@@ -274,7 +274,7 @@ export default function LogClient({
 
       {/* ── STREAK HERO — only when no book selected ── */}
       {!selected && (
-        <section className="rounded-2xl p-5 bg-ink-card brutal-border brutal-shadow-sm">
+        <Link href="/progress" className="block rounded-2xl p-5 bg-ink-card brutal-border brutal-shadow-sm hover:opacity-90 transition-opacity">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-amber flex items-center justify-center brutal-shadow-xs">
@@ -321,7 +321,8 @@ export default function LogClient({
               );
             })}
           </div>
-        </section>
+          <p className="text-[10px] text-white/30 text-center mt-3">Lihat progres →</p>
+        </Link>
       )}
 
       {/* ── STREAK AT RISK — only when no book selected ── */}
@@ -379,12 +380,12 @@ export default function LogClient({
                   >
                     Tulis Review →
                   </Link>
-                  <button
-                    onClick={closeCelebration}
-                    className="w-full bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98]"
+                  <Link
+                    href="/log"
+                    className="w-full bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98] text-center"
                   >
                     Catat Lagi
-                  </button>
+                  </Link>
                 </div>
               </>
             ) : (
