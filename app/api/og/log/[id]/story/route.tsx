@@ -45,7 +45,7 @@ export async function GET(
   const pagesRead = log.pages_read;
   const duration = log.duration_minutes;
   const noteText = log.note
-    ? log.note.slice(0, 150) + (log.note.length > 150 ? "..." : "")
+    ? log.note.slice(0, 100) + (log.note.length > 100 ? "..." : "")
     : null;
 
   const { data: allLogs } = await admin
