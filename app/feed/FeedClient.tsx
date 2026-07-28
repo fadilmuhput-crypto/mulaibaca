@@ -289,7 +289,7 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
           <span>{comments.length > 0 ? comments.length : ""}</span>
         </button>
         <button
-          onClick={(e) => { e.preventDefault(); shareItem(item, router); }}
+          onClick={(e) => { e.preventDefault(); shareItem(item, router, currentMemberId); }}
           className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-amber transition-colors ml-2 min-h-[44px] px-2"
         >
           <Share2 size={13} /> Bagikan
@@ -387,8 +387,38 @@ function FeedCard({ item, currentMemberId, onDelete, initialLike }: { item: Feed
   );
 }
 
-function shareText(item: FeedItem): string {
+function shareText(item: FeedItem, isOwn: boolean): string {
   const base = "mulaibaca — baca, catat, review, semua di satu tempat 📚\n\nmulaibaca.id";
+  if (!isOwn) {
+    const name = item.member_name;
+    switch (item.type) {
+      case "log": {
+        let t = `${name} lagi baca "${item.book_title}"`;
+        if (item.detail.pages_read) {
+          t += ` — +${item.detail.pages_read} halaman`;
+          if (item.detail.duration_minutes) t += ` dalam ${item.detail.duration_minutes} menit`;
+        }
+        t += `\n\nLihat aktivitas ${name} di mulaibaca 📚`;
+        const profile = item.member_username ? `\nmulaibaca.id/u/${item.member_username}` : "";
+        return `${t}${profile}`;
+      }
+      case "review": {
+        const slug = item.detail.review_slug;
+        const stars = item.detail.rating ? "⭐".repeat(item.detail.rating) : "";
+        let t = `${name} mereview "${item.book_title}" ${stars}`;
+        if (item.detail.excerpt) t += ` — "${item.detail.excerpt.slice(0, 80)}"`;
+        t += `\n\nBaca review lengkapnya di mulaibaca 📚`;
+        const link = slug ? `\nmulaibaca.id/review/${slug}` : "";
+        return `${t}${link}`;
+      }
+      case "finish": {
+        let t = `${name} selesai baca "${item.book_title}"! 🎉`;
+        const profile = item.member_username ? `\nLihat profil ${name} di mulaibaca.id/u/${item.member_username}` : "";
+        return `${t}${profile}`;
+      }
+      default: return base;
+    }
+  }
   switch (item.type) {
     case "log": {
       let t = `Lagi baca "${item.book_title}" — `;
@@ -442,13 +472,14 @@ function shareText(item: FeedItem): string {
   }
 }
 
-async function shareItem(item: FeedItem, router: ReturnType<typeof useRouter>) {
-  if (item.type === "log" && item.detail.log_id) {
+async function shareItem(item: FeedItem, router: ReturnType<typeof useRouter>, currentMemberId?: string) {
+  const isOwn = !!currentMemberId && item.member_id === currentMemberId;
+  if (isOwn && item.type === "log" && item.detail.log_id) {
     router.push(`/share/log/${item.detail.log_id}`);
     return;
   }
   const url = `https://www.mulaibaca.id/feed/${item.id}`;
-  const text = shareText(item);
+  const text = shareText(item, isOwn);
   if (navigator.share) {
     try {
       await navigator.share({ title: "mulaibaca", text, url });

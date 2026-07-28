@@ -122,6 +122,20 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
 
   function shareTextFallback(): string {
     const base = "mulaibaca — baca, catat, review, semua di satu tempat\n\nmulaibaca.id";
+    const isOwn = currentMemberId === item.member_id;
+    if (!isOwn) {
+      const name = item.member_name;
+      switch (item.type) {
+        case "log":
+          return `${name} lagi baca "${item.book_title}" — +${item.detail.pages_read} halaman${item.detail.duration_minutes ? ` dalam ${item.detail.duration_minutes} menit` : ""}\n\nLihat aktivitas ${name} di mulaibaca 📚\nmulaibaca.id/u/${item.member_username}`;
+        case "review":
+          return `${name} mereview "${item.book_title}" ${item.detail.rating ? "⭐".repeat(item.detail.rating) : ""}\n\nBaca review lengkapnya di mulaibaca 📚\nmulaibaca.id`;
+        case "finish":
+          return `${name} selesai baca "${item.book_title}"! 🎉\n\nLihat profil ${name} di mulaibaca.id/u/${item.member_username}`;
+        default:
+          return base;
+      }
+    }
     switch (item.type) {
       case "log":
         return `Lagi baca "${item.book_title}" — +${item.detail.pages_read} halaman${item.detail.duration_minutes ? ` dalam ${item.detail.duration_minutes} menit` : ""}! Catat progres bacamu juga di mulaibaca 📚\nmulaibaca.id`;
@@ -135,7 +149,8 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
   }
 
   async function handleShare() {
-    if (item.type === "log" && item.detail.log_id) {
+    const isOwn = currentMemberId === item.member_id;
+    if (isOwn && item.type === "log" && item.detail.log_id) {
       router.push(`/share/log/${item.detail.log_id}`);
       return;
     }
@@ -409,7 +424,7 @@ export default function FeedDetail({ item, currentMemberId }: { item: FeedItem; 
           >
             <Share2 size={15} /> <span className="hidden sm:inline">Bagikan</span>
           </button>
-          {item.type === "log" && item.detail.log_id && (
+          {currentMemberId === item.member_id && item.type === "log" && item.detail.log_id && (
             <Link
               href={`/share/log/${item.detail.log_id}`}
               className="flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-amber min-h-[44px] px-3 transition-colors"
