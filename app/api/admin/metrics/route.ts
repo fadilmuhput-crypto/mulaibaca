@@ -123,8 +123,8 @@ export async function GET() {
   // ── Top books ──
   const bookCount: Record<string, { title: string; author: string | null; jumlah: number }> = {};
   for (const item of booksWithUsage ?? []) {
-    const raw = item as { book_id: string; books: { title: string; author: string | null }[] };
-    const book = raw.books?.[0];
+    const raw = item as { book_id: string; books: { title: string; author: string | null } | null };
+    const book = raw.books;
     if (!book) continue;
     if (!bookCount[raw.book_id]) bookCount[raw.book_id] = { title: book.title, author: book.author, jumlah: 0 };
     bookCount[raw.book_id].jumlah++;
