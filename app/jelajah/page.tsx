@@ -1,7 +1,6 @@
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-route";
-import { getCollaborativeRecs } from "@/lib/recommendations";
 import NavBar from "@/components/NavBar";
 import JelajahClient from "./JelajahClient";
 import type { Book } from "@/lib/books";
@@ -213,16 +212,7 @@ export default async function JelajahPage() {
         .slice(0, 10)
     : [];
 
-  // Collaborative recs: users with similar shelves also read…
-  let collaborativeBooks: Book[] = [];
-  if (session && myBookIds.length > 0) {
-    const collabIds = await getCollaborativeRecs(session.memberId, myBookIds, 10);
-    if (collabIds.length > 0) {
-      collaborativeBooks = collabIds
-        .map((id) => enrichedBooks.find((b) => b.id === id))
-        .filter((b): b is Book => !!b && !myBookIds.includes(b.id ?? ""));
-    }
-  }
+  // Collaborative recs removed — redundant with "Karena Kamu Baca…"
 
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
@@ -233,7 +223,6 @@ export default async function JelajahPage() {
         sections={sections}
         trendingBooks={trendingBooks}
         personalBooks={personalBooks}
-        collaborativeBooks={collaborativeBooks}
         memberType={session?.memberType ?? "dewasa"}
         memberAge={session?.memberAge ?? null}
         memberName={session?.memberName ?? "Pengunjung"}

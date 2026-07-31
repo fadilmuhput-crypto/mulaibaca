@@ -156,7 +156,6 @@ export default function JelajahClient({
   sections,
   trendingBooks,
   personalBooks,
-  collaborativeBooks,
   memberType,
   memberAge,
   memberName,
@@ -166,7 +165,6 @@ export default function JelajahClient({
   sections: JelajahSection[];
   trendingBooks: Book[];
   personalBooks: Book[];
-  collaborativeBooks: Book[];
   memberType: "ayah" | "ibu" | "anak" | "dewasa";
   memberAge: number | null;
   memberName: string;
@@ -742,29 +740,6 @@ export default function JelajahClient({
                 <SectionLabel>Karena Kamu Baca…</SectionLabel>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
                   {personalBooks.map((b) => {
-                    const c = fromBook(b);
-                    return (
-                      <div key={b.id} className="flex-shrink-0 w-28">
-                        <Link href={bookUrl(c)}>
-                          <BookCover src={b.cover_url} title={b.title} className="w-full h-[100px] rounded-xl mb-1.5" />
-                        </Link>
-                        <Link href={bookUrl(c)} className="hover:text-amber transition-colors">
-                          <p className="text-[11px] font-medium text-ink line-clamp-2 leading-tight">{b.title}</p>
-                        </Link>
-                        <p className="text-[10px] text-ink-muted truncate">{b.author}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {/* ── Collaborative — pembaca dengan selera sama juga baca ── */}
-            {collaborativeBooks.length > 1 && !activeParent && (
-              <section>
-                <SectionLabel>Pembaca Sepertimu Juga Baca…</SectionLabel>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-fade-wrap">
-                  {collaborativeBooks.map((b) => {
                     const c = fromBook(b);
                     return (
                       <div key={b.id} className="flex-shrink-0 w-28">
