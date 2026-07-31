@@ -151,6 +151,37 @@ export async function GET() {
   const totalCompleted = completedParticipants?.length ?? 0;
   const totalChalPart = (challengeParticipants ?? []).length;
 
+  // ── North Star: jumlah orang yang berhasil mempertahankan kebiasaan membaca ──
+  const readDaysByMember: Record<string, Set<string>> = {};
+  for (const l of logs30d ?? []) {
+    const log = l as { log_date: string; member_id: string };
+    if (!readDaysByMember[log.member_id]) readDaysByMember[log.member_id] = new Set();
+    readDaysByMember[log.member_id].add(log.log_date);
+  }
+
+  const dateMinus = (days: number) => new Date(Date.now() - days * 864e5).toISOString().split("T")[0];
+  const countConsistent = (start: string, end: string, minDays: number) =>
+    Object.values(readDaysByMember).filter(
+      (days) => [...days].filter((d) => d >= start && d <= end).length >= minDays
+    ).length;
+
+  const pembacaKonsisten7d = countConsistent(dateMinus(6), today, 4);
+  const pembacaKonsisten30d = countConsistent(dateMinus(29), today, 15);
+
+  const active7dIds = new Set((logs30d ?? [])
+    .filter((l) => (l as { log_date: string }).log_date >= dateMinus(6))
+    .map((l) => (l as { member_id: string }).member_id));
+  const pemegangStreak = (streaksAll ?? [])
+    .filter((s) => (s as { current_streak: number }).current_streak >= 7 && active7dIds.has((s as { member_id: string }).member_id))
+    .length;
+
+  const habitTrend: { date: string; jumlah: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const end = dateMinus(i);
+    const start = dateMinus(i + 6);
+    habitTrend.push({ date: end, jumlah: countConsistent(start, end, 4) });
+  }
+
   // ── Funnel ──
   const totalAnggota = (membersAll ?? []).length;
   const punyaAuth = (membersAll ?? []).filter((m: { auth_user_id: string | null }) => m.auth_user_id).length;
@@ -210,6 +241,13 @@ export async function GET() {
     },
     growth: { familiesPerDay, membersPerDay },
     activity: { daily: dailyActivity },
+    habit: {
+      pembacaKonsisten7d,
+      pembacaKonsisten30d,
+      pemegangStreak,
+      konsistensiRate: (totalRegistered ?? 0) > 0 ? Math.round((pembacaKonsisten7d / (totalRegistered ?? 0)) * 100) : 0,
+      trend: habitTrend,
+    },
     content: { enrichment, shelfStatus },
     streaks: { distribution: streakDist, avg: avgStreak, max: maxStreak },
     reviews: { total: totalReviews, avgRating, ratingDistribution: ratingDist, perDay: reviewsPerDay },

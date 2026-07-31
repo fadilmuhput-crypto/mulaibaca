@@ -17,6 +17,13 @@ type Metrics = {
   };
   growth: { familiesPerDay: Record<string, number>; membersPerDay: Record<string, number> };
   activity: { daily: { date: string; sesi: number; pembaca: number; halaman: number }[] };
+  habit: {
+    pembacaKonsisten7d: number;
+    pembacaKonsisten30d: number;
+    pemegangStreak: number;
+    konsistensiRate: number;
+    trend: { date: string; jumlah: number }[];
+  };
   content: { enrichment: Record<string, number>; shelfStatus: Record<string, number> };
   streaks: { distribution: { label: string; jumlah: number }[]; avg: number; max: number };
   reviews: { total: number; avgRating: number; ratingDistribution: Record<string, number>; perDay: Record<string, number> };
@@ -177,6 +184,42 @@ export default function MetricsPage() {
           <BarChart3 size={14} strokeWidth={2} /> Refresh
         </button>
       </div>
+
+      {/* ── NORTH STAR — KEBiasaan Membaca ── */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-h3">North Star — Kebiasaan Membaca</h2>
+          <span className="text-[10px] text-ink-muted">Konsisten = baca ≥4 hari dalam 7 hari terakhir</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard label="Pembaca Konsisten 7d" value={data.habit.pembacaKonsisten7d} icon={Flame} color="var(--color-amber)" />
+          <StatCard label="Pembaca Konsisten 30d" value={data.habit.pembacaKonsisten30d} icon={Flame} color="var(--color-lime)" />
+          <StatCard label="Pemegang Kebiasaan" value={data.habit.pemegangStreak} icon={Award} color="var(--color-forest)" />
+          <StatCard label="Rate Konsistensi" value={`${data.habit.konsistensiRate}%`} icon={TrendingUp} color="var(--color-ink)" />
+        </div>
+        <div className="bg-surface rounded-xl border border-border p-5 mt-3">
+          <h3 className="text-sm font-bold text-ink mb-4 flex items-center gap-1.5">
+            <Flame size={14} strokeWidth={2} className="text-amber" />
+            Pembaca Konsisten per Hari (rolling 7 hari)
+          </h3>
+          <p className="text-xs text-ink-muted mb-3">
+            Jumlah user yang membaca ≥4 hari dalam jendela 7 hari berakhir di tanggal tersebut.
+          </p>
+          <div className="space-y-1">
+            {data.habit.trend.length === 0 && <p className="text-xs text-ink-muted">Belum ada data</p>}
+            {data.habit.trend.map((t) => {
+              const max = Math.max(...data.habit.trend.map((x) => x.jumlah), 1);
+              return (
+                <div key={t.date} className="flex items-center gap-2 text-xs">
+                  <span className="w-20 text-ink-muted flex-shrink-0">{t.date.slice(5)}</span>
+                  <MiniBar value={t.jumlah} max={max} color="var(--color-amber)" />
+                  <span className="font-semibold text-ink w-4 text-right">{t.jumlah}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* ── SNAPSHOT ── */}
       <section>

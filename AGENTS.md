@@ -75,6 +75,16 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 
 # Session Log — July 2026
 
+## Vision Audit (July 31 2026)
+- Audited all user-facing features vs VISION.md principles + Product Decision Checklist
+- Findings: 3 overlapping challenge systems (individual /tantangan, family weekly, club_challenges); community surface over-built for current traffic; dead placeholder UI (Acara tab, /bergabung stub, /rak/tambah stubs)
+- **Decision:** collaborative filtering ("Pembaca Sepertimu Juga Baca…") removed from /jelajah — waiting for user traffic before re-enabling. `lib/recommendations.ts` still used by /rak CoShelvedSection.
+
+## P4 — North Star Metric (July 31 2026)
+- `/admin/metrics` + `/api/admin/metrics` now measure **habit retention** (North Star: "jumlah orang yang berhasil mempertahankan kebiasaan membaca")
+- New `habit` block: `pembacaKonsisten7d` (≥4 hari/7 hari), `pembacaKonsisten30d` (≥15 hari/30 hari), `pemegangStreak` (current_streak ≥7 & aktif 7 hari), `konsistensiRate` (7d konsisten / registered), `trend` (rolling 7d per hari, 14 hari)
+- Computed from existing `logs30d` query — no extra DB queries
+
 ## Challenge recurring re-join
 - `getChallengesData()` now checks if `completed_at` is within current period bounds; if from previous period → classify as "available" (not "completed")
 - Join API (`/api/challenges/join`) resets participant record (clear completed_at, reset progress) when re-joining for new period
