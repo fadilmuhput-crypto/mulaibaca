@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { createClient } from "@/lib/supabase-server";
-import { getChallengesData, getPeriodBounds, getPeriodLabel, type Challenge } from "@/lib/challenges";
+import { getChallengesData, getChallengeStage, getPeriodBounds, getPeriodLabel, type Challenge } from "@/lib/challenges";
 import NavBar from "@/components/NavBar";
 import TantanganDetailClient from "./TantanganDetailClient";
 
@@ -15,6 +15,10 @@ export default async function KomunitasTantanganDetailPage({
   if (!session) redirect("/masuk");
 
   const supabase = await createClient();
+
+  // Progressive disclosure: user baru (belum 7 hari baca) belum bisa akses tantangan individual
+  const stage = await getChallengeStage(supabase, session.memberId);
+  if (stage === "basic") redirect("/komunitas");
 
   const { data: challenge } = await supabase
     .from("challenges")

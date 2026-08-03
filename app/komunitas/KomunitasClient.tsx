@@ -4,7 +4,7 @@ import { useState, useEffect, type ElementType } from "react";
 import Link from "next/link";
 import type { ChallengeWithStatus, Badge } from "@/lib/challenges";
 import { formatDeadline } from "@/lib/challenges";
-import { Flame, BookOpen, Award, Library, Users, Calendar, Sparkles, Check, ChevronRight, Plus, LogIn, Copy, Search } from "lucide-react";
+import { Flame, BookOpen, Award, Library, Users, Sparkles, Check, ChevronRight, Plus, LogIn, Copy, Search, Lock, Target } from "lucide-react";
 import BadgePing from "@/components/BadgePing";
 
 type Club = {
@@ -19,7 +19,7 @@ type Club = {
   join_type: "auto" | "approval";
 };
 
-type MainTab = "tantangan" | "klub" | "acara";
+type MainTab = "tantangan" | "klub";
 
 type Props = {
   initialActive: ChallengeWithStatus[];
@@ -27,12 +27,14 @@ type Props = {
   initialCompleted: ChallengeWithStatus[];
   initialBadges: Badge[];
   memberId: string;
+  challengeStage: "basic" | "unlocked";
+  weeklyPages: number;
+  weeklyGoal: number;
 };
 
 const MAIN_TABS: { key: MainTab; label: string; Icon: typeof Users }[] = [
   { key: "tantangan", label: "Tantangan", Icon: Flame },
   { key: "klub",      label: "Klub",      Icon: Users },
-  { key: "acara",     label: "Acara",     Icon: Calendar },
 ];
 
 const ACTIVITY_ICONS: Record<string, ElementType> = {
@@ -53,6 +55,9 @@ export default function KomunitasClient({
   initialCompleted,
   initialBadges,
   memberId,
+  challengeStage,
+  weeklyPages,
+  weeklyGoal,
 }: Props) {
   const [mainTab, setMainTab] = useState<MainTab>("tantangan");
   const [badges] = useState(initialBadges);
@@ -160,6 +165,44 @@ export default function KomunitasClient({
       {/* ── TAB 1: TANTANGAN ── */}
       {mainTab === "tantangan" && (
         <div className="space-y-5">
+          {challengeStage === "basic" ? (
+            <>
+              {/* Basic: fokus ke konsep mingguan dulu */}
+              <section className="bg-surface rounded-2xl border border-border p-4 space-y-3">
+                <h2 className="text-xs font-black uppercase tracking-widest text-ink-muted flex items-center gap-1.5">
+                  <Target size={12} strokeWidth={2} />
+                  Target Minggu Ini
+                </h2>
+                {weeklyGoal > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-ink font-medium">{weeklyPages} halaman</span>
+                      <span className="font-bold text-ink">{Math.min(Math.round((weeklyPages / weeklyGoal) * 100), 100)}%</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: `${Math.min(Math.round((weeklyPages / weeklyGoal) * 100), 100)}%` }} />
+                    </div>
+                    <p className="text-xs text-ink-muted">
+                      Target: {weeklyGoal} halaman / minggu
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-ink">Atur target halaman mingguanmu untuk mulai tantangan baca.</p>
+                )}
+              </section>
+
+              <section className="card-elevated flex flex-col items-center justify-center py-10 text-center space-y-3">
+                <div className="w-14 h-14 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center">
+                  <Lock size={22} strokeWidth={1.75} className="text-ink-muted" />
+                </div>
+                <h3 className="text-h3">Tantangan Lain Terkunci</h3>
+                <p className="text-body-sm text-ink-muted max-w-xs">
+                  Baca di 7 hari berbeda untuk membuka lencana dan tantangan membaca lainnya. Fokus dulu ke target mingguanmu!
+                </p>
+              </section>
+            </>
+          ) : (
+          <>
           {/* Badge gallery */}
           {badges.length > 0 && (
             <section className="bg-surface rounded-2xl border border-border p-4 space-y-3">
@@ -260,6 +303,8 @@ export default function KomunitasClient({
                 );
               })}
             </div>
+          )}
+          </>
           )}
         </div>
       )}
@@ -528,17 +573,6 @@ export default function KomunitasClient({
               )}
             </div>
           )}
-        </div>
-      )}
-
-      {/* ── TAB 3: ACARA ── */}
-      {mainTab === "acara" && (
-        <div className="card-elevated flex flex-col items-center justify-center py-16 text-center space-y-3">
-          <div className="w-14 h-14 rounded-full bg-parchment brutal-border brutal-shadow-xs flex items-center justify-center">
-            <Calendar size={24} strokeWidth={1.5} className="text-ink-muted" />
-          </div>
-          <h2 className="text-h3">Acara</h2>
-          <p className="text-body-sm text-ink-muted max-w-xs">Fitur acara baca akan segera hadir. Pantau terus!</p>
         </div>
       )}
     </main>

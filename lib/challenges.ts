@@ -90,8 +90,7 @@ export async function getChallengesData(
   active: ChallengeWithStatus[];
   completed: ChallengeWithStatus[];
   badges: Badge[];
-}> {
-  const bounds = {
+}> {  const bounds = {
     weekly: getPeriodBounds("weekly"),
     monthly: getPeriodBounds("monthly"),
   };
@@ -166,6 +165,24 @@ export async function getChallengesData(
 
 export function isCompleted(progress: number, goal: number): boolean {
   return progress >= goal;
+}
+
+export type ChallengeStage = "basic" | "unlocked";
+
+// Progressive disclosure: fitur challenge "lebih" (badges, tantangan individual)
+// baru terbuka setelah user membuktikan kebiasaan — total 7 hari baca.
+export async function getChallengeStage(
+  supabase: any,
+  memberId: string
+): Promise<ChallengeStage> {
+  const { data: logs } = await supabase
+    .from("reading_logs")
+    .select("log_date")
+    .eq("member_id", memberId)
+    .limit(1000);
+
+  const distinctDays = new Set((logs ?? []).map((l: { log_date: string }) => l.log_date)).size;
+  return distinctDays >= 7 ? "unlocked" : "basic";
 }
 
 export type SupabaseClient = any;

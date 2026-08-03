@@ -75,6 +75,17 @@ See `supabase/pengingat-baca.sql` — adds `reminder_enabled` and `reminder_time
 
 # Session Log — July 2026
 
+## P3 — Progressive Challenge Disclosure (July 31 2026)
+- **Decision:** challenges use progressive disclosure instead of harmonizing to one system. New users see only the weekly concept ("Target Minggu Ini"); badges + individual challenges unlock after **7 distinct reading days** (chosen over streak-7 as it aligns with "Progress Not Perfection")
+- New `getChallengeStage()` in `lib/challenges.ts` — returns `"basic" | "unlocked"` based on distinct `reading_logs.log_date` count
+- `/komunitas` tab "Tantangan": basic users see weekly goal progress + locked teaser (no badges/challenge grid); unlocked users see full experience
+- `/komunitas/tantangan/[id]`: redirects basic users back to `/komunitas`
+- Club challenges remain gated by club membership; family weekly challenge (lingkar-baca) stays open to all
+
+## P1 — Placeholder Cleanup (July 31 2026)
+- Removed "Acara" coming-soon tab from `/komunitas` (KomunitasClient)
+- Kept `/bergabung` + `/rak/tambah*` redirects as URL hygiene (prevents 404s on old links) — not visible dead UI
+
 ## Vision Audit (July 31 2026)
 - Audited all user-facing features vs VISION.md principles + Product Decision Checklist
 - Findings: 3 overlapping challenge systems (individual /tantangan, family weekly, club_challenges); community surface over-built for current traffic; dead placeholder UI (Acara tab, /bergabung stub, /rak/tambah stubs)
