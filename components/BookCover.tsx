@@ -27,6 +27,7 @@ export default function BookCover({ src, title, className = "w-12 h-16 rounded-l
         src={src}
         alt={title}
         fill
+        unoptimized
         sizes="96px"
         className="object-cover"
         onError={() => setFailed(true)}
