@@ -109,6 +109,7 @@ export default function LogClient({
   const [completedChallenges, setCompletedChallenges] = useState<{ title: string; badge_name: string; badge_icon: string }[]>([]);
   const [weeklyGoalJustMet, setWeeklyGoalJustMet] = useState(false);
   const toPageRef = useRef<HTMLInputElement>(null);
+  const lastShelfIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (defaultBookId && shelf.length > 0 && !selected) {
@@ -132,6 +133,24 @@ export default function LogClient({
     setCompletedChallenges([]);
     setWeeklyGoalJustMet(false);
     if (shelf.length === 1) setSelected(shelf[0]);
+  }
+
+  function logAgain() {
+    const doneId = doneShelfId;
+    setCelebrated(false);
+    setDoneShelfId(null);
+    setCompletedChallenges([]);
+    setWeeklyGoalJustMet(false);
+    const candidates = shelf.filter((s) => s.id !== doneId);
+    const lastItem = candidates.find((s) => s.id === lastShelfIdRef.current);
+    if (lastItem) {
+      setSelected(lastItem);
+    } else if (candidates.length === 1) {
+      setSelected(candidates[0]);
+    } else {
+      setSelected(null);
+    }
+    setTimeout(() => toPageRef.current?.focus(), 0);
   }
 
   const fromNum = parseInt(fromPage) || 0;
@@ -239,6 +258,7 @@ export default function LogClient({
         }
       }
       setLastLogId(data.log?.id ?? null);
+      lastShelfIdRef.current = selected!.id;
       toPageRef.current?.blur();
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
@@ -380,12 +400,12 @@ export default function LogClient({
                   >
                     Tulis Review →
                   </Link>
-                  <Link
-                    href="/log"
+                  <button
+                    onClick={logAgain}
                     className="w-full bg-white/10 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-white/20 transition-all active:scale-[0.98] text-center"
                   >
-                    Catat Lagi
-                  </Link>
+                    Pilih Buku Lain
+                  </button>
                 </div>
               </>
             ) : (
@@ -418,7 +438,7 @@ export default function LogClient({
                 ))}
                 <div className="flex flex-col gap-2 mt-4">
                   <button
-                    onClick={closeCelebration}
+                    onClick={logAgain}
                     className="w-full bg-white text-ink font-bold text-sm py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-[0.98]"
                   >
                     Catat Lagi
