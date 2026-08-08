@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Brand Guideline — Mulaibaca",
   description: "Panduan warna, tipografi, dan komponen UI untuk brand Mulaibaca.",
-  robots: { index: false },
 };
 
 type Swatch = {
